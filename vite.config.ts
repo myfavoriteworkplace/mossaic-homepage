@@ -8,6 +8,9 @@ export default defineConfig({
     port: 5000,
     strictPort: true,
     allowedHosts: true,
+    watch: {
+      ignored: ["**/.local/**", "**/.git/**", "**/.cache/**", "**/.agents/**"],
+    },
   },
   preview: {
     host: "0.0.0.0",
