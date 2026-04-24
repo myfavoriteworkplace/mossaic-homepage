@@ -1,6 +1,13 @@
 # Mossaic Homepage
 
-A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in) and the upcoming Retail CRM and AI Imaging products. Positioned as a company website (Mission / Vision / About) with bookMySlot featured only in the Products section. Designed to feel like a tech company first impression: animated particle hero, 3D tilt cards, magnetic CTAs, scroll-driven reveals, a Bricolage Grotesque + Inter + Geist Mono type system on a moss-green palette, and a built-in Light / Dark / Mono theme switcher.
+A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in) and the upcoming Retail CRM and AI Imaging products. Positioned as a company website (Mission / Vision / About) with bookMySlot featured only in the Products section.
+
+**Brand identity:**
+- **Hex Core** mark — 7-hex cluster (1 luminous cyan center + 6 deep-blue ring hexes, two break-away) — `src/components/Logo.tsx`
+- **Wordmark:** `moss[AI]c` — the **AI** letters render in a glowing cyan→blue gradient — `src/components/ui/Wordmark.tsx`
+- **Tagline:** "The future, assembled."
+- **Type:** Bricolage Grotesque (display) + Inter (body) + Geist Mono (code)
+- **Default theme:** Aurora (deep navy + cyan AI glow). Alternates: Light, Moss (the original green), Mono.
 
 ## Tech stack
 

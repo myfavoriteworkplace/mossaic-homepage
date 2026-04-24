@@ -1,5 +1,7 @@
 import { Linkedin, Twitter, Github } from "lucide-react";
 import Logo from "./Logo";
+import Wordmark from "./ui/Wordmark";
+import { TAGLINE } from "../data/site";
 
 const COLS = [
   {
@@ -35,23 +37,19 @@ export default function Footer() {
       style={{
         background: "var(--moss-deeper)",
         padding: "60px var(--pad) 36px",
-        borderTop: "1px solid rgba(86,201,158,0.1)",
+        borderTop: "1px solid rgba(34,211,238,0.12)",
       }}
     >
       <div className="max-w-container mx-auto">
         <div className="grid gap-12 md:grid-cols-2 lg:[grid-template-columns:1.5fr_1fr_1fr_1fr] mb-12">
           <div>
             <div className="flex items-center gap-2.5 mb-3.5">
-              <span className="w-[30px] h-[30px] rounded-md bg-moss flex items-center justify-center">
-                <Logo size={16} />
-              </span>
-              <span className="display text-lg font-bold text-white tracking-tight">
-                mos<span style={{ color: "rgb(var(--accent-mid-rgb))" }}>saic</span>
-              </span>
+              <Logo size={32} idSuffix="footer" />
+              <Wordmark variant="footer" textColor="#fff" />
             </div>
             <p className="text-[13px] text-white/40 leading-relaxed mb-5 max-w-xs">
               Building modular, India-first SaaS for industries that have
-              been underserved by generic software.
+              been underserved by generic software. Explainable AI at the core.
             </p>
             <div className="flex gap-2">
               {[
@@ -64,7 +62,7 @@ export default function Footer() {
                   href={s.href}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="w-8 h-8 rounded-md bg-white/5 border border-white/10 hover:bg-moss/20 hover:border-[rgba(86,201,158,0.3)] flex items-center justify-center text-white/50 hover:text-white transition-all"
+                  className="w-8 h-8 rounded-md bg-white/5 border border-white/10 hover:bg-moss/20 hover:border-[rgba(34,211,238,0.35)] flex items-center justify-center text-white/50 hover:text-white transition-all"
                   aria-label="Social link"
                 >
                   {s.icon}
@@ -94,8 +92,8 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/[0.06] pt-6 flex items-center justify-between flex-wrap gap-3">
-          <span className="display text-sm text-white/40 tracking-tight">
-            Modular. Compliant. Built for India.
+          <span className="display text-sm text-white/50 tracking-tight">
+            {TAGLINE}
           </span>
           <span className="text-xs text-white/25">
             © {new Date().getFullYear()} Mossaic Technologies. All rights reserved.

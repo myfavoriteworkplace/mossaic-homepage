@@ -205,9 +205,13 @@ export const CONTACT_INTERESTS = [
   "Careers at Mossaic",
 ];
 
+export const TAGLINE = "The future, assembled.";
+
 export const SITE = {
   name: "Mossaic",
-  tagline: "Modular SaaS, built for India.",
+  tagline: TAGLINE,
+  /** Secondary technical credibility line — sits below the tagline. */
+  techPill: "Modular SaaS · Built in India · DISHA ready",
   email: "connect@mossaic.in",
   location: "Kerala, India · Remote-first team",
   domains: "mossaic.in · bookmyslot.dental.mossaic.in",

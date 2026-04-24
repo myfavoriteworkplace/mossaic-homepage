@@ -6,28 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Mossaic — Building intelligent SaaS products for modern businesses. From healthcare to retail, modular software that grows with you."
+      content="Mossaic — The future, assembled. Modular, India-first SaaS with explainable AI at its core. From dental practice management to retail CRM and AI imaging."
     />
-    <meta name="theme-color" content="#071812" />
+    <meta name="theme-color" content="#0A1628" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Mossaic — Building the Future of Business Software" />
+    <meta property="og:title" content="Mossaic — The future, assembled" />
     <meta
       property="og:description"
-      content="Modular, India-first SaaS. From dental practice management to retail CRM and explainable AI imaging."
+      content="Modular, India-first SaaS with explainable AI at its core. From dental practice management to retail CRM and AI imaging."
     />
     <meta property="og:site_name" content="Mossaic" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Mossaic — Building the Future of Business Software" />
+    <meta name="twitter:title" content="Mossaic — The future, assembled" />
     <meta
       name="twitter:description"
-      content="Modular, India-first SaaS. From dental practice management to retail CRM and explainable AI imaging."
+      content="Modular, India-first SaaS with explainable AI at its core. From dental practice management to retail CRM and AI imaging."
     />
 
-    <title>Mossaic — Building the Future of Business Software</title>
+    <title>Mossaic — The future, assembled</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -39,11 +39,13 @@
       (function () {
         try {
           var stored = localStorage.getItem("mossaic-theme");
-          var prefers = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-          var theme = stored || (prefers ? "dark" : "light");
+          // Migrate legacy stored value
+          if (stored === "dark") stored = "aurora";
+          var valid = { aurora: 1, light: 1, moss: 1, mono: 1 };
+          var theme = stored && valid[stored] ? stored : "aurora";
           document.documentElement.setAttribute("data-theme", theme);
         } catch (e) {
-          document.documentElement.setAttribute("data-theme", "light");
+          document.documentElement.setAttribute("data-theme", "aurora");
         }
       })();
     </script>

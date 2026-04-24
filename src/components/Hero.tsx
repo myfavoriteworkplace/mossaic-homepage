@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Calendar, Activity, Brain } from "lucide-react";
+import { ArrowRight, Calendar, Activity, Brain, Sparkles } from "lucide-react";
 import HeroBackground from "./HeroBackground";
 import MagneticButton from "./ui/MagneticButton";
 import AnimatedCounter from "./ui/AnimatedCounter";
-import { HERO_STATS } from "../data/site";
+import { HERO_STATS, SITE, TAGLINE } from "../data/site";
 
 export default function Hero() {
   return (
@@ -19,7 +19,7 @@ export default function Hero() {
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(86,201,158,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(86,201,158,0.06) 1px, transparent 1px)",
+            "linear-gradient(rgba(34,211,238,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.06) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
           maskImage:
             "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%)",
@@ -37,7 +37,7 @@ export default function Hero() {
           top: -200,
           right: -100,
           background:
-            "radial-gradient(circle, rgba(26,158,116,0.12) 0%, transparent 65%)",
+            "radial-gradient(circle, rgba(34,211,238,0.14) 0%, transparent 65%)",
         }}
       />
       <div
@@ -48,7 +48,7 @@ export default function Hero() {
           bottom: -100,
           left: -100,
           background:
-            "radial-gradient(circle, rgba(26,158,116,0.08) 0%, transparent 65%)",
+            "radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 65%)",
         }}
       />
 
@@ -62,21 +62,21 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-6"
+            className="mb-5 flex flex-col items-start gap-2.5"
           >
             <span
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs"
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium"
               style={{
-                background: "rgba(26,158,116,0.12)",
-                border: "1px solid rgba(86,201,158,0.2)",
-                color: "rgb(var(--accent-mid-rgb))",
+                background: "rgba(34,211,238,0.12)",
+                border: "1px solid rgba(34,211,238,0.25)",
+                color: "#67E8F9",
               }}
             >
-              <span
-                className="w-[7px] h-[7px] rounded-full bg-moss-mid animate-pulse-glow"
-                aria-hidden
-              />
-              Modular SaaS · Built in India · DISHA ready
+              <Sparkles size={12} strokeWidth={1.8} />
+              {TAGLINE}
+            </span>
+            <span className="text-[11px] tracking-wider text-white/45 uppercase font-medium">
+              {SITE.techPill}
             </span>
           </motion.div>
 
@@ -96,7 +96,14 @@ export default function Hero() {
             <span className="block">
               <span
                 className="relative inline-block"
-                style={{ color: "rgb(var(--accent-mid-rgb))" }}
+                style={{
+                  backgroundImage:
+                    "linear-gradient(180deg, #A5F3FC 0%, #22D3EE 50%, #3B82F6 100%)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  color: "transparent",
+                  filter: "drop-shadow(0 0 18px rgba(34,211,238,0.35))",
+                }}
               >
                 modular
                 <svg
@@ -108,10 +115,11 @@ export default function Hero() {
                 >
                   <path
                     d="M2 9 C 60 2, 140 12, 220 5 S 290 9, 298 4"
-                    stroke="rgb(var(--accent-rgb))"
+                    stroke="#22D3EE"
                     strokeWidth="3.5"
                     fill="none"
                     strokeLinecap="round"
+                    opacity="0.85"
                   />
                 </svg>
               </span>{" "}
@@ -142,7 +150,13 @@ export default function Hero() {
             <MagneticButton
               as="a"
               href="#products"
-              className="inline-flex items-center gap-2 bg-moss hover:bg-moss-dark text-white rounded-[10px] px-6 py-3.5 text-sm font-semibold no-underline transition-colors"
+              className="inline-flex items-center gap-2 text-white rounded-[10px] px-6 py-3.5 text-sm font-semibold no-underline transition-all"
+              style={{
+                background:
+                  "linear-gradient(135deg, #0EA5E9 0%, #3B82F6 100%)",
+                boxShadow:
+                  "0 8px 24px -8px rgba(14,165,233,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+              }}
             >
               See our products
               <ArrowRight size={14} />
@@ -212,12 +226,15 @@ export default function Hero() {
                 className="absolute top-0 left-0 right-0 h-px"
                 style={{
                   background:
-                    "linear-gradient(90deg, transparent, rgba(86,201,158,0.5), transparent)",
+                    "linear-gradient(90deg, transparent, rgba(34,211,238,0.55), transparent)",
                 }}
               />
 
               <div className="flex items-center gap-3 mb-5">
-                <div className="relative w-10 h-10 rounded-[10px] bg-moss flex items-center justify-center overflow-hidden">
+                <div
+                  className="relative w-10 h-10 rounded-[10px] flex items-center justify-center overflow-hidden"
+                  style={{ background: "#1A9E74" }}
+                >
                   <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
                   <Calendar size={20} className="text-white relative z-10" strokeWidth={1.6} />
                 </div>
@@ -229,9 +246,12 @@ export default function Hero() {
                 </div>
                 <div
                   className="ml-auto flex items-center gap-1.5 text-[10px] font-medium tracking-wider"
-                  style={{ color: "rgb(var(--accent-mid-rgb))" }}
+                  style={{ color: "#5EEAD4" }}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-moss-mid animate-pulse-glow" />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full animate-pulse-glow"
+                    style={{ background: "#5EEAD4" }}
+                  />
                   LIVE
                 </div>
               </div>
@@ -246,16 +266,22 @@ export default function Hero() {
                     key={i}
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 1 + i * 0.15, duration: 0.5 }}
+                    transition={{ delay: 0.9 + i * 0.12, duration: 0.45 }}
                     className={`flex items-center gap-2.5 py-1.5 ${
                       i < 2 ? "border-b border-white/5" : ""
                     }`}
                   >
-                    <div className="w-6 h-6 rounded-md bg-moss/25 flex items-center justify-center text-[9px] font-semibold text-moss-mid flex-shrink-0">
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-semibold flex-shrink-0"
+                      style={{
+                        background: "rgba(34,211,238,0.18)",
+                        color: "#67E8F9",
+                      }}
+                    >
                       {row.av}
                     </div>
                     <div className="flex-1">
-                      <div className="text-[11px] text-white/80 font-medium">{row.name}</div>
+                      <div className="text-[11px] text-white/85 font-medium">{row.name}</div>
                       <div className="text-[9px] mt-px" style={{ color: "var(--hero-sub)" }}>
                         {row.time}
                       </div>
@@ -263,10 +289,10 @@ export default function Hero() {
                     <span
                       className={`text-[9px] font-semibold px-2 py-0.5 rounded-lg ${
                         row.badge === "C"
-                          ? "bg-moss/20 text-moss-mid"
+                          ? "bg-cyan-400/20 text-cyan-300"
                           : row.badge === "P"
-                          ? "bg-amber-500/15 text-amber-500"
-                          : "bg-blue-500/15 text-blue-400"
+                          ? "bg-amber-500/15 text-amber-400"
+                          : "bg-blue-500/20 text-blue-300"
                       }`}
                     >
                       {row.label}
@@ -286,9 +312,8 @@ export default function Hero() {
                     className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2.5"
                   >
                     <div
-                      className={`text-[18px] font-semibold leading-none ${
-                        m.green ? "text-moss-mid" : "text-white"
-                      }`}
+                      className="text-[18px] font-semibold leading-none"
+                      style={{ color: m.green ? "#22D3EE" : "#fff" }}
                     >
                       <AnimatedCounter
                         value={m.v}
@@ -314,15 +339,15 @@ export default function Hero() {
               transition={{ delay: 1.3, duration: 0.7 }}
               className="absolute -right-12 top-14 flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 backdrop-blur-md animate-float1"
               style={{
-                background: "rgba(13,35,24,0.85)",
+                background: "rgba(10,22,40,0.85)",
                 border: "1px solid var(--hero-border)",
               }}
             >
               <div className="w-7 h-7 rounded-md bg-amber-500/15 flex items-center justify-center">
-                <Activity size={13} className="text-amber-500" />
+                <Activity size={13} className="text-amber-400" />
               </div>
               <div>
-                <div className="text-[11px] text-white/70 font-medium">Retail CRM</div>
+                <div className="text-[11px] text-white/75 font-medium">Retail CRM</div>
                 <div className="text-[9px] mt-px" style={{ color: "var(--hero-sub)" }}>
                   Customer management
                 </div>
@@ -341,15 +366,15 @@ export default function Hero() {
               transition={{ delay: 1.5, duration: 0.7 }}
               className="absolute -left-14 bottom-20 flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 backdrop-blur-md animate-float2"
               style={{
-                background: "rgba(13,35,24,0.85)",
+                background: "rgba(10,22,40,0.85)",
                 border: "1px solid var(--hero-border)",
               }}
             >
               <div className="w-7 h-7 rounded-md bg-purple-500/15 flex items-center justify-center">
-                <Brain size={13} className="text-purple-400" />
+                <Brain size={13} className="text-purple-300" />
               </div>
               <div>
-                <div className="text-[11px] text-white/70 font-medium">AI Imaging</div>
+                <div className="text-[11px] text-white/75 font-medium">AI Imaging</div>
                 <div className="text-[9px] mt-px" style={{ color: "var(--hero-sub)" }}>
                   Diagnostic assist
                 </div>

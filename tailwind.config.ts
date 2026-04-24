@@ -33,6 +33,8 @@ export default {
           blue: "#2563EB",
           purple: "#7C3AED",
         },
+        // Fixed brand-green for bookMySlot product (never themed)
+        "moss-brand": "#1A9E74",
       },
       fontFamily: {
         display: ['"Bricolage Grotesque"', "system-ui", "sans-serif"],
@@ -43,14 +45,25 @@ export default {
         container: "1160px",
       },
       animation: {
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2.4s ease-in-out infinite",
+        "ai-pulse": "ai-pulse 3s ease-in-out infinite",
         float1: "float1 6s ease-in-out infinite",
         float2: "float2 7s ease-in-out infinite",
       },
       keyframes: {
         "pulse-glow": {
-          "0%,100%": { boxShadow: "0 0 0 0 rgba(86,201,158,0.6)" },
-          "50%": { boxShadow: "0 0 0 6px rgba(86,201,158,0)" },
+          "0%,100%": { boxShadow: "0 0 0 0 rgba(34,211,238,0.55)" },
+          "50%": { boxShadow: "0 0 0 6px rgba(34,211,238,0)" },
+        },
+        "ai-pulse": {
+          "0%,100%": {
+            filter:
+              "drop-shadow(0 0 6px rgba(34,211,238,0.55)) drop-shadow(0 0 14px rgba(59,130,246,0.25))",
+          },
+          "50%": {
+            filter:
+              "drop-shadow(0 0 12px rgba(34,211,238,0.85)) drop-shadow(0 0 24px rgba(59,130,246,0.5))",
+          },
         },
         float1: {
           "0%,100%": { transform: "translateY(0)" },

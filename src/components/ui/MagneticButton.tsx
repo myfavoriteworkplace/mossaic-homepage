@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { useRef, type MouseEvent, type ReactNode } from "react";
+import { useRef, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
@@ -12,6 +12,7 @@ type Props = {
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   onClick?: () => void;
+  style?: CSSProperties;
 };
 
 export default function MagneticButton({
@@ -25,6 +26,7 @@ export default function MagneticButton({
   type = "button",
   disabled,
   onClick,
+  style,
 }: Props) {
   const ref = useRef<HTMLElement>(null);
   const x = useMotionValue(0);
@@ -54,7 +56,7 @@ export default function MagneticButton({
         target={target}
         rel={rel}
         className={className}
-        style={{ x: sx, y: sy }}
+        style={{ ...style, x: sx, y: sy }}
         onMouseMove={handle}
         onMouseLeave={reset}
         onClick={onClick}
@@ -70,7 +72,7 @@ export default function MagneticButton({
       type={type}
       disabled={disabled}
       className={className}
-      style={{ x: sx, y: sy }}
+      style={{ ...style, x: sx, y: sy }}
       onMouseMove={handle}
       onMouseLeave={reset}
       onClick={onClick}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Logo from "./Logo";
+import Wordmark from "./ui/Wordmark";
 import ThemeSwitcher from "./ui/ThemeSwitcher";
 import { NAV_LINKS } from "../data/site";
 
@@ -21,20 +22,15 @@ export default function Nav() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`fixed top-0 inset-x-0 z-[1000] h-[60px] flex items-center transition-all ${
         scrolled
-          ? "bg-[rgba(7,24,18,0.88)] border-b border-[rgba(86,201,158,0.15)] backdrop-blur-[14px]"
+          ? "bg-[rgba(7,16,32,0.85)] border-b border-[rgba(34,211,238,0.15)] backdrop-blur-[14px]"
           : "bg-transparent"
       }`}
       style={{ paddingLeft: "var(--pad)", paddingRight: "var(--pad)" }}
     >
       <div className="max-w-container w-full mx-auto flex items-center gap-8">
         <a href="#" className="flex items-center gap-2.5 no-underline">
-          <span className="relative w-8 h-8 rounded-lg bg-moss flex items-center justify-center overflow-hidden">
-            <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-            <Logo size={18} />
-          </span>
-          <span className="display text-xl text-white font-bold tracking-tight">
-            mos<span style={{ color: "rgb(var(--accent-mid-rgb))" }}>saic</span>
-          </span>
+          <Logo size={28} animated idSuffix="nav" />
+          <Wordmark variant="nav" textColor="#fff" />
         </a>
 
         <div className="hidden md:flex gap-6 ml-auto">

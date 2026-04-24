@@ -3,44 +3,66 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   THEME TOKENS
-   All colors are RGB-tuples so Tailwind utilities can apply opacity:
+   THEME TOKENS — RGB tuples so Tailwind can apply opacity:
    bg-moss/20  →  rgb(var(--accent-rgb) / 0.2)
    ========================================================================== */
 
+/* Default tokens (Aurora — deep navy + cyan AI glow). Used until JS sets data-theme. */
 :root,
-[data-theme="light"] {
-  /* Surfaces */
-  --bg-rgb: 255 255 255;
-  --bg-elevated-rgb: 244 248 246;
-  --bg-deep-rgb: 7 24 18;
-  --bg-deeper-rgb: 4 28 20;
-  --bg-deep-card-rgb: 13 35 24;
+[data-theme="aurora"] {
+  --bg-rgb: 10 22 40;            /* #0A1628 */
+  --bg-elevated-rgb: 15 39 69;   /* #0F2745 */
+  --bg-deep-rgb: 7 16 32;        /* #071020 */
+  --bg-deeper-rgb: 4 10 22;      /* #040A16 */
+  --bg-deep-card-rgb: 17 43 74;  /* #112B4A */
 
-  /* Text */
-  --text-rgb: 12 26 21;
-  --text-2-rgb: 46 74 62;
-  --text-3-rgb: 94 122 110;
-  --text-4-rgb: 155 181 170;
-  --text-5-rgb: 200 221 215;
+  --text-rgb: 232 240 250;
+  --text-2-rgb: 184 200 220;
+  --text-3-rgb: 138 160 188;
+  --text-4-rgb: 94 114 144;
+  --text-5-rgb: 58 78 102;
 
-  /* Borders */
-  --border-rgb: 221 233 228;
-  --border-2-rgb: 235 243 239;
+  --border-rgb: 31 54 88;
+  --border-2-rgb: 23 40 70;
 
-  /* Brand accent (moss green) */
-  --accent-rgb: 26 158 116;
-  --accent-strong-rgb: 14 110 81;
-  --accent-mid-rgb: 86 201 158;
-  --accent-soft-rgb: 224 244 237;
+  /* Brand accent — sky/cyan */
+  --accent-rgb: 14 165 233;        /* #0EA5E9 sky-500 */
+  --accent-strong-rgb: 2 132 199;  /* #0284C7 sky-600 */
+  --accent-mid-rgb: 34 211 238;    /* #22D3EE cyan-400 — the AI glow */
+  --accent-soft-rgb: 8 47 73;      /* #082F49 sky-950 (dark soft) */
 
-  /* Hero / dark surface text contrast */
-  --hero-text: rgba(255, 255, 255, 0.85);
-  --hero-sub: rgba(255, 255, 255, 0.48);
-  --border-on-deep: rgba(86, 201, 158, 0.15);
+  --hero-text: rgba(255, 255, 255, 0.88);
+  --hero-sub: rgba(255, 255, 255, 0.55);
+  --border-on-deep: rgba(34, 211, 238, 0.18);
 }
 
-[data-theme="dark"] {
+[data-theme="light"] {
+  --bg-rgb: 255 255 255;
+  --bg-elevated-rgb: 245 249 253;
+  --bg-deep-rgb: 10 22 40;
+  --bg-deeper-rgb: 6 14 28;
+  --bg-deep-card-rgb: 17 43 74;
+
+  --text-rgb: 10 22 40;
+  --text-2-rgb: 46 74 98;
+  --text-3-rgb: 94 122 146;
+  --text-4-rgb: 155 175 195;
+  --text-5-rgb: 200 215 230;
+
+  --border-rgb: 222 232 244;
+  --border-2-rgb: 235 242 250;
+
+  --accent-rgb: 14 165 233;
+  --accent-strong-rgb: 2 132 199;
+  --accent-mid-rgb: 6 182 212;     /* #06B6D4 — slightly deeper for white bg contrast */
+  --accent-soft-rgb: 224 242 254;  /* #E0F2FE light cyan tint */
+
+  --hero-text: rgba(255, 255, 255, 0.85);
+  --hero-sub: rgba(255, 255, 255, 0.52);
+  --border-on-deep: rgba(34, 211, 238, 0.18);
+}
+
+[data-theme="moss"] {
   --bg-rgb: 7 24 18;
   --bg-elevated-rgb: 13 35 24;
   --bg-deep-rgb: 4 18 13;
@@ -82,10 +104,10 @@
   --border-rgb: 230 230 230;
   --border-2-rgb: 240 240 240;
 
-  --accent-rgb: 26 158 116;
-  --accent-strong-rgb: 14 110 81;
-  --accent-mid-rgb: 26 158 116;
-  --accent-soft-rgb: 232 244 239;
+  --accent-rgb: 6 182 212;
+  --accent-strong-rgb: 8 145 178;
+  --accent-mid-rgb: 34 211 238;
+  --accent-soft-rgb: 224 242 254;
 
   --hero-text: rgba(255, 255, 255, 0.9);
   --hero-sub: rgba(255, 255, 255, 0.5);
@@ -107,7 +129,7 @@
   --accent-mid: rgb(var(--accent-mid-rgb));
   --accent-soft: rgb(var(--accent-soft-rgb));
 
-  /* Legacy aliases — kept so existing inline styles still work */
+  /* Legacy aliases — inline styles still reference these (now resolve to current theme accent) */
   --moss: rgb(var(--accent-rgb));
   --moss-dark: rgb(var(--accent-strong-rgb));
   --moss-mid: rgb(var(--accent-mid-rgb));
@@ -124,14 +146,20 @@
   --white: rgb(var(--bg-rgb));
   --border: rgb(var(--border-rgb));
   --border2: rgb(var(--border-2-rgb));
-  --hero-bg: rgb(var(--bg-deep-rgb));
+
+  /* Hero gradient — depth from deep to elevated */
+  --hero-bg: linear-gradient(180deg, rgb(var(--bg-deep-rgb)) 0%, rgb(var(--bg-elevated-rgb)) 100%);
   --hero-card: rgb(var(--bg-deep-card-rgb));
   --hero-border: var(--border-on-deep);
 
-  /* Legacy non-themed accents */
+  /* Brand AI gradient — used for highlighted text & accents */
+  --ai-grad: linear-gradient(180deg, #A5F3FC 0%, #22D3EE 45%, #3B82F6 100%);
+
+  /* Legacy non-themed accents (used in product cards) */
   --amber: #e8920a;
   --blue: #2563eb;
   --purple: #7c3aed;
+  --moss-brand: #1A9E74;  /* fixed bookMySlot brand-green, never themed */
 
   /* Typography */
   --display: "Bricolage Grotesque", system-ui, sans-serif;
@@ -192,7 +220,8 @@ body {
     color: rgb(var(--accent-strong-rgb));
     border: 1px solid rgb(var(--accent-rgb) / 0.2);
   }
-  [data-theme="dark"] .tag-green {
+  [data-theme="aurora"] .tag-green,
+  [data-theme="moss"] .tag-green {
     background: rgb(var(--accent-rgb) / 0.14);
     color: rgb(var(--accent-mid-rgb));
   }
@@ -207,7 +236,6 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* bookMySlot-style soft pill: ●  Live — message */
   .pill-live {
     display: inline-flex;
     align-items: center;
@@ -220,7 +248,8 @@ body {
     font-size: 13px;
     font-weight: 500;
   }
-  [data-theme="dark"] .pill-live {
+  [data-theme="aurora"] .pill-live,
+  [data-theme="moss"] .pill-live {
     background: rgb(var(--accent-rgb) / 0.16);
     color: rgb(var(--accent-mid-rgb));
   }
@@ -246,7 +275,7 @@ body {
     right: 0;
     bottom: 0.04em;
     height: 0.18em;
-    background: rgb(var(--accent-rgb) / 0.35);
+    background: rgb(var(--accent-mid-rgb) / 0.4);
     border-radius: 999px;
     z-index: -1;
   }
@@ -258,23 +287,10 @@ body {
     line-height: 1.7;
   }
 
-  /* Hand-drawn underline used in hero highlighted word */
   .underline-stroke {
     position: relative;
     display: inline-block;
     color: var(--accent);
-  }
-  .underline-stroke::after {
-    content: "";
-    position: absolute;
-    left: -2%;
-    right: -2%;
-    bottom: -4px;
-    height: 12px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'><path d='M2 8 C 40 2, 80 11, 120 5 S 180 9, 198 4' stroke='%231A9E74' stroke-width='3' fill='none' stroke-linecap='round'/></svg>");
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    opacity: 0.85;
   }
 }
 
@@ -283,7 +299,6 @@ body {
   color: var(--text);
 }
 
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

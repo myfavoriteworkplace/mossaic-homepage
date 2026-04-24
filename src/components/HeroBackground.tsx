@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 /**
  * Lightweight canvas particle network — drifts and connects nearby points.
- * GPU-accelerated where possible, capped at ~60fps, disabled for reduced motion.
+ * Cyan/blue tones to match the Aurora theme.
  */
 export default function HeroBackground() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -64,12 +64,9 @@ export default function HeroBackground() {
       last = now;
       ctx.clearRect(0, 0, width, height);
 
-      // update + draw points
       for (const p of particles) {
-        // drift
         p.x += p.vx * (dt / 16);
         p.y += p.vy * (dt / 16);
-        // gentle attraction toward cursor
         const dx = mouse.x - p.x;
         const dy = mouse.y - p.y;
         const d2 = dx * dx + dy * dy;
@@ -78,10 +75,8 @@ export default function HeroBackground() {
           p.vx += (dx / Math.sqrt(d2 || 1)) * f;
           p.vy += (dy / Math.sqrt(d2 || 1)) * f;
         }
-        // friction + soft cap
         p.vx *= 0.99;
         p.vy *= 0.99;
-        // wrap edges
         if (p.x < -10) p.x = width + 10;
         if (p.x > width + 10) p.x = -10;
         if (p.y < -10) p.y = height + 10;
@@ -89,11 +84,10 @@ export default function HeroBackground() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(86,201,158,0.55)";
+        ctx.fillStyle = "rgba(34,211,238,0.6)";
         ctx.fill();
       }
 
-      // connecting lines
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const a = particles[i];
@@ -102,8 +96,8 @@ export default function HeroBackground() {
           const dy = a.y - b.y;
           const d2 = dx * dx + dy * dy;
           if (d2 < 14000) {
-            const alpha = (1 - Math.sqrt(d2) / 120) * 0.18;
-            ctx.strokeStyle = `rgba(86,201,158,${alpha})`;
+            const alpha = (1 - Math.sqrt(d2) / 120) * 0.2;
+            ctx.strokeStyle = `rgba(96,165,250,${alpha})`;
             ctx.lineWidth = 0.6;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);

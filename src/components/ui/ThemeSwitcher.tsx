@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, Circle, Check, ChevronDown } from "lucide-react";
+import { Sun, Moon, Sparkles, Circle, Check, ChevronDown } from "lucide-react";
 import { THEMES, applyTheme, readTheme, type ThemeId } from "../../styles/themes";
 
 const ICONS: Record<ThemeId, JSX.Element> = {
+  aurora: <Sparkles size={14} strokeWidth={1.8} />,
   light: <Sun size={14} strokeWidth={1.8} />,
-  dark: <Moon size={14} strokeWidth={1.8} />,
+  moss: <Moon size={14} strokeWidth={1.8} />,
   mono: <Circle size={14} strokeWidth={1.8} />,
 };
 
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export default function ThemeSwitcher({ surface = "dark" }: Props) {
-  const [theme, setTheme] = useState<ThemeId>("light");
+  const [theme, setTheme] = useState<ThemeId>("aurora");
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +77,7 @@ export default function ThemeSwitcher({ surface = "dark" }: Props) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
-            className="absolute right-0 mt-2 w-56 rounded-xl border border-border1 bg-page shadow-xl shadow-black/10 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-60 rounded-xl border border-border1 bg-page shadow-xl shadow-black/20 overflow-hidden z-50"
           >
             {THEMES.map((t) => {
               const active = t.id === theme;
@@ -105,7 +106,7 @@ export default function ThemeSwitcher({ surface = "dark" }: Props) {
                       {t.description}
                     </span>
                   </span>
-                  {active && <Check size={14} className="text-moss mt-1" />}
+                  {active && <Check size={14} className="text-moss mt-1 flex-shrink-0" />}
                 </button>
               );
             })}
