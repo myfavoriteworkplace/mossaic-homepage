@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "-clMjT-_w8c7ryBIkzWtM"
+uri = "file://exports/mossaic-homepage.zip"
+type = "unspecified"
+title = "mossaic-homepage.zip — full source for GitHub"
