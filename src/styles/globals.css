@@ -2,34 +2,143 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --moss: #1a9e74;
-  --moss-dark: #0e6e51;
-  --moss-deep: #072e21;
-  --moss-deeper: #041c14;
-  --moss-light: #e0f4ed;
-  --moss-mid: #56c99e;
-  --moss-glow: rgba(26, 158, 116, 0.18);
-  --ink: #0c1a15;
-  --ink2: #2e4a3e;
-  --ink3: #5e7a6e;
-  --ink4: #9bb5aa;
-  --ink5: #c8ddd7;
-  --surface: #f4f8f6;
-  --white: #ffffff;
-  --border: #dde9e4;
-  --border2: #ebf3ef;
-  --hero-bg: #071812;
-  --hero-card: #0d2318;
-  --hero-border: rgba(86, 201, 158, 0.15);
+/* ==========================================================================
+   THEME TOKENS
+   All colors are RGB-tuples so Tailwind utilities can apply opacity:
+   bg-moss/20  →  rgb(var(--accent-rgb) / 0.2)
+   ========================================================================== */
+
+:root,
+[data-theme="light"] {
+  /* Surfaces */
+  --bg-rgb: 255 255 255;
+  --bg-elevated-rgb: 244 248 246;
+  --bg-deep-rgb: 7 24 18;
+  --bg-deeper-rgb: 4 28 20;
+  --bg-deep-card-rgb: 13 35 24;
+
+  /* Text */
+  --text-rgb: 12 26 21;
+  --text-2-rgb: 46 74 62;
+  --text-3-rgb: 94 122 110;
+  --text-4-rgb: 155 181 170;
+  --text-5-rgb: 200 221 215;
+
+  /* Borders */
+  --border-rgb: 221 233 228;
+  --border-2-rgb: 235 243 239;
+
+  /* Brand accent (moss green) */
+  --accent-rgb: 26 158 116;
+  --accent-strong-rgb: 14 110 81;
+  --accent-mid-rgb: 86 201 158;
+  --accent-soft-rgb: 224 244 237;
+
+  /* Hero / dark surface text contrast */
   --hero-text: rgba(255, 255, 255, 0.85);
   --hero-sub: rgba(255, 255, 255, 0.48);
+  --border-on-deep: rgba(86, 201, 158, 0.15);
+}
+
+[data-theme="dark"] {
+  --bg-rgb: 7 24 18;
+  --bg-elevated-rgb: 13 35 24;
+  --bg-deep-rgb: 4 18 13;
+  --bg-deeper-rgb: 2 12 8;
+  --bg-deep-card-rgb: 14 36 25;
+
+  --text-rgb: 232 244 239;
+  --text-2-rgb: 184 208 197;
+  --text-3-rgb: 138 163 154;
+  --text-4-rgb: 94 122 110;
+  --text-5-rgb: 58 79 71;
+
+  --border-rgb: 24 50 39;
+  --border-2-rgb: 18 38 30;
+
+  --accent-rgb: 86 201 158;
+  --accent-strong-rgb: 26 158 116;
+  --accent-mid-rgb: 86 201 158;
+  --accent-soft-rgb: 18 50 38;
+
+  --hero-text: rgba(255, 255, 255, 0.88);
+  --hero-sub: rgba(255, 255, 255, 0.55);
+  --border-on-deep: rgba(86, 201, 158, 0.18);
+}
+
+[data-theme="mono"] {
+  --bg-rgb: 255 255 255;
+  --bg-elevated-rgb: 247 247 247;
+  --bg-deep-rgb: 10 10 10;
+  --bg-deeper-rgb: 0 0 0;
+  --bg-deep-card-rgb: 22 22 22;
+
+  --text-rgb: 10 10 10;
+  --text-2-rgb: 50 50 50;
+  --text-3-rgb: 100 100 100;
+  --text-4-rgb: 150 150 150;
+  --text-5-rgb: 200 200 200;
+
+  --border-rgb: 230 230 230;
+  --border-2-rgb: 240 240 240;
+
+  --accent-rgb: 26 158 116;
+  --accent-strong-rgb: 14 110 81;
+  --accent-mid-rgb: 26 158 116;
+  --accent-soft-rgb: 232 244 239;
+
+  --hero-text: rgba(255, 255, 255, 0.9);
+  --hero-sub: rgba(255, 255, 255, 0.5);
+  --border-on-deep: rgba(255, 255, 255, 0.12);
+}
+
+/* Convenience non-opacity strings + legacy aliases used by inline styles */
+:root {
+  --bg: rgb(var(--bg-rgb));
+  --bg-elevated: rgb(var(--bg-elevated-rgb));
+  --bg-deep: rgb(var(--bg-deep-rgb));
+  --bg-deeper: rgb(var(--bg-deeper-rgb));
+  --bg-deep-card: rgb(var(--bg-deep-card-rgb));
+  --text: rgb(var(--text-rgb));
+  --text-soft: rgb(var(--text-2-rgb));
+  --text-muted: rgb(var(--text-3-rgb));
+  --accent: rgb(var(--accent-rgb));
+  --accent-strong: rgb(var(--accent-strong-rgb));
+  --accent-mid: rgb(var(--accent-mid-rgb));
+  --accent-soft: rgb(var(--accent-soft-rgb));
+
+  /* Legacy aliases — kept so existing inline styles still work */
+  --moss: rgb(var(--accent-rgb));
+  --moss-dark: rgb(var(--accent-strong-rgb));
+  --moss-mid: rgb(var(--accent-mid-rgb));
+  --moss-light: rgb(var(--accent-soft-rgb));
+  --moss-deep: rgb(var(--bg-deep-rgb));
+  --moss-deeper: rgb(var(--bg-deeper-rgb));
+  --moss-glow: rgb(var(--accent-rgb) / 0.18);
+  --ink: rgb(var(--text-rgb));
+  --ink2: rgb(var(--text-2-rgb));
+  --ink3: rgb(var(--text-3-rgb));
+  --ink4: rgb(var(--text-4-rgb));
+  --ink5: rgb(var(--text-5-rgb));
+  --surface: rgb(var(--bg-elevated-rgb));
+  --white: rgb(var(--bg-rgb));
+  --border: rgb(var(--border-rgb));
+  --border2: rgb(var(--border-2-rgb));
+  --hero-bg: rgb(var(--bg-deep-rgb));
+  --hero-card: rgb(var(--bg-deep-card-rgb));
+  --hero-border: var(--border-on-deep);
+
+  /* Legacy non-themed accents */
   --amber: #e8920a;
   --blue: #2563eb;
   --purple: #7c3aed;
-  --serif: "Instrument Serif", Georgia, serif;
-  --sans: "Geist", system-ui, sans-serif;
+
+  /* Typography */
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --sans: "Inter", system-ui, sans-serif;
   --mono: "Geist Mono", "Courier New", monospace;
+
+  /* Layout */
   --max: 1160px;
   --pad: clamp(20px, 5vw, 64px);
 }
@@ -45,12 +154,13 @@ html {
 
 body {
   font-family: var(--sans);
-  background: var(--white);
-  color: var(--ink);
+  background: var(--bg);
+  color: var(--text);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @layer components {
@@ -60,8 +170,10 @@ body {
     padding: 0 var(--pad);
   }
 
-  .serif {
-    font-family: var(--serif);
+  .display {
+    font-family: var(--display);
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 
   .tag {
@@ -76,14 +188,18 @@ body {
     border-radius: 20px;
   }
   .tag-green {
-    background: var(--moss-light);
-    color: var(--moss-dark);
-    border: 1px solid rgba(26, 158, 116, 0.2);
+    background: rgb(var(--accent-soft-rgb));
+    color: rgb(var(--accent-strong-rgb));
+    border: 1px solid rgb(var(--accent-rgb) / 0.2);
+  }
+  [data-theme="dark"] .tag-green {
+    background: rgb(var(--accent-rgb) / 0.14);
+    color: rgb(var(--accent-mid-rgb));
   }
   .tag-dark {
-    background: rgba(86, 201, 158, 0.1);
-    color: var(--moss-mid);
-    border: 1px solid rgba(86, 201, 158, 0.18);
+    background: rgb(var(--accent-mid-rgb) / 0.1);
+    color: rgb(var(--accent-mid-rgb));
+    border: 1px solid rgb(var(--accent-mid-rgb) / 0.18);
   }
   .tag-white {
     background: rgba(255, 255, 255, 0.06);
@@ -91,34 +207,83 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
+  /* bookMySlot-style soft pill: ●  Live — message */
+  .pill-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgb(var(--accent-soft-rgb));
+    color: rgb(var(--accent-strong-rgb));
+    border: 1px solid rgb(var(--accent-rgb) / 0.2);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  [data-theme="dark"] .pill-live {
+    background: rgb(var(--accent-rgb) / 0.16);
+    color: rgb(var(--accent-mid-rgb));
+  }
+
   .section-title {
-    font-family: var(--serif);
-    font-weight: 400;
-    color: var(--ink);
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    font-size: clamp(30px, 4vw, 46px);
+    font-family: var(--display);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-size: clamp(34px, 4.6vw, 54px);
   }
   .section-title em {
-    color: var(--moss);
-    font-style: italic;
+    color: var(--accent);
+    font-style: normal;
+    position: relative;
+    display: inline-block;
+  }
+  .section-title em.underline-mark::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.04em;
+    height: 0.18em;
+    background: rgb(var(--accent-rgb) / 0.35);
+    border-radius: 999px;
+    z-index: -1;
   }
   .section-sub {
     font-size: 16px;
-    color: var(--ink3);
-    max-width: 520px;
+    color: rgb(var(--text-3-rgb));
+    max-width: 560px;
     margin: 0 auto;
     line-height: 1.7;
   }
+
+  /* Hand-drawn underline used in hero highlighted word */
+  .underline-stroke {
+    position: relative;
+    display: inline-block;
+    color: var(--accent);
+  }
+  .underline-stroke::after {
+    content: "";
+    position: absolute;
+    left: -2%;
+    right: -2%;
+    bottom: -4px;
+    height: 12px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'><path d='M2 8 C 40 2, 80 11, 120 5 S 180 9, 198 4' stroke='%231A9E74' stroke-width='3' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    opacity: 0.85;
+  }
 }
 
-/* Scroll-bar polish */
 ::selection {
-  background: rgba(26, 158, 116, 0.25);
-  color: var(--ink);
+  background: rgb(var(--accent-rgb) / 0.25);
+  color: var(--text);
 }
 
-/* Reduced motion fallback */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -4,7 +4,11 @@ import { PRINCIPLES, COMPLIANCE_BADGES, TECH_STACK } from "../data/site";
 
 export default function Why() {
   return (
-    <section id="why" style={{ padding: "100px var(--pad)", background: "var(--surface)" }}>
+    <section
+      id="why"
+      className="bg-surface"
+      style={{ padding: "100px var(--pad)" }}
+    >
       <div className="max-w-container mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
         <div>
           <Reveal>
@@ -12,11 +16,11 @@ export default function Why() {
             <h2 className="section-title text-left">
               Built different
               <br />
-              by <em>design.</em>
+              by <em className="underline-mark">design.</em>
             </h2>
             <p className="section-sub text-left mt-3.5 mx-0">
-              Four principles that shape everything we build — not marketing copy,
-              but the actual way we make decisions.
+              Four principles that shape everything we build — not marketing
+              copy, but the actual way we make decisions.
             </p>
           </Reveal>
 
@@ -46,7 +50,7 @@ export default function Why() {
 
         <div>
           <Reveal>
-            <div className="bg-white border border-border1 rounded-2xl p-7 mb-4">
+            <div className="bg-page border border-border1 rounded-2xl p-7 mb-4">
               <h4 className="text-xs font-semibold tracking-wider uppercase text-ink-4 mb-4">
                 Compliance &amp; data standards
               </h4>
@@ -66,14 +70,15 @@ export default function Why() {
                 ))}
               </div>
               <p className="text-[13px] text-ink-3 leading-relaxed">
-                Patient data never leaves Indian servers. Full consent management,
-                audit-trailed workflows, and encrypted storage on every plan.
+                Customer data never leaves Indian servers. Full consent
+                management, audit-trailed workflows, and encrypted storage
+                on every plan.
               </p>
             </div>
           </Reveal>
 
           <Reveal delay={0.1}>
-            <div className="bg-white border border-border1 rounded-2xl p-7">
+            <div className="bg-page border border-border1 rounded-2xl p-7">
               <h4 className="text-xs font-semibold tracking-wider uppercase text-ink-4 mb-4">
                 Technology stack
               </h4>

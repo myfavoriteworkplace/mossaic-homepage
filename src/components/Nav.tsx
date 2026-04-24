@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Logo from "./Logo";
+import ThemeSwitcher from "./ui/ThemeSwitcher";
 import { NAV_LINKS } from "../data/site";
 
 export default function Nav() {
@@ -25,18 +26,18 @@ export default function Nav() {
       }`}
       style={{ paddingLeft: "var(--pad)", paddingRight: "var(--pad)" }}
     >
-      <div className="max-w-container w-full mx-auto flex items-center gap-10">
+      <div className="max-w-container w-full mx-auto flex items-center gap-8">
         <a href="#" className="flex items-center gap-2.5 no-underline">
           <span className="relative w-8 h-8 rounded-lg bg-moss flex items-center justify-center overflow-hidden">
-            <span className="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent" />
+            <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
             <Logo size={18} />
           </span>
-          <span className="font-serif text-xl text-white tracking-tight">
-            mos<span className="text-moss-mid italic">saic</span>
+          <span className="display text-xl text-white font-bold tracking-tight">
+            mos<span style={{ color: "rgb(var(--accent-mid-rgb))" }}>saic</span>
           </span>
         </a>
 
-        <div className="hidden md:flex gap-7 ml-auto">
+        <div className="hidden md:flex gap-6 ml-auto">
           {NAV_LINKS.map((l) => (
             <a
               key={l.href}
@@ -48,12 +49,15 @@ export default function Nav() {
           ))}
         </div>
 
-        <a
-          href="#contact"
-          className="bg-moss hover:bg-moss-dark transition-colors text-white rounded-lg px-[18px] py-2 text-[13px] font-medium no-underline ml-auto md:ml-0"
-        >
-          Get started
-        </a>
+        <div className="flex items-center gap-2 ml-auto md:ml-0">
+          <ThemeSwitcher surface="dark" />
+          <a
+            href="#contact"
+            className="bg-moss hover:bg-moss-dark transition-colors text-white rounded-lg px-[16px] py-2 text-[13px] font-semibold no-underline"
+          >
+            Get started
+          </a>
+        </div>
       </div>
     </motion.nav>
   );

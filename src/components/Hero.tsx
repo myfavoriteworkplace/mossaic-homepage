@@ -3,19 +3,7 @@ import { ArrowRight, Calendar, Activity, Brain } from "lucide-react";
 import HeroBackground from "./HeroBackground";
 import MagneticButton from "./ui/MagneticButton";
 import AnimatedCounter from "./ui/AnimatedCounter";
-
-type Word = string | { text: string; em?: boolean; period?: boolean };
-
-const HEADLINE_LINES: Word[][] = [
-  ["We", "build", "modern"],
-  ["software", "for", "the"],
-  ["industries", "that", { text: "still", em: true }],
-  [
-    { text: "run", em: true },
-    { text: "on", em: true },
-    { text: "workarounds.", period: true },
-  ],
-];
+import { HERO_STATS } from "../data/site";
 
 export default function Hero() {
   return (
@@ -76,117 +64,130 @@ export default function Hero() {
             transition={{ duration: 0.6 }}
             className="mb-6"
           >
-            <span className="inline-flex items-center gap-2 bg-[rgba(26,158,116,0.12)] border border-[rgba(86,201,158,0.2)] rounded-full px-3.5 py-1.5 text-xs text-moss-mid">
+            <span
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs"
+              style={{
+                background: "rgba(26,158,116,0.12)",
+                border: "1px solid rgba(86,201,158,0.2)",
+                color: "rgb(var(--accent-mid-rgb))",
+              }}
+            >
               <span
                 className="w-[7px] h-[7px] rounded-full bg-moss-mid animate-pulse-glow"
                 aria-hidden
               />
-              bookMySlot is live · serving Kerala clinics
+              Modular SaaS · Built in India · DISHA ready
             </span>
           </motion.div>
 
-          <h1
-            className="font-serif text-white mb-6 tracking-tight"
+          <motion.h1
+            initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="display text-white mb-6"
             style={{
-              fontSize: "clamp(40px, 5vw, 66px)",
-              lineHeight: 1.08,
-              letterSpacing: "-0.02em",
+              fontSize: "clamp(44px, 6vw, 78px)",
+              lineHeight: 0.98,
+              letterSpacing: "-0.035em",
+              fontWeight: 800,
             }}
           >
-            {HEADLINE_LINES.map((line, li) => (
-              <span key={li} className="block">
-                {line.map((w, wi) => {
-                  const word = typeof w === "string" ? w : w.text;
-                  const em = typeof w !== "string" && w.em;
-                  const period = typeof w !== "string" && w.period;
-                  return (
-                    <motion.span
-                      key={`${li}-${wi}`}
-                      initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      transition={{
-                        duration: 0.6,
-                        delay: 0.08 * (li * 3 + wi),
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
-                      className={`inline-block ${
-                        em ? "text-moss-mid italic" : period ? "text-moss" : ""
-                      }`}
-                    >
-                      {word}
-                      {wi < line.length - 1 ? "\u00A0" : ""}
-                    </motion.span>
-                  );
-                })}
-              </span>
-            ))}
-          </h1>
+            <span className="block">We build</span>
+            <span className="block">
+              <span
+                className="relative inline-block"
+                style={{ color: "rgb(var(--accent-mid-rgb))" }}
+              >
+                modular
+                <svg
+                  aria-hidden
+                  viewBox="0 0 300 14"
+                  preserveAspectRatio="none"
+                  className="absolute left-0 right-0 -bottom-2 w-full h-3"
+                  style={{ overflow: "visible" }}
+                >
+                  <path
+                    d="M2 9 C 60 2, 140 12, 220 5 S 290 9, 298 4"
+                    stroke="rgb(var(--accent-rgb))"
+                    strokeWidth="3.5"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>{" "}
+              SaaS for
+            </span>
+            <span className="block">India.</span>
+          </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6 }}
-            className="text-[17px] leading-[1.7] mb-9 max-w-[460px] font-light"
+            transition={{ duration: 0.7, delay: 0.4 }}
+            className="text-[17px] leading-[1.7] mb-9 max-w-[480px]"
             style={{ color: "var(--hero-sub)" }}
           >
-            Mossaic builds focused, modular SaaS — starting with healthcare and
-            extending into retail and explainable AI. Built in India, for India.
+            Mossaic builds focused, vertical SaaS for Indian businesses —
+            starting with healthcare and extending into retail and explainable
+            AI. Modular, compliant, and built for the way Indian SMBs
+            actually run.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.75 }}
+            transition={{ duration: 0.7, delay: 0.55 }}
             className="flex flex-wrap items-center gap-3 mb-12"
           >
             <MagneticButton
               as="a"
-              href="https://bookmyslot.dental.mossaic.in"
-              className="inline-flex items-center gap-2 bg-moss hover:bg-moss-dark text-white rounded-[10px] px-6 py-3.5 text-sm font-medium no-underline transition-colors"
+              href="#products"
+              className="inline-flex items-center gap-2 bg-moss hover:bg-moss-dark text-white rounded-[10px] px-6 py-3.5 text-sm font-semibold no-underline transition-colors"
             >
-              Try bookMySlot
+              See our products
               <ArrowRight size={14} />
             </MagneticButton>
             <a
-              href="#products"
-              className="inline-flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/30 text-white/75 hover:text-white rounded-[10px] px-6 py-3.5 text-sm transition-all no-underline"
+              href="#mission"
+              className="inline-flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 hover:border-white/30 text-white/75 hover:text-white rounded-[10px] px-6 py-3.5 text-sm font-medium transition-all no-underline"
             >
-              See our products
+              Our mission
             </a>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.9 }}
-            className="flex items-center gap-7"
+            transition={{ duration: 0.7, delay: 0.7 }}
+            className="flex items-center gap-7 flex-wrap"
           >
-            <div>
-              <div className="font-serif text-[28px] text-white leading-none">
-                <AnimatedCounter value={50} suffix="+" />
-              </div>
-              <div className="text-[11px] mt-1" style={{ color: "var(--hero-sub)" }}>
-                Clinics live
-              </div>
-            </div>
-            <div className="w-px h-8 bg-white/10" />
-            <div>
-              <div className="font-serif text-[28px] text-white leading-none">
-                <AnimatedCounter value={850} suffix="+" />
-              </div>
-              <div className="text-[11px] mt-1" style={{ color: "var(--hero-sub)" }}>
-                Slots booked
-              </div>
-            </div>
-            <div className="w-px h-8 bg-white/10" />
-            <div>
-              <div className="font-serif text-[28px] text-white leading-none">
-                <span className="text-moss-mid">1</span>
-              </div>
-              <div className="text-[11px] mt-1" style={{ color: "var(--hero-sub)" }}>
-                Live · 2 building
-              </div>
-            </div>
+            {HERO_STATS.map((s, i) => {
+              const numeric = parseInt(s.value, 10);
+              const isNumber = !Number.isNaN(numeric);
+              return (
+                <div key={s.label} className="flex items-center gap-7">
+                  {i > 0 && <div className="w-px h-8 bg-white/10 -ml-7" />}
+                  <div>
+                    <div className="display text-[30px] text-white leading-none font-bold">
+                      {isNumber ? (
+                        <AnimatedCounter value={numeric} suffix={s.suffix} />
+                      ) : (
+                        <span>
+                          {s.value}
+                          {s.suffix}
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      className="text-[11px] mt-1.5"
+                      style={{ color: "var(--hero-sub)" }}
+                    >
+                      {s.label}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </motion.div>
         </div>
 
@@ -223,12 +224,12 @@ export default function Hero() {
                 <div>
                   <div className="text-base font-semibold text-white">bookMySlot</div>
                   <div className="text-[11px] mt-px" style={{ color: "var(--hero-sub)" }}>
-                    Today · 4 appointments
+                    Our first product · Live in Kerala
                   </div>
                 </div>
                 <div
                   className="ml-auto flex items-center gap-1.5 text-[10px] font-medium tracking-wider"
-                  style={{ color: "var(--moss-mid)" }}
+                  style={{ color: "rgb(var(--accent-mid-rgb))" }}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-moss-mid animate-pulse-glow" />
                   LIVE

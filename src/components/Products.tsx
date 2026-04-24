@@ -21,7 +21,7 @@ export default function Products() {
   return (
     <section
       id="products"
-      className="bg-white"
+      className="bg-page"
       style={{ padding: "100px var(--pad)" }}
     >
       <div className="container-x">
@@ -30,11 +30,12 @@ export default function Products() {
           <h2 className="section-title">
             One company.
             <br />
-            <em>Products that actually work.</em>
+            <em className="underline-mark">Products that actually work.</em>
           </h2>
           <p className="section-sub mt-3.5">
             We build focused, deep software for industries that have been
-            underserved by generic SaaS. Each product ships when it's genuinely ready.
+            underserved by generic SaaS. Each product ships when it's
+            genuinely ready.
           </p>
         </Reveal>
 
@@ -46,10 +47,7 @@ export default function Products() {
                 max={5}
                 scale={1.015}
                 style={{
-                  background:
-                    p.status === "live"
-                      ? "linear-gradient(160deg, #FAFFFD 0%, #FFFFFF 100%)"
-                      : "var(--white)",
+                  background: "rgb(var(--bg-rgb))",
                 }}
               >
                 <ProductCard p={p} icon={ICONS[p.id]} accentClass={ACCENT_BG[p.accent]} />
@@ -75,7 +73,7 @@ function ProductCard({
 
   return (
     <div
-      className={`relative h-full rounded-2xl border border-border1 group-hover:border-moss/30 transition-all p-7 overflow-hidden ${
+      className={`relative h-full rounded-2xl border border-border1 group-hover:border-moss/40 transition-all p-7 overflow-hidden ${
         isLive ? "" : "opacity-90 group-hover:opacity-100"
       }`}
       style={{
@@ -89,7 +87,7 @@ function ProductCard({
         initial={{ scaleX: 0 }}
         whileHover={{ scaleX: 1 }}
         style={{
-          background: "linear-gradient(90deg, var(--moss), var(--moss-mid))",
+          background: "linear-gradient(90deg, rgb(var(--accent-rgb)), rgb(var(--accent-mid-rgb)))",
           transform: "scaleX(0)",
         }}
       />
@@ -112,8 +110,10 @@ function ProductCard({
         </span>
       </div>
 
-      <h3 className="text-xl font-semibold text-ink mb-1.5">{p.name}</h3>
-      <p className="text-xs text-moss font-medium mb-2.5 tracking-wide">
+      <h3 className="text-xl font-bold text-ink mb-1.5 display tracking-tight">
+        {p.name}
+      </h3>
+      <p className="text-xs text-moss font-semibold mb-2.5 tracking-wide">
         {p.category}
       </p>
       <p className="text-sm text-ink-2 leading-[1.65] mb-5">{p.description}</p>
@@ -126,13 +126,13 @@ function ProductCard({
               className="bg-surface border border-border2 rounded-lg px-3 py-2.5"
             >
               <div
-                className={`text-[18px] font-semibold leading-none ${
+                className={`text-[18px] font-bold leading-none display ${
                   m.green ? "text-moss" : "text-ink"
                 }`}
               >
                 {m.value}
               </div>
-              <div className="text-[10px] text-ink-3 mt-0.5">{m.label}</div>
+              <div className="text-[10px] text-ink-3 mt-1">{m.label}</div>
             </div>
           ))}
         </div>
@@ -151,7 +151,7 @@ function ProductCard({
 
       <a
         href={p.cta.href}
-        className={`inline-flex items-center gap-1.5 text-[13px] font-medium hover:gap-2.5 transition-all no-underline ${
+        className={`inline-flex items-center gap-1.5 text-[13px] font-semibold hover:gap-2.5 transition-all no-underline ${
           isLive ? "text-moss" : "text-ink-3"
         }`}
         target={p.cta.href.startsWith("http") ? "_blank" : undefined}

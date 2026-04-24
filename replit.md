@@ -1,6 +1,6 @@
 # Mossaic Homepage
 
-A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in) and the upcoming Retail CRM and AI Imaging products. Designed to feel like a tech company first impression: animated WebGL particle hero, 3D tilt cards, magnetic CTAs, scroll-driven reveals, and a serif/mono editorial type system on a moss-green palette.
+A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in) and the upcoming Retail CRM and AI Imaging products. Positioned as a company website (Mission / Vision / About) with bookMySlot featured only in the Products section. Designed to feel like a tech company first impression: animated particle hero, 3D tilt cards, magnetic CTAs, scroll-driven reveals, a Bricolage Grotesque + Inter + Geist Mono type system on a moss-green palette, and a built-in Light / Dark / Mono theme switcher.
 
 ## Tech stack
 
@@ -18,13 +18,14 @@ Runs on **Node.js 20**.
 ```
 src/
 ├─ components/
-│  ├─ Nav.tsx
+│  ├─ Nav.tsx                   nav + theme switcher
 │  ├─ Hero.tsx
 │  ├─ HeroBackground.tsx       canvas particle network
 │  ├─ ProofBar.tsx
+│  ├─ Mission.tsx               mission + vision (company-level)
 │  ├─ Products.tsx
 │  ├─ Why.tsx
-│  ├─ Founder.tsx
+│  ├─ About.tsx                 founder card + company facts + story
 │  ├─ Roadmap.tsx
 │  ├─ Testimonials.tsx
 │  ├─ Contact.tsx
@@ -35,11 +36,15 @@ src/
 │     ├─ TiltCard.tsx           spring-based 3D tilt wrapper
 │     ├─ AnimatedCounter.tsx    in-view count-up
 │     ├─ Reveal.tsx             scroll fade-up
+│     ├─ ThemeSwitcher.tsx      light / dark / mono dropdown
 │     └─ Toast.tsx              contact form success toast
 ├─ data/site.ts                 single source of truth for all page copy
-├─ styles/globals.css           Tailwind layers + CSS variables (brand tokens)
+├─ styles/
+│  ├─ globals.css               Tailwind layers + theme CSS vars under [data-theme]
+│  └─ themes.ts                 THEMES registry, applyTheme, readTheme helpers
 ├─ App.tsx, main.tsx
-index.html                      meta, OG, fonts (Instrument Serif, Geist, Geist Mono)
+index.html                      meta, OG, fonts (Bricolage Grotesque, Inter, Geist Mono)
+                                + pre-paint script that applies stored theme
 tailwind.config.ts              colors, fonts, keyframes
 vite.config.ts                  binds 0.0.0.0:5000, allows all hosts (proxy/iframe-friendly)
 ```

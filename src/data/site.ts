@@ -1,15 +1,19 @@
 export const NAV_LINKS = [
+  { href: "#mission", label: "Mission" },
   { href: "#products", label: "Products" },
   { href: "#why", label: "Why Mossaic" },
-  { href: "#founder", label: "Founder" },
+  { href: "#about", label: "About" },
   { href: "#roadmap", label: "Roadmap" },
   { href: "#contact", label: "Contact" },
 ];
 
+/**
+ * Hero stats — company-level only. Replace `value` with real numbers any time.
+ */
 export const HERO_STATS = [
-  { value: "50", suffix: "+", label: "Clinics live" },
-  { value: "850", suffix: "+", label: "Slots booked" },
-  { value: "1", prefix: "", suffix: "", label: "Product live" },
+  { value: "3", suffix: "", label: "Products in pipeline" },
+  { value: "50", suffix: "+", label: "Customers served" },
+  { value: "100", suffix: "%", label: "India-region hosting" },
 ];
 
 export type ProductStatus = "live" | "soon" | "future";
@@ -41,7 +45,7 @@ export const PRODUCTS: Product[] = [
       { value: "850+", label: "Slots booked", green: true },
       { value: "12s", label: "Avg confirm time" },
     ],
-    cta: { label: "Try bookMySlot free", href: "https://bookmyslot.dental.mossaic.in" },
+    cta: { label: "Visit bookMySlot", href: "https://bookmyslot.dental.mossaic.in" },
     accent: "moss",
   },
   {
@@ -70,16 +74,44 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
+/* ==========================================================================
+   Mission & Vision — edit copy here
+   ========================================================================== */
+
+export const MISSION = {
+  tag: "Our mission",
+  title: "Make great software boring for Indian businesses.",
+  body: "Build modular, compliant, India-first SaaS that helps small and mid-sized businesses run themselves — without forcing them to learn the software, hire a consultant, or hand their data to a foreign cloud.",
+  pillars: [
+    { title: "Modular", desc: "Buy what you need. Skip what you don't." },
+    { title: "Compliant", desc: "DISHA, IT Act and GST built into the foundation." },
+    { title: "India-first", desc: "₹ pricing. India-region hosting. Built for our reality." },
+  ],
+};
+
+export const VISION = {
+  tag: "Our vision",
+  title: "Every Indian SMB on software as good as the global giants.",
+  body: "A future where the dental clinic, the kirana store and the diagnostic lab all run on tools designed for them — not retrofitted from Silicon Valley. Modular, explainable and priced for the market they actually live in.",
+};
+
+export const COMPANY = {
+  founded: "2025",
+  hq: "Kerala, India",
+  team: "Remote-first, India-based",
+  focus: "Vertical SaaS · Healthcare · Retail · AI",
+};
+
 export const PRINCIPLES = [
   {
     num: "01",
     title: "Modular by default",
-    desc: "Every feature is a module. Clinics add what they need, skip what they don't. No feature bloat, no forced upgrades, no all-or-nothing contracts.",
+    desc: "Every feature is a module. Customers add what they need, skip what they don't. No feature bloat, no forced upgrades, no all-or-nothing contracts.",
   },
   {
     num: "02",
     title: "Compliance built in",
-    desc: "DISHA, IT Act, and healthcare data regulations are not afterthoughts. Audit trails, consent management, and data locality are part of the foundation.",
+    desc: "DISHA, IT Act, and industry-specific data regulations are not afterthoughts. Audit trails, consent management, and data locality are part of the foundation.",
   },
   {
     num: "03",
@@ -132,7 +164,7 @@ export const ROADMAP = [
   },
   {
     year: "Beyond",
-    name: "More to come",
+    name: "More verticals",
     desc: "New industries, new problems — always modular, always compliant",
     status: "future" as const,
   },
@@ -145,6 +177,7 @@ export const TESTIMONIALS = [
     name: "Dr. Priya Menon",
     role: "Elite Dental Avenue, Kochi",
     initials: "PM",
+    product: "bookMySlot",
   },
   {
     quote:
@@ -152,6 +185,7 @@ export const TESTIMONIALS = [
     name: "Dr. Suresh Kumar",
     role: "Sunrise Dental Clinic, Kozhikode",
     initials: "SK",
+    product: "bookMySlot",
   },
   {
     quote:
@@ -159,6 +193,7 @@ export const TESTIMONIALS = [
     name: "Dr. Asha Nair",
     role: "Bright Smile Clinic, Thrissur",
     initials: "AN",
+    product: "bookMySlot",
   },
 ];
 
@@ -171,14 +206,17 @@ export const CONTACT_INTERESTS = [
 ];
 
 export const SITE = {
+  name: "Mossaic",
+  tagline: "Modular SaaS, built for India.",
   email: "connect@mossaic.in",
   location: "Kerala, India · Remote-first team",
   domains: "mossaic.in · bookmyslot.dental.mossaic.in",
   founder: { name: "Arun", role: "Founder & CEO · Mossaic", initials: "A" },
+  /* Balanced proof bar — company-level claims, not product-specific */
   proofBar: [
-    "Trusted by **50+ dental clinics** across Kerala",
-    "India-region data hosting · **DISHA compliant**",
-    "Founded in Kerala · **Building for India**",
-    "**Free to get started** · No setup fees",
+    { highlight: "Founded in Kerala", after: " · Built for India" },
+    { highlight: "India-region hosting", after: " · DISHA & IT Act ready" },
+    { highlight: "Modular SaaS", after: " · 3 products in pipeline" },
+    { highlight: "Trusted by 50+ businesses", after: " across our products" },
   ],
 };

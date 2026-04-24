@@ -12,7 +12,6 @@ export default function Contact({ onSubmitted }: Props) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
-    // Static for now — wire to a form service later.
     window.setTimeout(() => {
       const form = e.currentTarget;
       form.reset();
@@ -24,22 +23,21 @@ export default function Contact({ onSubmitted }: Props) {
   return (
     <section
       id="contact"
-      className="bg-white"
+      className="bg-page"
       style={{ padding: "100px var(--pad)" }}
     >
       <div className="max-w-container mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
         <Reveal>
           <div className="tag tag-green mb-5">Get in touch</div>
-          <h2
-            className="font-serif text-ink mb-3.5 leading-tight tracking-tight"
-            style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
-          >
-            Let's build something <em className="italic text-moss">that matters.</em>
+          <h2 className="section-title text-left">
+            Let's build something
+            <br />
+            <em className="underline-mark">that matters.</em>
           </h2>
-          <p className="text-[15px] text-ink-3 leading-[1.7] mb-7">
-            Whether you're a clinic exploring bookMySlot, a business with a
-            software problem we could solve, or an investor curious about what
-            we're building — we'd love to hear from you.
+          <p className="text-[15px] text-ink-3 leading-[1.7] mb-7 mt-5">
+            Whether you're a business exploring one of our products, a partner
+            or investor curious about what we're building, or someone with a
+            software problem we could solve — we'd love to hear from you.
           </p>
           <div className="flex flex-col gap-3">
             <a
@@ -100,7 +98,7 @@ export default function Contact({ onSubmitted }: Props) {
             <MagneticButton
               type="submit"
               disabled={submitting}
-              className="self-start inline-flex items-center gap-2 bg-moss hover:bg-moss-dark disabled:opacity-70 text-white rounded-[10px] px-6 py-3.5 text-sm font-medium transition-colors"
+              className="self-start inline-flex items-center gap-2 bg-moss hover:bg-moss-dark disabled:opacity-70 text-white rounded-[10px] px-6 py-3.5 text-sm font-semibold transition-colors"
             >
               {submitting ? "Sending…" : "Send message"}
               <Send size={13} />
@@ -115,17 +113,17 @@ export default function Contact({ onSubmitted }: Props) {
               padding: 11px 14px;
               font-size: 14px;
               font-family: var(--sans);
-              color: var(--ink);
-              background: var(--white);
+              color: var(--text);
+              background: var(--bg);
               outline: none;
               transition: border-color .2s, box-shadow .2s;
               appearance: none;
             }
             .form-input:focus {
-              border-color: var(--moss);
-              box-shadow: 0 0 0 3px rgba(26,158,116,0.09);
+              border-color: var(--accent);
+              box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.12);
             }
-            .form-input::placeholder { color: var(--ink5); }
+            .form-input::placeholder { color: rgb(var(--text-4-rgb)); }
           `}</style>
         </Reveal>
       </div>

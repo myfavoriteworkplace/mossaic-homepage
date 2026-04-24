@@ -13,7 +13,8 @@ const COLS = [
   {
     title: "Company",
     links: [
-      { label: "About", href: "#founder" },
+      { label: "Mission", href: "#mission" },
+      { label: "About", href: "#about" },
       { label: "Roadmap", href: "#roadmap" },
       { label: "Contact", href: "#contact" },
     ],
@@ -21,9 +22,9 @@ const COLS = [
   {
     title: "Resources",
     links: [
+      { label: "Why Mossaic", href: "#why" },
       { label: "Compliance", href: "#why" },
-      { label: "Tech stack", href: "#why" },
-      { label: "Testimonials", href: "#testimonials" },
+      { label: "Customer stories", href: "#testimonials" },
     ],
   },
 ];
@@ -44,13 +45,13 @@ export default function Footer() {
               <span className="w-[30px] h-[30px] rounded-md bg-moss flex items-center justify-center">
                 <Logo size={16} />
               </span>
-              <span className="font-serif text-lg text-white">
-                mos<span className="text-moss-mid italic">saic</span>
+              <span className="display text-lg font-bold text-white tracking-tight">
+                mos<span style={{ color: "rgb(var(--accent-mid-rgb))" }}>saic</span>
               </span>
             </div>
-            <p className="text-[13px] text-white/35 leading-relaxed mb-5 max-w-xs">
-              Building modular, India-first SaaS for industries that have been
-              underserved by generic software.
+            <p className="text-[13px] text-white/40 leading-relaxed mb-5 max-w-xs">
+              Building modular, India-first SaaS for industries that have
+              been underserved by generic software.
             </p>
             <div className="flex gap-2">
               {[
@@ -93,10 +94,10 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/[0.06] pt-6 flex items-center justify-between flex-wrap gap-3">
-          <span className="font-serif text-sm italic text-white/30">
+          <span className="display text-sm text-white/40 tracking-tight">
             Modular. Compliant. Built for India.
           </span>
-          <span className="text-xs text-white/20">
+          <span className="text-xs text-white/25">
             © {new Date().getFullYear()} Mossaic Technologies. All rights reserved.
           </span>
         </div>

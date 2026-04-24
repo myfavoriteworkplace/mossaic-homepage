@@ -3,9 +3,10 @@ import { AnimatePresence } from "framer-motion";
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
 import ProofBar from "./components/ProofBar";
+import Mission from "./components/Mission";
 import Products from "./components/Products";
 import Why from "./components/Why";
-import Founder from "./components/Founder";
+import About from "./components/About";
 import Roadmap from "./components/Roadmap";
 import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
@@ -31,9 +32,10 @@ export default function App() {
       <main>
         <Hero />
         <ProofBar />
+        <Mission />
         <Products />
         <Why />
-        <Founder />
+        <About />
         <Roadmap />
         <Testimonials />
         <Contact onSubmitted={showToast} />
