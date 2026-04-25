@@ -3,7 +3,9 @@
 A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in) and the upcoming Retail CRM and AI Imaging products. Positioned as a company website (Mission / Vision / About) with bookMySlot featured only in the Products section.
 
 **Brand identity:**
-- **Mosaic-M** mark — capital "M" assembled from glowing crystal/octagonal tiles (each etched with a hex-network pattern), a luminous cyan AI-network core at the center, and three crystal shards breaking away from the top-right corner. Brand image served from `public/brand/mossaic-mark-512.png` (master at `mossaic-mark.png`, 1024×1024, transparent). Rendered by `src/components/Logo.tsx`.
+- **Mosaic-M** mark — capital "M" assembled from glowing tiles with a luminous AI-core and break-away shards. `Logo.tsx` exposes two optical-size variants:
+  - `variant="image"` (default) — full-detail raster brand mark for ≥48px slots (footer / hero). Asset: `public/brand/mossaic-mark-512.png` (1024×1024 master at `mossaic-mark.png`, transparent).
+  - `variant="mark"` — vector mosaic-M (SVG) for nav, favicon, and any dense UI. Crisp at any size. Same SVG geometry powers `public/favicon.svg`.
 - **Wordmark:** `moss[AI]c` — the **AI** letters render in a glowing cyan→blue gradient — `src/components/ui/Wordmark.tsx`
 - **Tagline:** "The future, assembled."
 - **Type:** Bricolage Grotesque (display) + Inter (body) + Geist Mono (code)
