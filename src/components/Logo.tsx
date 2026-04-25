@@ -18,6 +18,7 @@ type Props = {
 };
 
 const MARK_IMAGE = "/brand/mossaic-mark-512.png";
+const MARK_IMAGE_AR = 1115 / 944;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Vector "mark" variant — mosaic-M letterform built from a 13×11 tile grid,
@@ -243,21 +244,22 @@ function ImageMark({
   size: number;
   className?: string;
 }) {
+  const height = size;
+  const width = Math.round(size * MARK_IMAGE_AR);
   return (
     <img
       src={MARK_IMAGE}
       alt="Mossaic"
-      width={size}
-      height={size}
+      width={width}
+      height={height}
       decoding="async"
       loading="eager"
       draggable={false}
       className={className}
       style={{
         display: "block",
-        width: size,
-        height: size,
-        objectFit: "contain",
+        width,
+        height,
         userSelect: "none",
       }}
     />
