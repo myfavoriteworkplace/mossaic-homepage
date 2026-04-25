@@ -1,5 +1,6 @@
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
+import BookMySlotText from "./ui/BookMySlotText";
 import { TESTIMONIALS } from "../data/site";
 
 export default function Testimonials() {
@@ -16,7 +17,7 @@ export default function Testimonials() {
             What customers are <em className="underline-mark">saying.</em>
           </h2>
           <p className="section-sub mt-3.5">
-            Quotes from clinics using <span className="text-moss font-semibold">bookMySlot</span> today.
+            Quotes from clinics using <BookMySlotText /> today.
             Retail CRM and AI Imaging customer stories will join them as
             those products go live.
           </p>

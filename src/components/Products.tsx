@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Store, Brain } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
+import BookMySlotText from "./ui/BookMySlotText";
 import { PRODUCTS, type Product } from "../data/site";
 
 const ICONS: Record<string, React.ReactNode> = {
@@ -137,7 +138,7 @@ function ProductCard({
       </div>
 
       <h3 className="text-xl font-bold text-ink mb-1.5 display tracking-tight">
-        {p.name}
+        {p.id === "bookmyslot" ? <BookMySlotText /> : p.name}
       </h3>
       <p className="text-xs text-moss font-semibold mb-2.5 tracking-wide">
         {p.category}
@@ -183,7 +184,13 @@ function ProductCard({
         target={p.cta.href.startsWith("http") ? "_blank" : undefined}
         rel={p.cta.href.startsWith("http") ? "noreferrer noopener" : undefined}
       >
-        {p.cta.label}
+        {p.id === "bookmyslot" && p.cta.label === "Visit bookMySlot" ? (
+          <span className="inline-flex items-center gap-1">
+            Visit <BookMySlotText />
+          </span>
+        ) : (
+          p.cta.label
+        )}
         <ArrowRight size={13} />
       </a>
     </div>

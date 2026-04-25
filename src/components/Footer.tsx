@@ -1,13 +1,17 @@
 import { Linkedin, Twitter, Github } from "lucide-react";
 import Logo from "./Logo";
 import Wordmark from "./ui/Wordmark";
+import BookMySlotText from "./ui/BookMySlotText";
 import { TAGLINE } from "../data/site";
 
-const COLS = [
+const COLS: {
+  title: string;
+  links: { label: React.ReactNode; href: string }[];
+}[] = [
   {
     title: "Products",
     links: [
-      { label: "bookMySlot", href: "https://bookmyslot.dental.mossaic.in" },
+      { label: <BookMySlotText />, href: "https://bookmyslot.dental.mossaic.in" },
       { label: "Retail CRM", href: "#products" },
       { label: "AI Imaging", href: "#products" },
     ],
@@ -77,9 +81,9 @@ export default function Footer() {
                 {col.title}
               </div>
               <div className="flex flex-col gap-2.5">
-                {col.links.map((l) => (
+                {col.links.map((l, i) => (
                   <a
-                    key={l.label}
+                    key={`${col.title}-${i}`}
                     href={l.href}
                     className="text-[13px] text-white/45 hover:text-white/85 no-underline transition-colors"
                   >

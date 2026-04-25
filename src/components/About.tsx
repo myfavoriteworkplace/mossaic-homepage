@@ -1,5 +1,6 @@
 import { Linkedin, Mail, MapPin, Calendar, Users, Target } from "lucide-react";
 import Reveal from "./ui/Reveal";
+import BookMySlotText from "./ui/BookMySlotText";
 import { SITE, COMPANY } from "../data/site";
 
 const FACTS = [
@@ -101,14 +102,14 @@ export default function About() {
               markets that don't look anything like an Indian clinic.
             </p>
             <p className="text-[15px] text-ink-2 leading-[1.85] mb-4">
-              That problem became <span className="text-moss font-medium">bookMySlot</span> — our
+              That problem became <BookMySlotText /> — our
               first product, live and serving real clinics every day. But the
               underlying problem isn't dental. It's every Indian SMB sitting
               between WhatsApp and Excel, waiting for software that fits how
               they actually work.
             </p>
             <p className="text-[15px] text-ink-2 leading-[1.85]">
-              Mossaic is the company behind bookMySlot and everything coming
+              Mossaic is the company behind <BookMySlotText /> and everything coming
               after it — Retail CRM next, AI Imaging after that. The plan is
               simple: find industries running on workarounds, build software
               that fits, and ship it with the kind of compliance and craft
