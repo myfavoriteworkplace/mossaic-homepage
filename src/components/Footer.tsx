@@ -44,7 +44,7 @@ export default function Footer() {
         <div className="grid gap-12 md:grid-cols-2 lg:[grid-template-columns:1.5fr_1fr_1fr_1fr] mb-12">
           <div>
             <div className="flex items-center gap-2.5 mb-3.5">
-              <Logo size={32} idSuffix="footer" />
+              <Logo size={56} idSuffix="footer" />
               <Wordmark variant="footer" textColor="#fff" />
             </div>
             <p className="text-[13px] text-white/40 leading-relaxed mb-5 max-w-xs">
