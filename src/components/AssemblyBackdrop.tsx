@@ -114,10 +114,11 @@ const RAW_HEXES: Array<Omit<Hex, "scatter" | "start" | "end">> = [
   { cx: 640, cy: 590, r: 78, kind: "inner" },
   { cx: 640, cy: 740, r: 78, kind: "inner" },
 
-  // Right thick leg — col A (x=780, offset) — inner line, shorter (3 hexes)
+  // Right thick leg — col A (x=780, offset) — inner line, full 4 hexes
   { cx: 780, cy: 290, r: 78, kind: "frame" },
   { cx: 780, cy: 440, r: 78, kind: "frame" },
   { cx: 780, cy: 590, r: 78, kind: "frame" },
+  { cx: 780, cy: 740, r: 78, kind: "frame" },
   // Right thick leg — col B (x=900) — outer line, full 4 hexes
   { cx: 900, cy: 215, r: 78, kind: "frame" },
   { cx: 900, cy: 365, r: 78, kind: "frame" },
