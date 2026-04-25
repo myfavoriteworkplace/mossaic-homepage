@@ -135,28 +135,45 @@ export default function AssemblyBackdrop() {
 
   // Build the timed hex list once.
   const hexes = useMemo<Hex[]>(() => {
-    // Group by kind to schedule docking phases.
-    const inners: number[] = [];
+    // ── Phase windows ──────────────────────────────────────────────────────
+    // 0.00 → 0.03  Core wakes up (no leg movement yet).
+    // 0.06 → 0.70  Legs (frame + inner) dock BOTTOM-UP, row by row.
+    // 0.70 → 0.88  Breakaway shards snap in.
+    // 0.88 → 1.00  Settle window — the perfect logo holds, no motion.
+    const LEGS_START = 0.06;
+    const LEGS_END = 0.70;
+    const TILE_DURATION = 0.16;
+    const BREAK_START = 0.70;
+    const BREAK_END = 0.88;
+    const BREAK_DURATION = 0.14;
+
+    // Collect leg hex indices (frame + inner — the M's body).
+    const legs: number[] = [];
     const breakers: number[] = [];
     RAW_HEXES.forEach((h, i) => {
-      if (h.kind === "inner") inners.push(i);
+      if (h.kind === "frame" || h.kind === "inner") legs.push(i);
       else if (h.kind === "breakaway") breakers.push(i);
     });
 
-    // Inner hexes dock outside-in (farther from center first).
-    const center = { x: 510, y: 470 };
-    inners.sort(
-      (a, b) =>
-        Math.hypot(RAW_HEXES[b].cx - center.x, RAW_HEXES[b].cy - center.y) -
-        Math.hypot(RAW_HEXES[a].cx - center.x, RAW_HEXES[a].cy - center.y),
-    );
+    // Bottom-up: hexes with the largest y dock first. Group hexes by row
+    // (bucketed every 60 image-units) so same-row hexes share a start time
+    // and the M visibly grows upward in row "layers".
+    const rowKey = (cy: number) => Math.round(cy / 60);
+    legs.sort((a, b) => {
+      const ra = rowKey(RAW_HEXES[a].cy);
+      const rb = rowKey(RAW_HEXES[b].cy);
+      if (ra !== rb) return rb - ra; // larger row index (lower on screen) first
+      return RAW_HEXES[a].cx - RAW_HEXES[b].cx; // left-to-right within a row
+    });
 
-    const ASSEMBLY_START = 0.08;
-    const ASSEMBLY_END = 0.62;
-    const TILE_DURATION = 0.22;
-    const BREAK_START = 0.62;
-    const BREAK_END = 0.82;
-    const BREAK_DURATION = 0.18;
+    // Map rows → ordinal so same-row hexes share start time.
+    const rowOrder = new Map<number, number>();
+    let nextRow = 0;
+    for (const idx of legs) {
+      const k = rowKey(RAW_HEXES[idx].cy);
+      if (!rowOrder.has(k)) rowOrder.set(k, nextRow++);
+    }
+    const totalRows = Math.max(rowOrder.size, 1);
 
     const out: Hex[] = RAW_HEXES.map((h, i) => ({
       ...h,
@@ -165,15 +182,17 @@ export default function AssemblyBackdrop() {
       end: 0,
     }));
 
-    inners.forEach((idx, k) => {
-      const span = ASSEMBLY_END - ASSEMBLY_START - TILE_DURATION;
+    legs.forEach((idx) => {
+      const rowOrd = rowOrder.get(rowKey(RAW_HEXES[idx].cy)) ?? 0;
+      const span = LEGS_END - LEGS_START - TILE_DURATION;
       const start =
-        inners.length > 1
-          ? ASSEMBLY_START + (k / (inners.length - 1)) * span
-          : ASSEMBLY_START;
+        totalRows > 1
+          ? LEGS_START + (rowOrd / (totalRows - 1)) * span
+          : LEGS_START;
       out[idx].start = start;
       out[idx].end = start + TILE_DURATION;
     });
+
     breakers.forEach((idx, k) => {
       const span = BREAK_END - BREAK_START - BREAK_DURATION;
       const start =
@@ -187,9 +206,9 @@ export default function AssemblyBackdrop() {
     return out;
   }, []);
 
-  // Core fades in last, with a soft glow halo.
-  const coreOpacity = useTransform(scrollYProgress, [0.78, 0.95], [0, 1]);
-  const glowOpacity = useTransform(scrollYProgress, [0.82, 1.0], [0, 0.85]);
+  // Core wakes up first — soft single ramp from 0 → full over the first 3%.
+  const coreOpacity = useTransform(scrollYProgress, [0.0, 0.03], [0, 1]);
+  const glowOpacity = useTransform(scrollYProgress, [0.0, 0.03], [0, 0.85]);
 
   return (
     <div
@@ -272,8 +291,6 @@ function HexPiece({
   reduced: boolean;
   coreOpacity: MotionValue<number>;
 }) {
-  const isAnimated = hex.kind === "inner" || hex.kind === "breakaway";
-
   // Travel from scattered offset → (0, 0), clamped within the window.
   const tx = useTransform(
     progress,
@@ -313,20 +330,12 @@ function HexPiece({
     return <g>{imageEl}</g>;
   }
 
-  if (hex.kind === "frame") {
-    // Frame hexes are always present.
-    return <g>{imageEl}</g>;
-  }
-
   if (hex.kind === "core") {
-    // Core fades in at the end (no flight).
-    return (
-      <motion.g style={{ opacity: coreOpacity }}>{imageEl}</motion.g>
-    );
+    // Core wakes up first — fades in over the first 3% of scroll, no flight.
+    return <motion.g style={{ opacity: coreOpacity }}>{imageEl}</motion.g>;
   }
 
-  if (!isAnimated) return <g>{imageEl}</g>;
-
+  // All other hexes (frame, inner, breakaway) fly in from upper-right.
   return (
     <motion.g style={{ x: tx, y: ty, opacity: op }}>{imageEl}</motion.g>
   );
