@@ -405,6 +405,64 @@ export default function Chatbot() {
           )}
         </AnimatePresence>
 
+        {/* Mossie's two little legs — pendulum-swinging cyan capsules that
+            hang just below the bubble while she walks and retract smoothly
+            into the body when she settles. The 180°-offset swing reads as
+            an alternating-step gait, while the body's own bob (handled on
+            the parent button) gives the spring-in-step rhythm. */}
+        <motion.span
+          aria-hidden
+          className="absolute pointer-events-none rounded-full"
+          animate={{
+            opacity: settled ? 0 : 1,
+            scaleY: settled ? 0.3 : 1,
+            rotate: settled ? 0 : [-22, 18, -22],
+          }}
+          transition={{
+            opacity: { duration: 0.3, ease: "easeOut" },
+            scaleY: { duration: 0.3, ease: "easeOut" },
+            rotate: settled
+              ? { duration: 0.25, ease: "easeOut" }
+              : { duration: 0.5, repeat: Infinity, ease: "easeInOut" },
+          }}
+          style={{
+            width: 3,
+            height: 11,
+            bottom: -7,
+            left: "calc(50% - 7px)",
+            background:
+              "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
+            boxShadow: "0 0 6px rgba(34,211,238,0.55)",
+            transformOrigin: "50% 0%",
+          }}
+        />
+        <motion.span
+          aria-hidden
+          className="absolute pointer-events-none rounded-full"
+          animate={{
+            opacity: settled ? 0 : 1,
+            scaleY: settled ? 0.3 : 1,
+            rotate: settled ? 0 : [18, -22, 18],
+          }}
+          transition={{
+            opacity: { duration: 0.3, ease: "easeOut" },
+            scaleY: { duration: 0.3, ease: "easeOut" },
+            rotate: settled
+              ? { duration: 0.25, ease: "easeOut" }
+              : { duration: 0.5, repeat: Infinity, ease: "easeInOut" },
+          }}
+          style={{
+            width: 3,
+            height: 11,
+            bottom: -7,
+            left: "calc(50% + 4px)",
+            background:
+              "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
+            boxShadow: "0 0 6px rgba(34,211,238,0.55)",
+            transformOrigin: "50% 0%",
+          }}
+        />
+
         {/* Soft pulsing halo — only after Mossie has settled in her home spot
             and only while the panel is closed. Suppressed during the walk so
             the bubble feels alive (walking) rather than asking-for-attention. */}
