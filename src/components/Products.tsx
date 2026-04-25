@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { ArrowRight, Store, Brain } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
@@ -272,19 +272,177 @@ function ProductCard({
   );
 }
 
+type Particle = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  hue: number;
+  phase: number;
+};
+
+const TRANSITION_MS = 900;
+const HOLD_MS = 1700; // total cycle = ~2600ms (close to original 2200 + transition headroom)
+
 function ScreenCarousel({ screens, active }: { screens: Screen[]; active: boolean }) {
   const [i, setI] = useState(0);
+  const [imgOpacity, setImgOpacity] = useState(1);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reducedMotionRef = useRef(false);
+
+  // detect reduced motion once
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    reducedMotionRef.current = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+  }, []);
 
   useEffect(() => {
     if (!active) {
       setI(0);
+      setImgOpacity(1);
       return;
     }
-    const id = window.setInterval(
-      () => setI((v) => (v + 1) % screens.length),
-      2200,
-    );
-    return () => window.clearInterval(id);
+
+    let cancelled = false;
+    let rafId = 0;
+    let cycleTimeout = 0;
+
+    const runDissolve = () => {
+      const canvas = canvasRef.current;
+      if (!canvas || cancelled) {
+        scheduleNext();
+        return;
+      }
+
+      // reduced motion → quick crossfade fallback, no particles
+      if (reducedMotionRef.current) {
+        setImgOpacity(0);
+        window.setTimeout(() => {
+          if (cancelled) return;
+          setI((v) => (v + 1) % screens.length);
+          setImgOpacity(1);
+          scheduleNext();
+        }, 250);
+        return;
+      }
+
+      // size canvas to its CSS box
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      if (w === 0 || h === 0) {
+        scheduleNext();
+        return;
+      }
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        scheduleNext();
+        return;
+      }
+      ctx.scale(dpr, dpr);
+
+      // seed particles across the viewport
+      const PARTICLE_COUNT = Math.round((w * h) / 1400); // density-based, ~80–110 typical
+      const particles: Particle[] = [];
+      for (let p = 0; p < PARTICLE_COUNT; p++) {
+        particles.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: -0.3 - Math.random() * 1.1,
+          size: 0.8 + Math.random() * 1.8,
+          hue: 182 + Math.random() * 22, // cyan band (matches site accent)
+          phase: Math.random() * Math.PI * 2,
+        });
+      }
+
+      const start = performance.now();
+      let swapped = false;
+
+      const frame = (now: number) => {
+        if (cancelled) return;
+        const elapsed = now - start;
+        const t = Math.min(1, elapsed / TRANSITION_MS);
+
+        // image opacity envelope: 1 → 0 → 1 (cosine squared)
+        const imgA = Math.cos(Math.PI * t) ** 2;
+        setImgOpacity(imgA);
+
+        // swap image at midpoint
+        if (!swapped && t >= 0.5) {
+          swapped = true;
+          setI((v) => (v + 1) % screens.length);
+        }
+
+        // particle envelope: 0 → 1 → 0 (sine)
+        const partA = Math.sin(Math.PI * t);
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.globalCompositeOperation = "lighter";
+
+        for (const pt of particles) {
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          // wrap horizontally so particles don't drift away in long tails
+          if (pt.x < -10) pt.x = w + 10;
+          if (pt.x > w + 10) pt.x = -10;
+
+          const flicker = 0.55 + 0.45 * Math.sin(pt.phase + (elapsed / 80));
+          const a = partA * flicker;
+          if (a <= 0.01) continue;
+
+          // soft outer glow
+          const r = pt.size * 4.5;
+          const glow = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r);
+          glow.addColorStop(0, `hsla(${pt.hue}, 100%, 70%, ${a * 0.55})`);
+          glow.addColorStop(1, `hsla(${pt.hue}, 100%, 70%, 0)`);
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+          ctx.fill();
+
+          // bright core
+          ctx.fillStyle = `hsla(${pt.hue}, 100%, 92%, ${a})`;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (t < 1) {
+          rafId = requestAnimationFrame(frame);
+        } else {
+          ctx.clearRect(0, 0, w, h);
+          setImgOpacity(1);
+          scheduleNext();
+        }
+      };
+
+      rafId = requestAnimationFrame(frame);
+    };
+
+    const scheduleNext = () => {
+      if (cancelled) return;
+      cycleTimeout = window.setTimeout(runDissolve, HOLD_MS);
+    };
+
+    scheduleNext();
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+      window.clearTimeout(cycleTimeout);
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    };
   }, [active, screens.length]);
 
   const current = screens[i];
@@ -313,27 +471,32 @@ function ScreenCarousel({ screens, active }: { screens: Screen[]; active: boolea
       </div>
 
       {/* viewport */}
-      <div className="relative w-full" style={{ aspectRatio: "16 / 10", background: "#fff" }}>
-        <AnimatePresence initial={false}>
-          <motion.img
-            key={current.src}
-            src={current.src}
-            alt={current.alt}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            loading="lazy"
-            decoding="async"
-            draggable={false}
-            className="absolute inset-0 w-full h-full"
-            style={{
-              objectFit: "cover",
-              objectPosition: current.objectPosition ?? "center top",
-              display: "block",
-            }}
-          />
-        </AnimatePresence>
+      <div className="relative w-full" style={{ aspectRatio: "16 / 10", background: "#0a1628" }}>
+        <img
+          key={current.src}
+          src={current.src}
+          alt={current.alt}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          className="absolute inset-0 w-full h-full"
+          style={{
+            objectFit: "cover",
+            objectPosition: current.objectPosition ?? "center top",
+            display: "block",
+            opacity: imgOpacity,
+            transition: "opacity 60ms linear",
+            willChange: "opacity",
+          }}
+        />
+
+        {/* particle dissolve overlay */}
+        <canvas
+          ref={canvasRef}
+          aria-hidden
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ mixBlendMode: "screen" }}
+        />
 
         {/* progress dots */}
         <div className="absolute bottom-1.5 left-0 right-0 flex items-center justify-center gap-1">
