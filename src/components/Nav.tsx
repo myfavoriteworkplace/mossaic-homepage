@@ -29,7 +29,7 @@ export default function Nav() {
     >
       <div className="max-w-container w-full mx-auto flex items-center gap-8">
         <a href="#" className="flex items-center gap-2.5 no-underline">
-          <Logo size={36} variant="mark" animated idSuffix="nav" />
+          <Logo size={44} variant="image" />
           <Wordmark variant="nav" textColor="#fff" />
         </a>
 
