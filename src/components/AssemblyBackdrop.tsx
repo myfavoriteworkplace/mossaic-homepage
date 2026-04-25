@@ -61,6 +61,21 @@ function hexPts(cx: number, cy: number, r: number): string {
   return pts.join(" ");
 }
 
+/** Regular octagon polygon points (flat top/bottom/left/right with 45° corner
+ *  cuts), centered at (cx, cy). r is the distance from center to a vertex.
+ *  Used for the central AI core to match the master image's octagonal frame. */
+function octPts(cx: number, cy: number, r: number): string {
+  const pts: string[] = [];
+  for (let i = 0; i < 8; i++) {
+    // 22.5° offset gives flat top/bottom/left/right edges
+    const angle = (Math.PI / 4) * i - Math.PI / 2 + Math.PI / 8;
+    pts.push(
+      `${(cx + r * Math.cos(angle)).toFixed(2)},${(cy + r * Math.sin(angle)).toFixed(2)}`,
+    );
+  }
+  return pts.join(" ");
+}
+
 /** Deterministic off-canvas scatter biased toward upper-right, in image
  *  coordinate units. Tiles fly in from beyond the top-right corner. */
 function scatterFor(idx: number): [number, number] {
@@ -243,7 +258,13 @@ export default function AssemblyBackdrop() {
         <defs>
           {hexes.map((h, i) => (
             <clipPath key={i} id={`abClip-${i}`}>
-              <polygon points={hexPts(h.cx, h.cy, h.r)} />
+              <polygon
+                points={
+                  h.kind === "core"
+                    ? octPts(h.cx, h.cy, h.r)
+                    : hexPts(h.cx, h.cy, h.r)
+                }
+              />
             </clipPath>
           ))}
           <radialGradient
