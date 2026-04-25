@@ -452,24 +452,11 @@ function ScreenCarousel({ screens, active }: { screens: Screen[]; active: boolea
       className="relative w-full rounded-lg overflow-hidden"
       style={{
         background: "rgb(var(--bg-rgb))",
-        border: "1px solid rgb(var(--border1-rgb, 226 232 240))",
-        boxShadow: "0 12px 32px -16px rgba(15, 23, 42, 0.35)",
+        border: "1px solid rgba(34, 211, 238, 0.18)",
+        boxShadow:
+          "0 12px 32px -16px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(34, 211, 238, 0.04), 0 0 28px -10px rgba(34, 211, 238, 0.25)",
       }}
     >
-      {/* faux browser chrome */}
-      <div
-        className="flex items-center gap-1.5 px-2.5 py-1.5"
-        style={{
-          background: "var(--surface, rgba(15,23,42,0.04))",
-          borderBottom: "1px solid rgb(var(--border2-rgb, 226 232 240))",
-        }}
-      >
-        <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF5F57" }} />
-        <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#FEBC2E" }} />
-        <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#28C840" }} />
-        <div className="ml-2 flex-1 h-3 rounded-sm" style={{ background: "rgba(15,23,42,0.05)" }} />
-      </div>
-
       {/* viewport */}
       <div className="relative w-full" style={{ aspectRatio: "16 / 10", background: "#0a1628" }}>
         <img
