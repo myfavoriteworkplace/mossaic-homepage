@@ -6,3 +6,9 @@ id = "-clMjT-_w8c7ryBIkzWtM"
 uri = "file://exports/mossaic-homepage.zip"
 type = "unspecified"
 title = "mossaic-homepage.zip — full source for GitHub"
+
+[[outputs]]
+id = "4uduyZzAg3yZY2B-vsJSU"
+uri = "file://docs/deployment-guide.md"
+type = "text"
+title = "Deployment Guide — Mossaic homepage on GitHub Pages + GoDaddy"
