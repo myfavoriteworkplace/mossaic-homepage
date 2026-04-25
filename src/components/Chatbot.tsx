@@ -120,7 +120,7 @@ function findBestFaq(query: string): Faq | null {
 /* ── Walk-in animation constants ────────────────────────────────────────── */
 
 /** Seconds to traverse the bottom from the left edge to home. */
-const WALK_DURATION_S = 10;
+const WALK_DURATION_S = 12;
 /** Distance in pixels from Mossie within which the cursor "spooks" her home. */
 const PROXIMITY_PX = 140;
 /** Bubble width — used to compute the walk distance. */
@@ -360,23 +360,37 @@ export default function Chatbot() {
         }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.94 }}
-        initial={{ opacity: 0, x: -walkDistance, y: 0, scale: 0.92 }}
+        initial={{
+          opacity: 0,
+          x: -walkDistance,
+          y: 0,
+          scaleX: 0.92,
+          scaleY: 0.92,
+        }}
         animate={{
           opacity: 1,
-          scale: 1,
           x: 0,
-          // Steppy "walking" hop while Mossie is in transit; flat once settled.
-          y: settled ? 0 : [0, -3, 0, -3, 0],
+          // Pogo hop — body launches, arcs to apex, lands. Squash-and-stretch
+          // physics: wide+short on landing, narrow+tall at apex. Two hops per
+          // gait cycle (one per leg). Once settled, everything snaps to rest.
+          y: settled ? 0 : [0, -14, 0],
+          scaleX: settled ? 1 : [1.12, 0.9, 1.12],
+          scaleY: settled ? 1 : [0.85, 1.15, 0.85],
         }}
         transition={{
           opacity: { duration: 0.35 },
-          scale: { type: "spring", stiffness: 260, damping: 22 },
           x: settled
             ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
             : { duration: WALK_DURATION_S, ease: "linear" },
           y: settled
             ? { duration: 0.25, ease: "easeOut" }
-            : { duration: 0.5, repeat: Infinity, ease: "easeInOut" },
+            : { duration: 0.6, repeat: Infinity, ease: "easeInOut" },
+          scaleX: settled
+            ? { duration: 0.25, ease: "easeOut" }
+            : { duration: 0.6, repeat: Infinity, ease: "easeInOut" },
+          scaleY: settled
+            ? { duration: 0.25, ease: "easeOut" }
+            : { duration: 0.6, repeat: Infinity, ease: "easeInOut" },
         }}
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -405,56 +419,66 @@ export default function Chatbot() {
           )}
         </AnimatePresence>
 
-        {/* Mossie's two little legs — pendulum-swinging cyan capsules that
-            hang just below the bubble while she walks and retract smoothly
-            into the body when she settles. The 180°-offset swing reads as
-            an alternating-step gait, while the body's own bob (handled on
-            the parent button) gives the spring-in-step rhythm. */}
+        {/* Mossie's two pogo legs — wide-arc cyan capsules that flail
+            beneath the body during her hop. Paired with the parent button's
+            squash-and-stretch + arc bounce, the result reads as cartoon
+            pogo locomotion. They retract smoothly when she settles. */}
+        {/* Left leg — flails back on push-off, swings forward to plant. */}
         <motion.span
           aria-hidden
           className="absolute pointer-events-none rounded-full"
           animate={{
             opacity: settled ? 0 : 1,
             scaleY: settled ? 0.3 : 1,
-            rotate: settled ? 0 : [-22, 18, -22],
+            rotate: settled ? 0 : [-35, 30, -35],
+            y: settled ? 0 : [0, -2, 0],
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
             scaleY: { duration: 0.3, ease: "easeOut" },
             rotate: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : { duration: 0.5, repeat: Infinity, ease: "easeInOut" },
+              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+            y: settled
+              ? { duration: 0.25, ease: "easeOut" }
+              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
           }}
           style={{
-            width: 3,
-            height: 11,
-            bottom: -7,
-            left: "calc(50% - 7px)",
+            width: 4,
+            height: 13,
+            bottom: -8,
+            left: "calc(50% - 8px)",
             background:
               "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
             boxShadow: "0 0 6px rgba(34,211,238,0.55)",
             transformOrigin: "50% 0%",
           }}
         />
+        {/* Right leg — opposite phase. Together with the left leg, the two
+            create an alternating "pogo flail" gait. */}
         <motion.span
           aria-hidden
           className="absolute pointer-events-none rounded-full"
           animate={{
             opacity: settled ? 0 : 1,
             scaleY: settled ? 0.3 : 1,
-            rotate: settled ? 0 : [18, -22, 18],
+            rotate: settled ? 0 : [30, -35, 30],
+            y: settled ? 0 : [-2, 0, -2],
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
             scaleY: { duration: 0.3, ease: "easeOut" },
             rotate: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : { duration: 0.5, repeat: Infinity, ease: "easeInOut" },
+              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+            y: settled
+              ? { duration: 0.25, ease: "easeOut" }
+              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
           }}
           style={{
-            width: 3,
-            height: 11,
-            bottom: -7,
+            width: 4,
+            height: 13,
+            bottom: -8,
             left: "calc(50% + 4px)",
             background:
               "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
