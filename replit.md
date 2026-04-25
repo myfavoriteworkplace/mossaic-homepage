@@ -3,7 +3,7 @@
 A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in) and the upcoming Retail CRM and AI Imaging products. Positioned as a company website (Mission / Vision / About) with bookMySlot featured only in the Products section.
 
 **Brand identity:**
-- **Hex Core** mark — 7-hex cluster (1 luminous cyan center + 6 deep-blue ring hexes, two break-away) — `src/components/Logo.tsx`
+- **Mosaic-M** mark — capital "M" assembled from a tiled mosaic of triangular facets, with a hexagonal AI-chip core (IC pins on each edge) at the V-junction and 2–3 tiles breaking away top-right (modular assembly). Hex tiles + chip = nodes + intelligence (AI / blockchain motif). — `src/components/Logo.tsx`
 - **Wordmark:** `moss[AI]c` — the **AI** letters render in a glowing cyan→blue gradient — `src/components/ui/Wordmark.tsx`
 - **Tagline:** "The future, assembled."
 - **Type:** Bricolage Grotesque (display) + Inter (body) + Geist Mono (code)
