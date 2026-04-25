@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
 import Nav from "./components/Nav";
+import AssemblyBackdrop from "./components/AssemblyBackdrop";
 import Hero from "./components/Hero";
 import ProofBar from "./components/ProofBar";
 import Mission from "./components/Mission";
@@ -29,6 +30,7 @@ export default function App() {
   return (
     <>
       <Nav />
+      <AssemblyBackdrop />
       <main>
         <Hero />
         <ProofBar />
