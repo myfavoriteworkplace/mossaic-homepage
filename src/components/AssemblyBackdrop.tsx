@@ -229,7 +229,7 @@ export default function AssemblyBackdrop() {
           width: "min(75vmin, 880px)",
           height: "auto",
           overflow: "visible",
-          opacity: 0.85,
+          opacity: 0.32,
           aspectRatio: `${VB_W} / ${VB_H}`,
         }}
       >
