@@ -12,6 +12,7 @@ import Roadmap from "./components/Roadmap";
 import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import Chatbot from "./components/Chatbot";
 import Toast from "./components/ui/Toast";
 
 export default function App() {
@@ -43,6 +44,8 @@ export default function App() {
         <Contact onSubmitted={showToast} />
       </main>
       <Footer />
+
+      <Chatbot />
 
       <AnimatePresence>
         {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
