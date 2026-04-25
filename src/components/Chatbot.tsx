@@ -117,6 +117,27 @@ function findBestFaq(query: string): Faq | null {
   return bestScore > 0 ? best : null;
 }
 
+/* ── Walk-in animation constants ────────────────────────────────────────── */
+
+/** Seconds to traverse the bottom from the left edge to home. */
+const WALK_DURATION_S = 10;
+/** Distance in pixels from Mossie within which the cursor "spooks" her home. */
+const PROXIMITY_PX = 140;
+/** Bubble width — used to compute the walk distance. */
+const BUBBLE_PX = 56;
+/** Side margin on both edges (matches `bottom-6 right-6` = 24px). */
+const EDGE_MARGIN = 24;
+/** Below this viewport width the walk is skipped (too little room). */
+const MIN_WALK_VIEWPORT = 480;
+
+/** Compute the maximum leftward translation for the walk-in. */
+function computeWalkDistance(): number {
+  if (typeof window === "undefined") return 0;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
+  if (window.innerWidth < MIN_WALK_VIEWPORT) return 0;
+  return Math.max(0, window.innerWidth - BUBBLE_PX - EDGE_MARGIN * 2);
+}
+
 /* ── Component ──────────────────────────────────────────────────────────── */
 
 export default function Chatbot() {
@@ -131,11 +152,18 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
 
+  // Walk-in state — Mossie enters from the far-left, struts to her home spot
+  // in the bottom-right, and "settles" when the user comes near, taps, opens
+  // the chat, or the walk timer completes.
+  const [walkDistance] = useState<number>(() => computeWalkDistance());
+  const [settled, setSettled] = useState<boolean>(() => computeWalkDistance() === 0);
+
   const recognitionCtor = useMemo(() => getRecognitionCtor(), []);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
   const nextId = useRef(2);
 
   /* Persist mute preference. */
@@ -186,6 +214,43 @@ export default function Chatbot() {
       recognitionRef.current?.stop();
     };
   }, []);
+
+  /* Walk-in: settle when the cursor approaches Mossie. */
+  useEffect(() => {
+    if (settled) return;
+    const handler = (e: MouseEvent) => {
+      const btn = btnRef.current;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      if (dx * dx + dy * dy < PROXIMITY_PX * PROXIMITY_PX) setSettled(true);
+    };
+    window.addEventListener("mousemove", handler, { passive: true });
+    return () => window.removeEventListener("mousemove", handler);
+  }, [settled]);
+
+  /* Walk-in: settle on the first tap anywhere on touch devices. */
+  useEffect(() => {
+    if (settled) return;
+    const handler = () => setSettled(true);
+    window.addEventListener("touchstart", handler, { passive: true });
+    return () => window.removeEventListener("touchstart", handler);
+  }, [settled]);
+
+  /* Walk-in: auto-settle once the walk duration completes. */
+  useEffect(() => {
+    if (settled) return;
+    const t = window.setTimeout(() => setSettled(true), WALK_DURATION_S * 1000);
+    return () => window.clearTimeout(t);
+  }, [settled]);
+
+  /* Opening the panel always settles Mossie. */
+  useEffect(() => {
+    if (open && !settled) setSettled(true);
+  }, [open, settled]);
 
   const speak = useCallback(
     (text: string) => {
@@ -274,16 +339,20 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* ── Floating action button ─────────────────────────────────────── */}
+      {/* ── Floating action button (Mossie) ────────────────────────────── */}
       <motion.button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-label={open ? "Close assistant" : "Open assistant"}
+        onClick={() => {
+          setSettled(true);
+          setOpen((o) => !o);
+        }}
+        aria-label={open ? "Close Mossie" : "Open Mossie"}
         aria-expanded={open}
         className="fixed bottom-6 right-6 z-[900] flex items-center justify-center rounded-full text-white"
         style={{
-          width: 56,
-          height: 56,
+          width: BUBBLE_PX,
+          height: BUBBLE_PX,
           background: "linear-gradient(135deg, #0a1628 0%, #11233b 100%)",
           border: `1px solid ${ACCENT}`,
           boxShadow:
@@ -291,9 +360,24 @@ export default function Chatbot() {
         }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.94 }}
-        initial={{ opacity: 0, y: 12, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: "spring", stiffness: 280, damping: 22 }}
+        initial={{ opacity: 0, x: -walkDistance, y: 0, scale: 0.92 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          x: 0,
+          // Steppy "walking" hop while Mossie is in transit; flat once settled.
+          y: settled ? 0 : [0, -3, 0, -3, 0],
+        }}
+        transition={{
+          opacity: { duration: 0.35 },
+          scale: { type: "spring", stiffness: 260, damping: 22 },
+          x: settled
+            ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
+            : { duration: WALK_DURATION_S, ease: "linear" },
+          y: settled
+            ? { duration: 0.25, ease: "easeOut" }
+            : { duration: 0.5, repeat: Infinity, ease: "easeInOut" },
+        }}
       >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
@@ -321,8 +405,10 @@ export default function Chatbot() {
           )}
         </AnimatePresence>
 
-        {/* Soft pulsing halo when closed (brand cyan) */}
-        {!open && (
+        {/* Soft pulsing halo — only after Mossie has settled in her home spot
+            and only while the panel is closed. Suppressed during the walk so
+            the bubble feels alive (walking) rather than asking-for-attention. */}
+        {!open && settled && (
           <span
             aria-hidden
             className="absolute inset-0 rounded-full pointer-events-none"
@@ -358,7 +444,7 @@ export default function Chatbot() {
                 "0 24px 60px -20px rgba(0,0,0,0.55), 0 0 0 1px rgba(34,211,238,0.05), 0 0 36px -10px rgba(34,211,238,0.28)",
             }}
             role="dialog"
-            aria-label="Mossaic FAQ assistant"
+            aria-label="Mossie · Mossaic FAQ helper"
           >
             {/* Header */}
             <div
@@ -379,10 +465,10 @@ export default function Chatbot() {
               </span>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold leading-tight">
-                  Ask Mossaic
+                  Mossie
                 </div>
                 <div className="text-[11px] text-white/50 leading-tight">
-                  FAQ assistant · replies instantly
+                  Your Mossaic FAQ helper
                 </div>
               </div>
               <button

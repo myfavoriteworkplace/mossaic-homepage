@@ -7,7 +7,7 @@ export type Faq = {
 };
 
 export const FAQ_GREETING =
-  "Hi! I'm the Mossaic assistant. Ask me about our products, compliance, or how to get in touch — or tap a topic below.";
+  "Hi, I'm Mossie — your Mossaic FAQ helper. Ask me about our products, compliance, or how to get in touch — or tap a topic below.";
 
 export const FAQ_FALLBACK =
   "I don't know that one yet — but here's what I can help with:";
