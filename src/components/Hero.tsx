@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Activity, Brain, Sparkles } from "lucide-react";
+import { ArrowRight, Activity, Sparkles } from "lucide-react";
 import HeroBackground from "./HeroBackground";
 import MagneticButton from "./ui/MagneticButton";
 import AnimatedCounter from "./ui/AnimatedCounter";
@@ -371,19 +371,49 @@ export default function Hero() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 1.5, duration: 0.7 }}
-              className="absolute -left-14 bottom-20 flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 backdrop-blur-md animate-float2"
+              className="absolute -left-14 bottom-20 flex items-center gap-2.5 rounded-[10px] pl-2 pr-3.5 py-2 backdrop-blur-md animate-float2"
               style={{
                 background: "rgba(10,22,40,0.85)",
                 border: "1px solid var(--hero-border)",
               }}
             >
-              <div className="w-7 h-7 rounded-md bg-purple-500/15 flex items-center justify-center">
-                <Brain size={13} className="text-purple-300" />
+              <div
+                className="relative w-9 h-9 rounded-md overflow-hidden flex-shrink-0"
+                style={{
+                  border: "1px solid rgba(34,211,238,0.35)",
+                  boxShadow:
+                    "0 0 14px rgba(34,211,238,0.28), inset 0 0 0 1px rgba(255,255,255,0.04)",
+                }}
+              >
+                <img
+                  src="/brand/ai-imaging-clinical.png"
+                  alt="Clinicians reviewing AI-assisted imaging"
+                  width={72}
+                  height={72}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center",
+                    display: "block",
+                  }}
+                />
+                <span
+                  aria-hidden
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(10,22,40,0) 40%, rgba(10,22,40,0.55) 100%)",
+                  }}
+                />
               </div>
               <div>
-                <div className="text-[11px] text-white/75 font-medium">AI Imaging</div>
+                <div className="text-[11px] text-white/85 font-medium">AI Imaging</div>
                 <div className="text-[9px] mt-px" style={{ color: "var(--hero-sub)" }}>
-                  Diagnostic assist
+                  In clinical use
                 </div>
               </div>
               <span
