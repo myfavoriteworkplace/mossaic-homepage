@@ -260,24 +260,22 @@ export default function AssemblyBackdrop() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 flex items-center justify-center"
       style={{
-        zIndex: -1,
-        // Soft radial vignette so the brightest area doesn't sit dead-center
-        // under headlines.
-        WebkitMaskImage:
-          "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.95) 60%, rgba(0,0,0,1) 100%)",
-        maskImage:
-          "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.95) 60%, rgba(0,0,0,1) 100%)",
+        // Sits above section backgrounds; with mix-blend-mode: screen +
+        // pointer-events: none, white/light text underneath remains sharp
+        // (screen of white = white) while the cyan tiles act as a
+        // luminescent overlay on the dark theme.
+        zIndex: 5,
+        mixBlendMode: "screen",
       }}
     >
       <svg
         viewBox="-30 -30 60 60"
-        width="min(78vmin, 880px)"
-        height="min(78vmin, 880px)"
+        width="min(70vmin, 780px)"
+        height="min(70vmin, 780px)"
         xmlns="http://www.w3.org/2000/svg"
         style={{
           overflow: "visible",
-          opacity: 0.18,
-          mixBlendMode: "screen",
+          opacity: 0.32,
         }}
       >
         <defs>

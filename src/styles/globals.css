@@ -147,9 +147,8 @@
   --border: rgb(var(--border-rgb));
   --border2: rgb(var(--border-2-rgb));
 
-  /* Hero gradient — depth from deep to elevated. Slight transparency
-     (~12%) lets the AssemblyBackdrop M-frame peek through behind. */
-  --hero-bg: linear-gradient(180deg, rgb(var(--bg-deep-rgb) / 0.88) 0%, rgb(var(--bg-elevated-rgb) / 0.88) 100%);
+  /* Hero gradient — depth from deep to elevated */
+  --hero-bg: linear-gradient(180deg, rgb(var(--bg-deep-rgb)) 0%, rgb(var(--bg-elevated-rgb)) 100%);
   --hero-card: rgb(var(--bg-deep-card-rgb));
   --hero-border: var(--border-on-deep);
 
