@@ -122,8 +122,9 @@ const RAW_HEXES: Array<Omit<Hex, "scatter" | "start" | "end">> = [
   // Block directly above the core (between the inner cols at top-center)
   { cx: 510, cy: 215, r: 78, kind: "inner" },
 
-  // Central glowing AI core (large)
-  { cx: 510, cy: 470, r: 115, kind: "core" },
+  // Central glowing AI core (large) — octagon clip, sized to fully enclose
+  // the master image's octagonal frame + glow halo with no edge cuts
+  { cx: 510, cy: 470, r: 155, kind: "core" },
 
   // Inner right col (x=640)
   { cx: 640, cy: 215, r: 78, kind: "inner" },
