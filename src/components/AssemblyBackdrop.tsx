@@ -85,11 +85,13 @@ function scatterFor(idx: number): [number, number] {
  * Plus 4 breakaway shards in the upper-right.
  */
 const RAW_HEXES: Array<Omit<Hex, "scatter" | "start" | "end">> = [
-  // Left thick leg — col A (x=120) — outer line, full 4 hexes
+  // Left thick leg — col A (x=120) — outer line, 5 hexes (filler at bottom
+  // matches col B's bottom y so the leg's lower edge is flat)
   { cx: 120, cy: 215, r: 78, kind: "frame" },
   { cx: 120, cy: 365, r: 78, kind: "frame" },
   { cx: 120, cy: 515, r: 78, kind: "frame" },
   { cx: 120, cy: 665, r: 78, kind: "frame" },
+  { cx: 120, cy: 740, r: 78, kind: "frame" },
   // Left thick leg — col B (x=240, offset) — full 4 hexes
   { cx: 240, cy: 290, r: 78, kind: "frame" },
   { cx: 240, cy: 440, r: 78, kind: "frame" },
@@ -119,11 +121,13 @@ const RAW_HEXES: Array<Omit<Hex, "scatter" | "start" | "end">> = [
   { cx: 780, cy: 440, r: 78, kind: "frame" },
   { cx: 780, cy: 590, r: 78, kind: "frame" },
   { cx: 780, cy: 740, r: 78, kind: "frame" },
-  // Right thick leg — col B (x=900) — outer line, full 4 hexes
+  // Right thick leg — col B (x=900) — outer line, 5 hexes (filler at bottom
+  // matches col A's bottom y so the leg's lower edge is flat)
   { cx: 900, cy: 215, r: 78, kind: "frame" },
   { cx: 900, cy: 365, r: 78, kind: "frame" },
   { cx: 900, cy: 515, r: 78, kind: "frame" },
   { cx: 900, cy: 665, r: 78, kind: "frame" },
+  { cx: 900, cy: 740, r: 78, kind: "frame" },
 
   // Breakaway shards (upper-right of the M)
   { cx: 1010, cy: 95, r: 70, kind: "breakaway" },
