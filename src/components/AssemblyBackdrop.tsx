@@ -85,12 +85,11 @@ function scatterFor(idx: number): [number, number] {
  * Plus 4 breakaway shards in the upper-right.
  */
 const RAW_HEXES: Array<Omit<Hex, "scatter" | "start" | "end">> = [
-  // Left thick leg — col A (x=120)
+  // Left thick leg — col A (x=120) — outer line, 3 hexes (no bottom corner)
   { cx: 120, cy: 215, r: 78, kind: "frame" },
   { cx: 120, cy: 365, r: 78, kind: "frame" },
   { cx: 120, cy: 515, r: 78, kind: "frame" },
-  { cx: 120, cy: 665, r: 78, kind: "frame" },
-  // Left thick leg — col B (x=240, offset)
+  // Left thick leg — col B (x=240, offset) — full 4 hexes
   { cx: 240, cy: 290, r: 78, kind: "frame" },
   { cx: 240, cy: 440, r: 78, kind: "frame" },
   { cx: 240, cy: 590, r: 78, kind: "frame" },
@@ -102,6 +101,9 @@ const RAW_HEXES: Array<Omit<Hex, "scatter" | "start" | "end">> = [
   { cx: 380, cy: 590, r: 78, kind: "inner" },
   { cx: 380, cy: 740, r: 78, kind: "inner" },
 
+  // Block directly above the core (between the inner cols at top-center)
+  { cx: 510, cy: 215, r: 78, kind: "inner" },
+
   // Central glowing AI core (large)
   { cx: 510, cy: 470, r: 115, kind: "core" },
 
@@ -111,16 +113,14 @@ const RAW_HEXES: Array<Omit<Hex, "scatter" | "start" | "end">> = [
   { cx: 640, cy: 590, r: 78, kind: "inner" },
   { cx: 640, cy: 740, r: 78, kind: "inner" },
 
-  // Right thick leg — col A (x=780, offset)
+  // Right thick leg — col A (x=780, offset) — inner line, shorter (3 hexes)
   { cx: 780, cy: 290, r: 78, kind: "frame" },
   { cx: 780, cy: 440, r: 78, kind: "frame" },
   { cx: 780, cy: 590, r: 78, kind: "frame" },
-  { cx: 780, cy: 740, r: 78, kind: "frame" },
-  // Right thick leg — col B (x=900)
+  // Right thick leg — col B (x=900) — outer line, 3 hexes (no bottom corner)
   { cx: 900, cy: 215, r: 78, kind: "frame" },
   { cx: 900, cy: 365, r: 78, kind: "frame" },
   { cx: 900, cy: 515, r: 78, kind: "frame" },
-  { cx: 900, cy: 665, r: 78, kind: "frame" },
 
   // Breakaway shards (upper-right of the M)
   { cx: 1010, cy: 95, r: 70, kind: "breakaway" },
