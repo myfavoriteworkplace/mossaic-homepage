@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Calendar, Activity, Brain, Sparkles } from "lucide-react";
+import { ArrowRight, Activity, Brain, Sparkles } from "lucide-react";
 import HeroBackground from "./HeroBackground";
 import MagneticButton from "./ui/MagneticButton";
 import AnimatedCounter from "./ui/AnimatedCounter";
@@ -231,16 +231,23 @@ export default function Hero() {
               />
 
               <div className="flex items-center gap-3 mb-5">
-                <div
-                  className="relative w-10 h-10 rounded-[10px] flex items-center justify-center overflow-hidden"
-                  style={{ background: "#1A9E74" }}
-                >
-                  <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-                  <Calendar size={20} className="text-white relative z-10" strokeWidth={1.6} />
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-white">bookMySlot</div>
-                  <div className="text-[11px] mt-px" style={{ color: "var(--hero-sub)" }}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="rounded-[10px] bg-white px-2.5 py-1.5 flex items-center"
+                    style={{ boxShadow: "0 1px 0 rgba(255,255,255,0.04) inset" }}
+                  >
+                    <img
+                      src="/products/bookmyslot-lockup.png"
+                      alt="bookMySlot Dental"
+                      width={170}
+                      height={50}
+                      decoding="async"
+                      loading="eager"
+                      draggable={false}
+                      style={{ display: "block", height: 36, width: "auto" }}
+                    />
+                  </div>
+                  <div className="text-[11px] leading-tight" style={{ color: "var(--hero-sub)" }}>
                     Our first product · Live in Kerala
                   </div>
                 </div>

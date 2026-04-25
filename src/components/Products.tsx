@@ -1,11 +1,22 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Calendar, Store, Brain } from "lucide-react";
+import { ArrowRight, Store, Brain } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
 import { PRODUCTS, type Product } from "../data/site";
 
 const ICONS: Record<string, React.ReactNode> = {
-  bookmyslot: <Calendar size={24} className="text-white" strokeWidth={1.6} />,
+  bookmyslot: (
+    <img
+      src="/products/bookmyslot-icon.png"
+      alt=""
+      width={48}
+      height={48}
+      decoding="async"
+      loading="lazy"
+      draggable={false}
+      style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
+    />
+  ),
   "retail-crm": <Store size={24} className="text-white" strokeWidth={1.6} />,
   "ai-imaging": <Brain size={24} className="text-white" strokeWidth={1.6} />,
 };
@@ -16,6 +27,8 @@ const ACCENT_BG: Record<Product["accent"], string> = {
   blue: "bg-[var(--blue)]",
   purple: "bg-[var(--purple)]",
 };
+
+const ICON_FULL_TILE = new Set(["bookmyslot"]);
 
 export default function Products() {
   return (
@@ -50,7 +63,12 @@ export default function Products() {
                   background: "rgb(var(--bg-rgb))",
                 }}
               >
-                <ProductCard p={p} icon={ICONS[p.id]} accentClass={ACCENT_BG[p.accent]} />
+                <ProductCard
+                  p={p}
+                  icon={ICONS[p.id]}
+                  accentClass={ACCENT_BG[p.accent]}
+                  iconFullTile={ICON_FULL_TILE.has(p.id)}
+                />
               </TiltCard>
             </Reveal>
           ))}
@@ -64,10 +82,12 @@ function ProductCard({
   p,
   icon,
   accentClass,
+  iconFullTile = false,
 }: {
   p: Product;
   icon: React.ReactNode;
   accentClass: string;
+  iconFullTile?: boolean;
 }) {
   const isLive = p.status === "live";
 
@@ -94,10 +114,16 @@ function ProductCard({
 
       <div className="flex items-start justify-between mb-5">
         <div
-          className={`relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${accentClass}`}
+          className={`relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${
+            iconFullTile ? "" : accentClass
+          }`}
         >
-          <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-          <span className="relative z-10">{icon}</span>
+          {!iconFullTile && (
+            <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+          )}
+          <span className={iconFullTile ? "block w-full h-full" : "relative z-10"}>
+            {icon}
+          </span>
         </div>
         <span
           className={`text-[10px] font-semibold tracking-wider px-2.5 py-1 rounded-[10px] ${
