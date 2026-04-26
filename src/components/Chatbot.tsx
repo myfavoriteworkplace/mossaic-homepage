@@ -32,15 +32,92 @@ const ACCENT_SOFT = "rgba(34, 211, 238, 0.18)";
 
 /* ── Speech synthesis helpers ───────────────────────────────────────────── */
 
+/* Voice-name hints used to bias the picker toward a feminine, brand-friendly
+ * Mossie voice. Browsers don't expose a gender flag, so we sniff the voice
+ * `name` against well-known female / male voice identifiers across Windows,
+ * macOS, iOS, Android and Chrome's network voices. */
+const FEMALE_HINTS = [
+  "female",
+  "woman",
+  // en-IN female voices commonly shipped by OSes / browsers
+  "heera",
+  "veena",
+  "lekha",
+  "priya",
+  "neerja",
+  "raveena",
+  "aditi",
+  "kalpana",
+  "swara",
+  // Common female English voices on macOS / iOS / Windows / Chrome
+  "samantha",
+  "karen",
+  "tessa",
+  "moira",
+  "fiona",
+  "victoria",
+  "allison",
+  "ava",
+  "susan",
+  "zira",
+  "hazel",
+  "catherine",
+  "serena",
+];
+const MALE_HINTS = [
+  "male",
+  "man ",
+  // en-IN male voices commonly shipped by OSes / browsers
+  "ravi",
+  "hemant",
+  "prabhat",
+  "rishi",
+  // Common male English voices on macOS / iOS / Windows / Chrome
+  "daniel",
+  "alex",
+  "fred",
+  "tom",
+  "oliver",
+  "george",
+  "david",
+  "mark",
+  "guy",
+];
+
+function isFemaleVoice(v: SpeechSynthesisVoice): boolean {
+  const n = v.name.toLowerCase();
+  return FEMALE_HINTS.some((h) => n.includes(h));
+}
+
+function isMaleVoice(v: SpeechSynthesisVoice): boolean {
+  const n = v.name.toLowerCase();
+  return MALE_HINTS.some((h) => n.includes(h));
+}
+
 function pickIndianVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return null;
-  // Prefer en-IN, then any English voice.
-  const enIN = voices.find((v) => v.lang === "en-IN");
-  if (enIN) return enIN;
-  const en = voices.find((v) => v.lang.startsWith("en"));
-  return en ?? voices[0] ?? null;
+  const enIN = voices.filter((v) => v.lang === "en-IN");
+  const en = voices.filter((v) => v.lang.startsWith("en"));
+  // Preference order:
+  //   1. en-IN female
+  //   2. en-IN not known to be male
+  //   3. any English female
+  //   4. any English not known to be male
+  //   5. any en-IN voice
+  //   6. any English voice
+  //   7. anything
+  return (
+    enIN.find(isFemaleVoice) ??
+    enIN.find((v) => !isMaleVoice(v)) ??
+    en.find(isFemaleVoice) ??
+    en.find((v) => !isMaleVoice(v)) ??
+    enIN[0] ??
+    en[0] ??
+    voices[0] ??
+    null
+  );
 }
 
 /** Strip URLs / heavy punctuation so the spoken reply is cleaner. */
@@ -559,8 +636,11 @@ export default function Chatbot() {
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(cleanForSpeech(text));
       utter.lang = "en-IN";
-      utter.rate = 1.0;
-      utter.pitch = 1.0;
+      // Slightly slower + slightly higher pitch reads as warmer and more
+      // feminine — gives Mossie a friendlier brand voice on top of the
+      // gender-biased voice selection above.
+      utter.rate = 0.97;
+      utter.pitch = 1.15;
       const v = voiceRef.current ?? pickIndianVoice();
       if (v) utter.voice = v;
       window.speechSynthesis.speak(utter);
