@@ -351,14 +351,20 @@ const WALK_KEYFRAME_TIMES = [
   (WAVE_STARTS_S[2] + WAVE_DURATION_S) / WALK_DURATION_S,
   1,
 ];
-/** Light-seam (the cyan "door" Mossie steps out of) — width × height in
- *  pixels. Height matches her small body height so a small Mossie fits the
- *  small seam exactly. */
-const SEAM_WIDTH_PX = 4;
-const SEAM_HEIGHT_PX = Math.round(BUBBLE_PX * WALK_SMALL_SCALE);
-/** Horizontal viewport position of the seam centre — matches the centre of
- *  Mossie's bubble when she's at the leftmost point of her walk. */
-const SEAM_LEFT_PX = EDGE_MARGIN + BUBBLE_PX / 2;
+/** Aurora portal — the circular cyan "door" Mossie steps through on every
+ *  walk-in cycle (initial mount + every double-click replay). Diameter is
+ *  sized to comfortably frame her small body so she appears to step out
+ *  through the centre of a glowing lens. */
+const PORTAL_DIAMETER_PX = Math.round(BUBBLE_PX * WALK_SMALL_SCALE * 1.4);
+/** Horizontal viewport position of the portal centre — matches the centre
+ *  of Mossie's bubble when she's at the leftmost point of her walk. */
+const PORTAL_LEFT_PX = EDGE_MARGIN + BUBBLE_PX / 2;
+/** How many cyan particles burst radially out of the portal as Mossie
+ *  steps through. Distributed evenly around 360°; visual budget kept low
+ *  to stay performant on mid-tier laptops. */
+const PORTAL_PARTICLE_COUNT = 8;
+/** How far (in px) each particle travels from the portal centre at peak. */
+const PORTAL_PARTICLE_RADIUS_PX = 56;
 /** Milliseconds the open-chat click is debounced so a double-click can be
  *  detected first. Cost: ~250ms perceived latency on single-click open. */
 const CLICK_DELAY_MS = 250;
@@ -1180,28 +1186,35 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* ── Light-seam — the cyan "door" Mossie steps out of ───────────── */}
+      {/* ── Aurora portal — the cyan "door" Mossie steps through ────────
+          Circular lens-flare bloom: a glowing radial core with a thin outer
+          ring, plus a brief burst of cyan particles flung radially outward
+          as she emerges. Replays on every walk-in cycle (initial mount and
+          every double-click → walk-out → walk-in-again) because the wrapper
+          is keyed to `walkInToken`. */}
       <AnimatePresence>
         {walkDistance > 0 && !settled && !walkingOut && (
           <motion.div
-            key={`mossie-seam-${walkInToken}`}
+            key={`mossie-portal-${walkInToken}`}
             aria-hidden
             className="fixed pointer-events-none z-[899]"
             style={{
-              left: SEAM_LEFT_PX - SEAM_WIDTH_PX / 2,
+              /* Centre the portal horizontally on Mossie's start position
+                 and align its bottom with the floor (her foot baseline)
+                 so she appears to step out of it standing on the ground. */
+              left: PORTAL_LEFT_PX - PORTAL_DIAMETER_PX / 2,
               bottom: 24,
-              width: SEAM_WIDTH_PX,
-              height: SEAM_HEIGHT_PX,
+              width: PORTAL_DIAMETER_PX,
+              height: PORTAL_DIAMETER_PX,
               transformOrigin: "50% 100%",
             }}
-            initial={{ opacity: 0, scaleY: 0.15, scaleX: 0.4 }}
+            initial={{ opacity: 0, scale: 0.15 }}
             animate={{
-              // Door opens (0→0.45s), holds open while Mossie steps through
-              // (0.45→1.0s), closes behind her (1.0→1.8s), stays closed for
-              // the rest of the walk.
+              /* Portal blooms open (0→0.45s), holds open while Mossie
+                 steps through (0.45→1.0s), contracts shut behind her
+                 (1.0→1.8s), stays closed for the rest of the walk. */
               opacity: [0, 1, 1, 0, 0],
-              scaleY: [0.15, 1, 1, 0.4, 0.4],
-              scaleX: [0.4, 1, 1, 0.3, 0.3],
+              scale: [0.15, 1.05, 1.0, 0.25, 0.25],
             }}
             exit={{ opacity: 0, transition: { duration: 0.3 } }}
             transition={{
@@ -1216,17 +1229,80 @@ export default function Chatbot() {
               ],
             }}
           >
+            {/* Radial glowing core — bright cyan-white centre fading to
+                transparent at the edge, with layered cyan box-shadow rings
+                for the atmospheric outer glow. Reads as a lens flare. */}
             <div
               style={{
-                width: "100%",
-                height: "100%",
+                position: "absolute",
+                inset: 0,
                 borderRadius: 999,
                 background:
-                  "linear-gradient(180deg, rgba(165,243,252,0) 0%, rgba(165,243,252,0.95) 22%, rgba(236,254,255,1) 50%, rgba(165,243,252,0.95) 78%, rgba(165,243,252,0) 100%)",
+                  "radial-gradient(circle at 50% 50%, rgba(236,254,255,1) 0%, rgba(165,243,252,0.85) 22%, rgba(34,211,238,0.45) 55%, rgba(34,211,238,0) 80%)",
                 boxShadow:
-                  "0 0 10px 2px rgba(34,211,238,0.85), 0 0 24px 5px rgba(34,211,238,0.5), 0 0 48px 14px rgba(34,211,238,0.22)",
+                  "0 0 18px 4px rgba(34,211,238,0.75), 0 0 42px 10px rgba(34,211,238,0.45), 0 0 88px 24px rgba(34,211,238,0.20)",
               }}
             />
+            {/* Thin bright ring on the lip of the portal — gives the bloom
+                a clearer "doorway edge" instead of a pure radial blur. */}
+            <div
+              style={{
+                position: "absolute",
+                inset: "12%",
+                borderRadius: 999,
+                border: "1px solid rgba(236,254,255,0.85)",
+                boxShadow:
+                  "0 0 8px 1px rgba(165,243,252,0.75), inset 0 0 6px 1px rgba(165,243,252,0.45)",
+              }}
+            />
+            {/* Radial particle burst — small cyan flecks fly outward in
+                evenly-spaced directions at the moment Mossie emerges, then
+                fade. Echoes the brand's particle-network vocabulary. */}
+            {Array.from({ length: PORTAL_PARTICLE_COUNT }).map((_, i) => {
+              const angle = (i / PORTAL_PARTICLE_COUNT) * Math.PI * 2;
+              const dx = Math.cos(angle) * PORTAL_PARTICLE_RADIUS_PX;
+              const dy = Math.sin(angle) * PORTAL_PARTICLE_RADIUS_PX;
+              return (
+                <motion.span
+                  key={`portal-particle-${i}`}
+                  className="absolute rounded-full"
+                  style={{
+                    /* Spawn anchored at the portal centre. Animated x/y
+                       carry each particle outward to its unique angle. */
+                    left: "50%",
+                    top: "50%",
+                    width: 4,
+                    height: 4,
+                    marginLeft: -2,
+                    marginTop: -2,
+                    background: "rgba(236,254,255,0.95)",
+                    boxShadow:
+                      "0 0 6px 1px rgba(34,211,238,0.85), 0 0 12px 3px rgba(34,211,238,0.45)",
+                  }}
+                  initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+                  animate={{
+                    /* Stay invisible while the portal is opening, pop into
+                       being and travel outward as she emerges (~0.5–1.0s),
+                       fade back to nothing as the portal closes. */
+                    x: [0, 0, dx * 0.4, dx, dx],
+                    y: [0, 0, dy * 0.4, dy, dy],
+                    scale: [0, 0, 1, 0.6, 0],
+                    opacity: [0, 0, 1, 0.6, 0],
+                  }}
+                  transition={{
+                    duration: WALK_DURATION_S,
+                    ease: "easeOut",
+                    times: [
+                      0,
+                      0.5 / WALK_DURATION_S,
+                      0.75 / WALK_DURATION_S,
+                      1.1 / WALK_DURATION_S,
+                      1.6 / WALK_DURATION_S,
+                    ],
+                  }}
+                />
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
