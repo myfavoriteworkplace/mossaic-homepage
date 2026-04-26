@@ -196,8 +196,8 @@ function findBestFaq(query: string): Faq | null {
 
 /* ── Walk-in animation constants ────────────────────────────────────────── */
 
-/** Seconds to traverse the bottom from the left edge to home (includes the
- *  mid-walk wave pause — see WAVE_START_S / WAVE_DURATION_S). */
+/** Seconds to traverse the bottom from the left edge to home (includes all
+ *  mid-walk wave pauses — see WAVE_STARTS_S / WAVE_DURATION_S). */
 const WALK_DURATION_S = 13.4;
 /** Distance in pixels from Mossie within which the cursor "spooks" her home. */
 const PROXIMITY_PX = 140;
@@ -207,13 +207,16 @@ const BUBBLE_PX = 56;
 const EDGE_MARGIN = 24;
 /** Below this viewport width the walk is skipped (too little room). */
 const MIN_WALK_VIEWPORT = 480;
-/** Seconds into the walk when Mossie pauses to wave at the user. Picked so
- *  she's roughly mid-screen when the wave begins. */
-const WAVE_START_S = 6;
 /** Seconds the wave lasts. Body x-translation is held still for this long. */
 const WAVE_DURATION_S = 1.4;
-/** Fraction of the walk distance Mossie has covered when she pauses to wave. */
-const WAVE_AT_PCT = 0.5;
+/** Seconds into the walk when each wave begins. Three evenly-spaced waves so
+ *  Mossie greets the user halfway to mid-screen, at mid-screen, and halfway
+ *  past mid-screen. Math: 4 walking legs of ~2.3s each + 3 wave pauses of
+ *  1.4s each ≈ WALK_DURATION_S (13.4s). */
+const WAVE_STARTS_S = [2.3, 6.0, 9.7];
+/** Fraction of the walk distance Mossie has covered when each wave begins.
+ *  Must be in the same order as WAVE_STARTS_S. */
+const WAVE_AT_PCTS = [0.25, 0.5, 0.75];
 /** Seconds for the walk-out animation when the user double-clicks Mossie to
  *  send her on another stroll. Faster than the walk-in (no wave pause). */
 const OUT_DURATION_S = 3.5;
@@ -491,23 +494,30 @@ export default function Chatbot() {
     if (settled || walkingOut) return;
     // Re-arm the spook guard for this walk-in cycle.
     spookFiredRef.current = false;
-    // Mid-walk wave — fire at WAVE_START_S, end WAVE_DURATION_S later.
-    const waveStart = window.setTimeout(() => {
-      if (spookFiredRef.current) return;
-      setWaving(true);
-    }, WAVE_START_S * 1000);
-    const waveEnd = window.setTimeout(
-      () => setWaving(false),
-      (WAVE_START_S + WAVE_DURATION_S) * 1000,
-    );
+    // Mid-walk waves — schedule a start/end pair for each WAVE_STARTS_S entry.
+    // Each wave only fires if the spook hasn't already interrupted the walk.
+    const waveTimers: number[] = [];
+    for (const startS of WAVE_STARTS_S) {
+      waveTimers.push(
+        window.setTimeout(() => {
+          if (spookFiredRef.current) return;
+          setWaving(true);
+        }, startS * 1000),
+      );
+      waveTimers.push(
+        window.setTimeout(
+          () => setWaving(false),
+          (startS + WAVE_DURATION_S) * 1000,
+        ),
+      );
+    }
     // Auto-settle when the walk completes.
     const settleTimer = window.setTimeout(
       () => setSettled(true),
       WALK_DURATION_S * 1000,
     );
     return () => {
-      window.clearTimeout(waveStart);
-      window.clearTimeout(waveEnd);
+      for (const t of waveTimers) window.clearTimeout(t);
       window.clearTimeout(settleTimer);
     };
   }, [settled, walkingOut, walkInToken]);
@@ -851,8 +861,12 @@ export default function Chatbot() {
               ? 0
               : [
                   -walkDistance,
-                  -walkDistance * (1 - WAVE_AT_PCT),
-                  -walkDistance * (1 - WAVE_AT_PCT),
+                  -walkDistance * (1 - WAVE_AT_PCTS[0]),
+                  -walkDistance * (1 - WAVE_AT_PCTS[0]),
+                  -walkDistance * (1 - WAVE_AT_PCTS[1]),
+                  -walkDistance * (1 - WAVE_AT_PCTS[1]),
+                  -walkDistance * (1 - WAVE_AT_PCTS[2]),
+                  -walkDistance * (1 - WAVE_AT_PCTS[2]),
                   0,
                 ],
           // Calm A — gentle stroll: 8 px hop, soft squash. Hops during walk-
@@ -871,10 +885,16 @@ export default function Chatbot() {
               : {
                   duration: WALK_DURATION_S,
                   ease: "linear",
+                  // 8 keyframes → 8 normalized times. For each wave: arrival
+                  // moment (start of pause) and end-of-pause moment.
                   times: [
                     0,
-                    WAVE_START_S / WALK_DURATION_S,
-                    (WAVE_START_S + WAVE_DURATION_S) / WALK_DURATION_S,
+                    WAVE_STARTS_S[0] / WALK_DURATION_S,
+                    (WAVE_STARTS_S[0] + WAVE_DURATION_S) / WALK_DURATION_S,
+                    WAVE_STARTS_S[1] / WALK_DURATION_S,
+                    (WAVE_STARTS_S[1] + WAVE_DURATION_S) / WALK_DURATION_S,
+                    WAVE_STARTS_S[2] / WALK_DURATION_S,
+                    (WAVE_STARTS_S[2] + WAVE_DURATION_S) / WALK_DURATION_S,
                     1,
                   ],
                 },
