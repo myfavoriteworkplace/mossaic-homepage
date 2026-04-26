@@ -306,6 +306,39 @@ const WAVE_AT_PCTS = [0.25, 0.5, 0.75];
 /** Seconds for the walk-out animation when the user double-clicks Mossie to
  *  send her on another stroll. Faster than the walk-in (no wave pause). */
 const OUT_DURATION_S = 3.5;
+/** Mossie's body scale during the "from afar" portion of the walk. She
+ *  emerges from the light-seam at this size, holds it through all three
+ *  mid-walk waves so they read as distant, then grows back to full size
+ *  for the final stretch home. 0.75 → ~42px effective. */
+const WALK_SMALL_SCALE = 0.75;
+/** Seconds at the start of the walk-out over which Mossie shrinks back to
+ *  the small far-away size. Mirrors the entrance feel. */
+const OUT_SHRINK_S = 1.0;
+const OUT_SHRINK_PCT = OUT_SHRINK_S / OUT_DURATION_S;
+/** Normalized keyframe times for the walking translate + size schedule.
+ *  Eight entries: walk start, arrival/departure of each of the three waves,
+ *  walk end. Used by both the x-translate keyframes and the small→full
+ *  scale ramp so they stay locked together — the grow-back begins the
+ *  instant wave 3 finishes (~83% through the walk), so all three waves
+ *  read as "from afar". */
+const WALK_KEYFRAME_TIMES = [
+  0,
+  WAVE_STARTS_S[0] / WALK_DURATION_S,
+  (WAVE_STARTS_S[0] + WAVE_DURATION_S) / WALK_DURATION_S,
+  WAVE_STARTS_S[1] / WALK_DURATION_S,
+  (WAVE_STARTS_S[1] + WAVE_DURATION_S) / WALK_DURATION_S,
+  WAVE_STARTS_S[2] / WALK_DURATION_S,
+  (WAVE_STARTS_S[2] + WAVE_DURATION_S) / WALK_DURATION_S,
+  1,
+];
+/** Light-seam (the cyan "door" Mossie steps out of) — width × height in
+ *  pixels. Height matches her small body height so a small Mossie fits the
+ *  small seam exactly. */
+const SEAM_WIDTH_PX = 4;
+const SEAM_HEIGHT_PX = Math.round(BUBBLE_PX * WALK_SMALL_SCALE);
+/** Horizontal viewport position of the seam centre — matches the centre of
+ *  Mossie's bubble when she's at the leftmost point of her walk. */
+const SEAM_LEFT_PX = EDGE_MARGIN + BUBBLE_PX / 2;
 /** Milliseconds the open-chat click is debounced so a double-click can be
  *  detected first. Cost: ~250ms perceived latency on single-click open. */
 const CLICK_DELAY_MS = 250;
@@ -947,42 +980,78 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* ── Floating action button (Mossie) ────────────────────────────── */}
-      <motion.button
-        ref={btnRef}
-        type="button"
-        onClick={handleBubbleClick}
-        onDoubleClick={handleBubbleDoubleClick}
-        onMouseEnter={handleBubbleMouseEnter}
-        onMouseLeave={handleBubbleMouseLeave}
-        onTouchStart={handleBubbleTouchStart}
-        onTouchEnd={handleBubbleTouchEnd}
-        onTouchCancel={handleBubbleTouchEnd}
-        aria-label={open ? "Close Mossie" : "Open Mossie"}
-        aria-expanded={open}
-        className="fixed bottom-6 right-6 z-[900] flex items-center justify-center rounded-full text-white"
-        style={{
-          width: BUBBLE_PX,
-          height: BUBBLE_PX,
-          background: "linear-gradient(135deg, #0a1628 0%, #11233b 100%)",
-          border: `1px solid ${ACCENT}`,
-          boxShadow:
-            "0 12px 32px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,211,238,0.06), 0 0 28px -6px rgba(34,211,238,0.45)",
-        }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.94 }}
-        initial={{
-          opacity: 0,
-          x: -walkDistance,
-          y: 0,
-          scaleX: 0.92,
-          scaleY: 0.92,
-        }}
+      {/* ── Light-seam — the cyan "door" Mossie steps out of ───────────── */}
+      <AnimatePresence>
+        {walkDistance > 0 && !settled && !walkingOut && (
+          <motion.div
+            key={`mossie-seam-${walkInToken}`}
+            aria-hidden
+            className="fixed pointer-events-none z-[899]"
+            style={{
+              left: SEAM_LEFT_PX - SEAM_WIDTH_PX / 2,
+              bottom: 24,
+              width: SEAM_WIDTH_PX,
+              height: SEAM_HEIGHT_PX,
+              transformOrigin: "50% 100%",
+            }}
+            initial={{ opacity: 0, scaleY: 0.15, scaleX: 0.4 }}
+            animate={{
+              // Door opens (0→0.45s), holds open while Mossie steps through
+              // (0.45→1.0s), closes behind her (1.0→1.8s), stays closed for
+              // the rest of the walk.
+              opacity: [0, 1, 1, 0, 0],
+              scaleY: [0.15, 1, 1, 0.4, 0.4],
+              scaleX: [0.4, 1, 1, 0.3, 0.3],
+            }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
+            transition={{
+              duration: WALK_DURATION_S,
+              ease: "easeInOut",
+              times: [
+                0,
+                0.45 / WALK_DURATION_S,
+                1.0 / WALK_DURATION_S,
+                1.8 / WALK_DURATION_S,
+                1,
+              ],
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: 999,
+                background:
+                  "linear-gradient(180deg, rgba(165,243,252,0) 0%, rgba(165,243,252,0.95) 22%, rgba(236,254,255,1) 50%, rgba(165,243,252,0.95) 78%, rgba(165,243,252,0) 100%)",
+                boxShadow:
+                  "0 0 10px 2px rgba(34,211,238,0.85), 0 0 24px 5px rgba(34,211,238,0.5), 0 0 48px 14px rgba(34,211,238,0.22)",
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Floating action button (Mossie) ──────────────────────────────
+       *  Three nested motion layers, intentionally split so each transform
+       *  stays independent:
+       *    1. Outer  — fixed position + walking translate (viewport units,
+       *               must not be inside any scaled ancestor or the walk
+       *               distance would be visually shortened).
+       *    2. Middle — body size scale (small "from afar" 0.75 → full 1.0),
+       *               anchored to bottom-centre so her feet stay planted on
+       *               the same baseline whether small or full size.
+       *    3. Inner  — the actual interactive button: squash/stretch breath,
+       *               hover/tap pop, and all the face/feet/hand children.
+       */}
+      <motion.div
+        className="fixed bottom-6 right-6 z-[900]"
+        style={{ width: BUBBLE_PX, height: BUBBLE_PX }}
+        initial={{ opacity: 0, x: -walkDistance }}
         animate={{
           opacity: 1,
           // X-translation has three phases:
           //  · walking-in: keyframes from off-screen-left to home, with a
-          //    held position in the middle for the wave;
+          //    held position in the middle for each of the three waves;
           //  · walking-out: linear slide from home to off-screen-left;
           //  · settled: spring to home (x = 0).
           x: walkingOut
@@ -999,12 +1068,6 @@ export default function Chatbot() {
                   -walkDistance * (1 - WAVE_AT_PCTS[2]),
                   0,
                 ],
-          // Calm A — gentle stroll: 8 px hop, soft squash. Hops during walk-
-          // in *and* walk-out. Held still during the wave. Snaps to rest
-          // once settled.
-          y: settled ? 0 : waving ? 0 : [0, -8, 0],
-          scaleX: settled ? 1 : waving ? 1.04 : [1.06, 0.94, 1.06],
-          scaleY: settled ? 1 : waving ? 1.04 : [0.94, 1.06, 0.94],
         }}
         transition={{
           opacity: { duration: 0.35 },
@@ -1015,36 +1078,114 @@ export default function Chatbot() {
               : {
                   duration: WALK_DURATION_S,
                   ease: "linear",
-                  // 8 keyframes → 8 normalized times. For each wave: arrival
-                  // moment (start of pause) and end-of-pause moment.
-                  times: [
-                    0,
-                    WAVE_STARTS_S[0] / WALK_DURATION_S,
-                    (WAVE_STARTS_S[0] + WAVE_DURATION_S) / WALK_DURATION_S,
-                    WAVE_STARTS_S[1] / WALK_DURATION_S,
-                    (WAVE_STARTS_S[1] + WAVE_DURATION_S) / WALK_DURATION_S,
-                    WAVE_STARTS_S[2] / WALK_DURATION_S,
-                    (WAVE_STARTS_S[2] + WAVE_DURATION_S) / WALK_DURATION_S,
-                    1,
-                  ],
+                  times: WALK_KEYFRAME_TIMES,
                 },
-          y: settled
-            ? { duration: 0.25, ease: "easeOut" }
-            : waving
-              ? { duration: 0.3, ease: "easeOut" }
-              : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
-          scaleX: settled
-            ? { duration: 0.25, ease: "easeOut" }
-            : waving
-              ? { duration: 0.3, ease: "easeOut" }
-              : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
-          scaleY: settled
-            ? { duration: 0.25, ease: "easeOut" }
-            : waving
-              ? { duration: 0.3, ease: "easeOut" }
-              : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
         }}
       >
+        <motion.div
+          style={{
+            width: "100%",
+            height: "100%",
+            transformOrigin: "50% 100%",
+          }}
+          initial={{ scale: walkDistance > 0 ? WALK_SMALL_SCALE : 1 }}
+          animate={{
+            // Size schedule, locked to the same WALK_KEYFRAME_TIMES as the
+            // x-translate so the grow-back fires the instant wave 3 ends:
+            //  · walking-in: hold small for keyframes 0–6 (covers all three
+            //    waves), then grow to full at keyframe 7;
+            //  · walking-out: shrink from full to small over the first
+            //    OUT_SHRINK_S, then hold small until off-screen;
+            //  · settled: full size.
+            scale: walkingOut
+              ? walkDistance > 0
+                ? [1, WALK_SMALL_SCALE, WALK_SMALL_SCALE]
+                : 1
+              : settled
+                ? 1
+                : walkDistance > 0
+                  ? [
+                      WALK_SMALL_SCALE,
+                      WALK_SMALL_SCALE,
+                      WALK_SMALL_SCALE,
+                      WALK_SMALL_SCALE,
+                      WALK_SMALL_SCALE,
+                      WALK_SMALL_SCALE,
+                      WALK_SMALL_SCALE,
+                      1,
+                    ]
+                  : 1,
+          }}
+          transition={{
+            scale: walkingOut
+              ? {
+                  duration: OUT_DURATION_S,
+                  ease: "easeInOut",
+                  times: [0, OUT_SHRINK_PCT, 1],
+                }
+              : settled
+                ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
+                : {
+                    duration: WALK_DURATION_S,
+                    ease: "easeInOut",
+                    times: WALK_KEYFRAME_TIMES,
+                  },
+          }}
+        >
+          <motion.button
+            ref={btnRef}
+            type="button"
+            onClick={handleBubbleClick}
+            onDoubleClick={handleBubbleDoubleClick}
+            onMouseEnter={handleBubbleMouseEnter}
+            onMouseLeave={handleBubbleMouseLeave}
+            onTouchStart={handleBubbleTouchStart}
+            onTouchEnd={handleBubbleTouchEnd}
+            onTouchCancel={handleBubbleTouchEnd}
+            aria-label={open ? "Close Mossie" : "Open Mossie"}
+            aria-expanded={open}
+            className="relative flex items-center justify-center rounded-full text-white"
+            style={{
+              width: "100%",
+              height: "100%",
+              background:
+                "linear-gradient(135deg, #0a1628 0%, #11233b 100%)",
+              border: `1px solid ${ACCENT}`,
+              boxShadow:
+                "0 12px 32px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,211,238,0.06), 0 0 28px -6px rgba(34,211,238,0.45)",
+            }}
+            // Hover/tap pop only fires when she's settled — otherwise an
+            // accidental hover during the walk would jump her to full size
+            // and break the "from afar" illusion.
+            whileHover={settled ? { scale: 1.05 } : undefined}
+            whileTap={settled ? { scale: 0.94 } : undefined}
+            initial={{ scaleX: 0.92, scaleY: 0.92 }}
+            animate={{
+              // Calm A — gentle stroll: 8 px hop, soft squash. Hops during
+              // walk-in *and* walk-out. Held still during the wave. Snaps
+              // to rest once settled.
+              y: settled ? 0 : waving ? 0 : [0, -8, 0],
+              scaleX: settled ? 1 : waving ? 1.04 : [1.06, 0.94, 1.06],
+              scaleY: settled ? 1 : waving ? 1.04 : [0.94, 1.06, 0.94],
+            }}
+            transition={{
+              y: settled
+                ? { duration: 0.25, ease: "easeOut" }
+                : waving
+                  ? { duration: 0.3, ease: "easeOut" }
+                  : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
+              scaleX: settled
+                ? { duration: 0.25, ease: "easeOut" }
+                : waving
+                  ? { duration: 0.3, ease: "easeOut" }
+                  : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
+              scaleY: settled
+                ? { duration: 0.25, ease: "easeOut" }
+                : waving
+                  ? { duration: 0.3, ease: "easeOut" }
+                  : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
+            }}
+          >
         <AnimatePresence mode="wait" initial={false}>
           {open ? (
             <motion.span
@@ -1215,7 +1356,9 @@ export default function Chatbot() {
             }}
           />
         )}
-      </motion.button>
+          </motion.button>
+        </motion.div>
+      </motion.div>
 
       {/* ── Hover/intro tooltip — small dark pill above Mossie ─────────── */}
       <AnimatePresence>
