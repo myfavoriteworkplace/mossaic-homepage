@@ -137,6 +137,21 @@ const WAVE_START_S = 6;
 const WAVE_DURATION_S = 1.4;
 /** Fraction of the walk distance Mossie has covered when she pauses to wave. */
 const WAVE_AT_PCT = 0.5;
+/** Seconds for the walk-out animation when the user double-clicks Mossie to
+ *  send her on another stroll. Faster than the walk-in (no wave pause). */
+const OUT_DURATION_S = 3.5;
+/** Milliseconds the open-chat click is debounced so a double-click can be
+ *  detected first. Cost: ~250ms perceived latency on single-click open. */
+const CLICK_DELAY_MS = 250;
+/** Milliseconds the user must hold a touch on Mossie to trigger walk-again. */
+const LONG_PRESS_MS = 600;
+/** Milliseconds the cursor must hover Mossie before the tooltip appears. */
+const TOOLTIP_HOVER_DELAY_MS = 200;
+/** Milliseconds the tooltip auto-shows the first time Mossie settles, then
+ *  hides — so users on hover-less devices still see her introduction. */
+const TOOLTIP_AUTOSHOW_MS = 2500;
+/** Phrase shown in Mossie's hover/auto-show tooltip. */
+const TOOLTIP_TEXT = "Mossie here — ask me anything";
 
 /** Compute the maximum leftward translation for the walk-in. */
 function computeWalkDistance(): number {
@@ -307,6 +322,19 @@ export default function Chatbot() {
     x: 0,
     y: 0,
   });
+  // Walk-again state — when the user double-clicks (or long-presses on touch)
+  // Mossie at her home spot, she walks left across the screen, then loops
+  // back and walks in again from the start.
+  const [walkingOut, setWalkingOut] = useState(false);
+  // Bumped each time a fresh walk-in cycle should start. Used as a dependency
+  // on the walk-in lifecycle effects so they re-arm on each replay.
+  const [walkInToken, setWalkInToken] = useState(0);
+  // Hover state — true once the cursor has been over Mossie for the hover
+  // delay. Drives the tooltip and the happy face on hover.
+  const [hovered, setHovered] = useState(false);
+  // Whether the tooltip is currently visible (combined hover-shown + auto-
+  // shown). Final visibility also requires settled && !open.
+  const [tooltipShown, setTooltipShown] = useState(false);
 
   const recognitionCtor = useMemo(() => getRecognitionCtor(), []);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -317,6 +345,18 @@ export default function Chatbot() {
   const nextId = useRef(2);
   // Guard so the spook reaction only fires once per walk.
   const spookFiredRef = useRef(false);
+  // Click delay timer — used to defer the chat-open by CLICK_DELAY_MS so a
+  // double-click (which fires after two clicks) can cancel the open.
+  const clickTimerRef = useRef<number | null>(null);
+  // Hover delay timer — used to defer the tooltip by TOOLTIP_HOVER_DELAY_MS.
+  const hoverTimerRef = useRef<number | null>(null);
+  // Long-press timer — used on touch devices to detect a held press.
+  const longPressTimerRef = useRef<number | null>(null);
+  // Set true when a long-press fires, so the trailing click is suppressed.
+  const longPressFiredRef = useRef(false);
+  // Set true once the tooltip has auto-shown for the first time so it doesn't
+  // re-trigger on every subsequent settle (e.g. after walk-again).
+  const tooltipAutoShownRef = useRef(false);
 
   /* Persist mute preference. */
   useEffect(() => {
@@ -367,12 +407,40 @@ export default function Chatbot() {
     };
   }, []);
 
+  /* Walk-in lifecycle — schedules the mid-walk wave and the auto-settle
+   * timer. Re-runs each time `walkInToken` changes (initial mount + every
+   * walk-again replay). Early-returns when she's settled or walking out. */
+  useEffect(() => {
+    if (settled || walkingOut) return;
+    // Re-arm the spook guard for this walk-in cycle.
+    spookFiredRef.current = false;
+    // Mid-walk wave — fire at WAVE_START_S, end WAVE_DURATION_S later.
+    const waveStart = window.setTimeout(() => {
+      if (spookFiredRef.current) return;
+      setWaving(true);
+    }, WAVE_START_S * 1000);
+    const waveEnd = window.setTimeout(
+      () => setWaving(false),
+      (WAVE_START_S + WAVE_DURATION_S) * 1000,
+    );
+    // Auto-settle when the walk completes.
+    const settleTimer = window.setTimeout(
+      () => setSettled(true),
+      WALK_DURATION_S * 1000,
+    );
+    return () => {
+      window.clearTimeout(waveStart);
+      window.clearTimeout(waveEnd);
+      window.clearTimeout(settleTimer);
+    };
+  }, [settled, walkingOut, walkInToken]);
+
   /* Walk-in: settle when the cursor approaches Mossie. The first time the
    * cursor enters the spook radius, briefly show a surprise face, *then*
    * spring her into her home spot. The surprise reaction adds a beat of
    * personality to the otherwise instant settle. */
   useEffect(() => {
-    if (settled) return;
+    if (settled || walkingOut) return;
     const handler = (e: MouseEvent) => {
       if (spookFiredRef.current) return;
       const btn = btnRef.current;
@@ -393,38 +461,32 @@ export default function Chatbot() {
     };
     window.addEventListener("mousemove", handler, { passive: true });
     return () => window.removeEventListener("mousemove", handler);
-  }, [settled]);
+  }, [settled, walkingOut, walkInToken]);
 
-  /* Walk-in: schedule the mid-walk wave. Triggers WAVE_START_S into the walk,
-   * lasts WAVE_DURATION_S, then resumes walking. Skipped if Mossie has
-   * already settled (e.g. because of cursor proximity or a tap). */
+  /* Walk-out: when the user triggers walk-again, schedule the transition
+   * back into a fresh walk-in cycle once the out-walk completes. */
   useEffect(() => {
-    if (settled) return;
-    const startTimer = window.setTimeout(() => {
-      // Don't start the wave if she's been spooked / settled in the meantime.
-      if (spookFiredRef.current) return;
-      setWaving(true);
-    }, WAVE_START_S * 1000);
-    const endTimer = window.setTimeout(
-      () => setWaving(false),
-      (WAVE_START_S + WAVE_DURATION_S) * 1000,
-    );
-    return () => {
-      window.clearTimeout(startTimer);
-      window.clearTimeout(endTimer);
-    };
-  }, [settled]);
+    if (!walkingOut) return;
+    spookFiredRef.current = false;
+    const t = window.setTimeout(() => {
+      setWalkingOut(false);
+      setWalkInToken((tok) => tok + 1);
+    }, OUT_DURATION_S * 1000);
+    return () => window.clearTimeout(t);
+  }, [walkingOut]);
 
   /* While walking (and not waving / spooked), pupils look forward in the
-   * direction of travel. Set once on the relevant state changes. */
+   * direction of travel — right while walking in, left while walking out. */
   useEffect(() => {
     if (settled) return;
     if (waving || spooked) {
       setPupilOffset({ x: 0, y: 0 });
+    } else if (walkingOut) {
+      setPupilOffset({ x: -1.2, y: 0 });
     } else {
       setPupilOffset({ x: 1.2, y: 0 });
     }
-  }, [settled, waving, spooked]);
+  }, [settled, waving, spooked, walkingOut]);
 
   /* Once settled (and the panel is closed), pupils gently track the cursor
    * around the page — a small detail that makes Mossie feel alive. */
@@ -452,25 +514,43 @@ export default function Chatbot() {
     return () => window.removeEventListener("mousemove", handler);
   }, [settled, open]);
 
-  /* Walk-in: settle on the first tap anywhere on touch devices. */
+  /* Walk-in: settle on the first tap anywhere on touch devices. Disabled
+   * during walk-out so a long-press on Mossie isn't interrupted. */
   useEffect(() => {
-    if (settled) return;
+    if (settled || walkingOut) return;
     const handler = () => setSettled(true);
     window.addEventListener("touchstart", handler, { passive: true });
     return () => window.removeEventListener("touchstart", handler);
-  }, [settled]);
-
-  /* Walk-in: auto-settle once the walk duration completes. */
-  useEffect(() => {
-    if (settled) return;
-    const t = window.setTimeout(() => setSettled(true), WALK_DURATION_S * 1000);
-    return () => window.clearTimeout(t);
-  }, [settled]);
+  }, [settled, walkingOut, walkInToken]);
 
   /* Opening the panel always settles Mossie. */
   useEffect(() => {
     if (open && !settled) setSettled(true);
   }, [open, settled]);
+
+  /* Auto-show the tooltip the first time Mossie settles (so users on touch
+   * / hover-less devices still see her introduction). Fires once per page
+   * load — subsequent walk-again replays don't re-pop the tooltip. */
+  useEffect(() => {
+    if (!settled || tooltipAutoShownRef.current) return;
+    tooltipAutoShownRef.current = true;
+    setTooltipShown(true);
+    const t = window.setTimeout(
+      () => setTooltipShown(false),
+      TOOLTIP_AUTOSHOW_MS,
+    );
+    return () => window.clearTimeout(t);
+  }, [settled]);
+
+  /* Cleanup all pending interaction timers on unmount. */
+  useEffect(() => {
+    return () => {
+      if (clickTimerRef.current) window.clearTimeout(clickTimerRef.current);
+      if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+      if (longPressTimerRef.current)
+        window.clearTimeout(longPressTimerRef.current);
+    };
+  }, []);
 
   const speak = useCallback(
     (text: string) => {
@@ -557,16 +637,107 @@ export default function Chatbot() {
     return -1;
   }, [messages]);
 
+  /* Trigger a walk-again cycle: walk-out, then loop back to a fresh walk-
+   * in. Only available when Mossie is settled and not already mid-walk. */
+  const triggerWalkAgain = useCallback(() => {
+    if (walkingOut) return;
+    if (clickTimerRef.current) {
+      window.clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+    if (hoverTimerRef.current) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setSettled(false);
+    setWaving(false);
+    setSpooked(false);
+    setHovered(false);
+    setTooltipShown(false);
+    spookFiredRef.current = false;
+    setWalkingOut(true);
+  }, [walkingOut]);
+
+  /* Click handler with CLICK_DELAY_MS debounce so a double-click can be
+   * detected first. Cancels any in-progress walk-out so the panel always
+   * opens predictably when Mossie is clicked. */
+  const handleBubbleClick = useCallback(() => {
+    if (longPressFiredRef.current) {
+      longPressFiredRef.current = false;
+      return;
+    }
+    if (clickTimerRef.current) return; // already pending — wait for double-click
+    clickTimerRef.current = window.setTimeout(() => {
+      clickTimerRef.current = null;
+      setWalkingOut(false);
+      setSettled(true);
+      setOpen((o) => !o);
+    }, CLICK_DELAY_MS);
+  }, []);
+
+  /* Double-click handler — cancels the pending single-click open and walks
+   * Mossie out for a fresh stroll. Only acts when she's settled. */
+  const handleBubbleDoubleClick = useCallback(() => {
+    if (clickTimerRef.current) {
+      window.clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+    if (!settled || walkingOut) return;
+    triggerWalkAgain();
+  }, [settled, walkingOut, triggerWalkAgain]);
+
+  /* Hover handlers — show the tooltip after a small delay so quick mouse
+   * fly-bys don't flash it. */
+  const handleBubbleMouseEnter = useCallback(() => {
+    setHovered(true);
+    if (hoverTimerRef.current) return;
+    hoverTimerRef.current = window.setTimeout(() => {
+      hoverTimerRef.current = null;
+      setTooltipShown(true);
+    }, TOOLTIP_HOVER_DELAY_MS);
+  }, []);
+
+  const handleBubbleMouseLeave = useCallback(() => {
+    setHovered(false);
+    if (hoverTimerRef.current) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setTooltipShown(false);
+  }, []);
+
+  /* Touch handlers — long-press triggers walk-again on touch devices where
+   * double-click isn't a natural gesture. Only active once Mossie is settled
+   * so it doesn't conflict with the touch-to-settle behaviour. */
+  const handleBubbleTouchStart = useCallback(() => {
+    if (!settled || walkingOut) return;
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTimerRef.current = null;
+      longPressFiredRef.current = true;
+      triggerWalkAgain();
+    }, LONG_PRESS_MS);
+  }, [settled, walkingOut, triggerWalkAgain]);
+
+  const handleBubbleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
   return (
     <>
       {/* ── Floating action button (Mossie) ────────────────────────────── */}
       <motion.button
         ref={btnRef}
         type="button"
-        onClick={() => {
-          setSettled(true);
-          setOpen((o) => !o);
-        }}
+        onClick={handleBubbleClick}
+        onDoubleClick={handleBubbleDoubleClick}
+        onMouseEnter={handleBubbleMouseEnter}
+        onMouseLeave={handleBubbleMouseLeave}
+        onTouchStart={handleBubbleTouchStart}
+        onTouchEnd={handleBubbleTouchEnd}
+        onTouchCancel={handleBubbleTouchEnd}
         aria-label={open ? "Close Mossie" : "Open Mossie"}
         aria-expanded={open}
         className="fixed bottom-6 right-6 z-[900] flex items-center justify-center rounded-full text-white"
@@ -589,38 +760,44 @@ export default function Chatbot() {
         }}
         animate={{
           opacity: 1,
-          // X-translation: walks from far-left, holds the mid-screen position
-          // for the wave, then continues home. The hold is built into the
-          // keyframes so a single linear animation covers the whole journey.
-          x: settled
-            ? 0
-            : [
-                -walkDistance,
-                -walkDistance * (1 - WAVE_AT_PCT),
-                -walkDistance * (1 - WAVE_AT_PCT),
-                0,
-              ],
-          // Calm A — gentle stroll: 8 px hop, soft squash. During the wave
-          // the body holds still (a tiny breathing scale stays). Once settled,
-          // everything snaps to rest.
+          // X-translation has three phases:
+          //  · walking-in: keyframes from off-screen-left to home, with a
+          //    held position in the middle for the wave;
+          //  · walking-out: linear slide from home to off-screen-left;
+          //  · settled: spring to home (x = 0).
+          x: walkingOut
+            ? -walkDistance
+            : settled
+              ? 0
+              : [
+                  -walkDistance,
+                  -walkDistance * (1 - WAVE_AT_PCT),
+                  -walkDistance * (1 - WAVE_AT_PCT),
+                  0,
+                ],
+          // Calm A — gentle stroll: 8 px hop, soft squash. Hops during walk-
+          // in *and* walk-out. Held still during the wave. Snaps to rest
+          // once settled.
           y: settled ? 0 : waving ? 0 : [0, -8, 0],
           scaleX: settled ? 1 : waving ? 1.04 : [1.06, 0.94, 1.06],
           scaleY: settled ? 1 : waving ? 1.04 : [0.94, 1.06, 0.94],
         }}
         transition={{
           opacity: { duration: 0.35 },
-          x: settled
-            ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
-            : {
-                duration: WALK_DURATION_S,
-                ease: "linear",
-                times: [
-                  0,
-                  WAVE_START_S / WALK_DURATION_S,
-                  (WAVE_START_S + WAVE_DURATION_S) / WALK_DURATION_S,
-                  1,
-                ],
-              },
+          x: walkingOut
+            ? { duration: OUT_DURATION_S, ease: "linear" }
+            : settled
+              ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
+              : {
+                  duration: WALK_DURATION_S,
+                  ease: "linear",
+                  times: [
+                    0,
+                    WAVE_START_S / WALK_DURATION_S,
+                    (WAVE_START_S + WAVE_DURATION_S) / WALK_DURATION_S,
+                    1,
+                  ],
+                },
           y: settled
             ? { duration: 0.25, ease: "easeOut" }
             : waving
@@ -668,9 +845,11 @@ export default function Chatbot() {
                     ? "surprised"
                     : waving
                       ? "happy"
-                      : settled
-                        ? "idle"
-                        : "walking"
+                      : hovered && settled
+                        ? "happy"
+                        : settled
+                          ? "idle"
+                          : "walking"
                 }
                 pupilOffset={pupilOffset}
               />
@@ -807,6 +986,58 @@ export default function Chatbot() {
           />
         )}
       </motion.button>
+
+      {/* ── Hover/intro tooltip — small dark pill above Mossie ─────────── */}
+      <AnimatePresence>
+        {tooltipShown && settled && !open && (
+          <motion.div
+            key="mossie-tooltip"
+            aria-hidden
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="fixed z-[898] pointer-events-none"
+            style={{ right: 24, bottom: 24 + BUBBLE_PX + 12 }}
+            role="tooltip"
+          >
+            <div className="relative">
+              <div
+                className="text-[12px] font-medium leading-tight whitespace-nowrap"
+                style={{
+                  background: "rgba(10, 22, 40, 0.96)",
+                  backdropFilter: "blur(14px)",
+                  WebkitBackdropFilter: "blur(14px)",
+                  border: `1px solid ${ACCENT_SOFT}`,
+                  borderRadius: 12,
+                  padding: "7px 12px",
+                  color: "rgba(186, 230, 253, 0.95)",
+                  boxShadow:
+                    "0 6px 20px -6px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,211,238,0.05), 0 0 18px -6px rgba(34,211,238,0.35)",
+                }}
+              >
+                {TOOLTIP_TEXT}
+              </div>
+              {/* Small downward tail aligned over the bubble's centre. */}
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  right: 22,
+                  bottom: -5,
+                  width: 10,
+                  height: 10,
+                  background: "rgba(10, 22, 40, 0.96)",
+                  borderRight: `1px solid ${ACCENT_SOFT}`,
+                  borderBottom: `1px solid ${ACCENT_SOFT}`,
+                  transform: "rotate(45deg)",
+                  borderBottomRightRadius: 2,
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Chat panel ─────────────────────────────────────────────────── */}
       <AnimatePresence>
