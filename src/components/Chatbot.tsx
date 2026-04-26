@@ -32,11 +32,27 @@ type Message = {
   role: Role;
   text: string;
   showSuggestions?: boolean;
+  /* Streaming/typing state for bot messages.
+     - `isThinking` shows the three pulsing dots (someone is typing on the
+       other end). `isTyping` reveals `displayText` letter-by-letter.
+     - When neither flag is true, the bubble renders `text` directly. */
+  isThinking?: boolean;
+  isTyping?: boolean;
+  displayText?: string;
 };
 
 const MUTE_KEY = "mossaic.chatbot.muted";
 const ACCENT = "rgba(34, 211, 238, 0.55)";
 const ACCENT_SOFT = "rgba(34, 211, 238, 0.18)";
+
+/* ── Streaming/typing cadence ──────────────────────────────────────────────
+   How long the three "thinking" dots show before the reply starts streaming,
+   how fast each character is revealed, and how much extra pause to add after
+   sentence-ending punctuation so the rhythm reads natural rather than
+   machine-gun. Tweak these to dial the feel. */
+const THINKING_DELAY_MS = 600;
+const TYPE_CHAR_INTERVAL_MS = 22;
+const TYPE_PUNCT_EXTRA_MS = 140;
 
 /* ── Speech synthesis helpers ───────────────────────────────────────────── */
 
@@ -499,7 +515,18 @@ export default function Chatbot() {
     return window.localStorage.getItem(MUTE_KEY) === "1";
   });
   const [messages, setMessages] = useState<Message[]>([
-    { id: 1, role: "bot", text: FAQ_GREETING, showSuggestions: true },
+    {
+      id: 1,
+      role: "bot",
+      text: FAQ_GREETING,
+      showSuggestions: true,
+      /* Greeting starts in "thinking" so the first time the panel opens we
+         get the same dots-then-typing reveal that ongoing replies use. The
+         open-effect (further down) flips this into the streaming state. */
+      isThinking: true,
+      isTyping: false,
+      displayText: "",
+    },
   ]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
@@ -542,6 +569,18 @@ export default function Chatbot() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const nextId = useRef(2);
+  /* Tracks the in-flight per-character timer for the currently-streaming bot
+     message so we can cancel it (snapping the message to its full text) when
+     a new query arrives mid-stream or the panel closes. */
+  const typingTimerRef = useRef<number | null>(null);
+  /* Whether the user prefers reduced motion. Captured once on mount. When
+     true we skip the thinking dots and per-char streaming entirely — the
+     reply text appears immediately, just like the original behaviour. */
+  const reducedMotionRef = useRef<boolean>(
+    typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
   // Guard so the spook reaction only fires once per walk.
   const spookFiredRef = useRef(false);
   // Click delay timer — used to defer the chat-open by CLICK_DELAY_MS so a
@@ -608,6 +647,25 @@ export default function Chatbot() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     recognitionRef.current?.stop();
     setListening(false);
+    /* Also snap any in-flight typing to its final text and clear its timer
+       so reopening the panel doesn't reveal a stranded half-rendered reply
+       or restart the per-character cadence from where it left off. */
+    if (typingTimerRef.current !== null) {
+      window.clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.role === "bot" && (m.isThinking || m.isTyping)
+          ? {
+              ...m,
+              isThinking: false,
+              isTyping: false,
+              displayText: m.text,
+            }
+          : m,
+      ),
+    );
   }, [open]);
 
   /* Cleanup on unmount. */
@@ -617,6 +675,10 @@ export default function Chatbot() {
         window.speechSynthesis.cancel();
       }
       recognitionRef.current?.stop();
+      if (typingTimerRef.current !== null) {
+        window.clearTimeout(typingTimerRef.current);
+        typingTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -791,24 +853,137 @@ export default function Chatbot() {
     [muted],
   );
 
-  /* On the first time the user opens the chat in this page session, have
-     Mossie speak her greeting out loud — but only if voice isn't muted.
-     `speak()` already no-ops when `muted` is true and when the browser
-     has no SpeechSynthesis support, so accessibility / "voice off" prefs
-     are honored automatically. A small delay lets the panel mount first
-     so the user sees Mossie's bubble before her voice begins. */
+  /* Snap any in-flight bot message (thinking-dots OR per-character typing)
+     to its complete text and cancel pending timers. Used when the user fires
+     a new query mid-stream, or when the panel closes — so we never leave a
+     half-rendered message stranded behind. */
+  const completeAllInFlight = useCallback(() => {
+    if (typingTimerRef.current !== null) {
+      window.clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.role === "bot" && (m.isThinking || m.isTyping)
+          ? {
+              ...m,
+              isThinking: false,
+              isTyping: false,
+              displayText: m.text,
+            }
+          : m,
+      ),
+    );
+  }, []);
+
+  /* Drive a bot message through: (1) thinking dots → (2) speak + per-char
+     reveal → (3) settled. Voice begins the moment the typing starts so the
+     spoken reply and the visual stream arrive together. Honors reduced-
+     motion by short-circuiting straight to the final state + speech. */
+  const streamMessage = useCallback(
+    (messageId: number, fullText: string) => {
+      /* Reduced-motion / no-window: skip the show, jump to the answer. */
+      if (reducedMotionRef.current) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId
+              ? {
+                  ...m,
+                  isThinking: false,
+                  isTyping: false,
+                  displayText: fullText,
+                }
+              : m,
+          ),
+        );
+        speak(fullText);
+        return;
+      }
+
+      /* Phase 1 — make sure the message starts in the dots-state. */
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, isThinking: true, isTyping: false, displayText: "" }
+            : m,
+        ),
+      );
+
+      /* Phase 2 — after the thinking pause, flip into typing and start the
+         per-character reveal. Speech kicks off here so the voice and the
+         visible text arrive together. */
+      typingTimerRef.current = window.setTimeout(() => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId
+              ? { ...m, isThinking: false, isTyping: true, displayText: "" }
+              : m,
+          ),
+        );
+        speak(fullText);
+
+        let i = 0;
+        const tick = () => {
+          i += 1;
+          const next = fullText.slice(0, i);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === messageId ? { ...m, displayText: next } : m,
+            ),
+          );
+          if (i >= fullText.length) {
+            /* Phase 3 — done. Drop the typing flag so the caret disappears
+               and any suggestion chips are allowed to render. */
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === messageId
+                  ? { ...m, isTyping: false, displayText: fullText }
+                  : m,
+              ),
+            );
+            typingTimerRef.current = null;
+            return;
+          }
+          /* Pause a touch longer after sentence/clause punctuation so the
+             rhythm reads natural rather than flat. */
+          const lastChar = fullText.charAt(i - 1);
+          const extra = ".!?,;:".includes(lastChar) ? TYPE_PUNCT_EXTRA_MS : 0;
+          typingTimerRef.current = window.setTimeout(
+            tick,
+            TYPE_CHAR_INTERVAL_MS + extra,
+          );
+        };
+        typingTimerRef.current = window.setTimeout(tick, TYPE_CHAR_INTERVAL_MS);
+      }, THINKING_DELAY_MS);
+    },
+    [speak],
+  );
+
+  /* On the first time the user opens the chat in this page session, kick off
+     the greeting's stream — dots first, then her voice + the typed reveal.
+     `speak()` already no-ops when `muted` is true and when the browser has
+     no SpeechSynthesis support, so voice prefs are honored automatically.
+     A small delay lets the panel mount first so the bubble is on screen
+     before the dots appear. */
   useEffect(() => {
     if (!open) return;
     if (greetSpokenRef.current) return;
     greetSpokenRef.current = true;
-    const t = window.setTimeout(() => speak(FAQ_GREETING), 320);
+    const t = window.setTimeout(() => streamMessage(1, FAQ_GREETING), 320);
     return () => window.clearTimeout(t);
-  }, [open, speak]);
+  }, [open, streamMessage]);
 
   const sendQuery = useCallback(
     (raw: string) => {
       const text = raw.trim();
       if (!text) return;
+
+      /* If a previous bot reply is still streaming, snap it to its complete
+         text and stop its in-flight speech before we start the new one. */
+      completeAllInFlight();
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
 
       const userMsg: Message = { id: nextId.current++, role: "user", text };
       const faq = findBestFaq(text);
@@ -829,18 +1004,24 @@ export default function Chatbot() {
         showSuggestions = FALLBACK_SHOW_CHIPS[kind];
       }
 
+      const botId = nextId.current++;
       const botMsg: Message = {
-        id: nextId.current++,
+        id: botId,
         role: "bot",
         text: replyText,
         showSuggestions,
+        /* Start in the thinking-dots phase. `streamMessage` (called below)
+           drives the dots → typing → settled lifecycle from here. */
+        isThinking: true,
+        isTyping: false,
+        displayText: "",
       };
 
       setMessages((prev) => [...prev, userMsg, botMsg]);
       setInput("");
-      speak(replyText);
+      streamMessage(botId, replyText);
     },
-    [speak],
+    [completeAllInFlight, streamMessage],
   );
 
   const handleSuggestion = useCallback(
@@ -1505,6 +1686,11 @@ export default function Chatbot() {
                   >
                     <div
                       className="text-[13px] leading-relaxed px-3 py-2 max-w-[85%]"
+                      /* `aria-live` only on the bot bubble — and only `polite`
+                         so screen readers announce the final text once the
+                         streaming reveal completes, instead of spamming on
+                         every character. */
+                      aria-live={m.role === "bot" ? "polite" : undefined}
                       style={
                         m.role === "user"
                           ? {
@@ -1522,13 +1708,62 @@ export default function Chatbot() {
                             }
                       }
                     >
-                      {m.text}
+                      {m.role === "bot" && m.isThinking ? (
+                        /* Three pulsing cyan dots — "someone is typing on
+                           the other end". Staggered animation-delay gives
+                           the classic wave rhythm. */
+                        <span
+                          aria-label="Mossie is typing"
+                          className="inline-flex items-center gap-1 py-0.5"
+                        >
+                          {[0, 1, 2].map((i) => (
+                            <span
+                              key={i}
+                              aria-hidden
+                              className="inline-block rounded-full"
+                              style={{
+                                width: 6,
+                                height: 6,
+                                background: "rgba(165,243,252,0.85)",
+                                animation:
+                                  "mossaic-typing-dot 1.2s ease-in-out infinite",
+                                animationDelay: `${i * 0.18}s`,
+                              }}
+                            />
+                          ))}
+                        </span>
+                      ) : m.role === "bot" && m.isTyping ? (
+                        /* Per-character reveal + a soft blinking caret while
+                           the stream is in flight. */
+                        <>
+                          {m.displayText ?? ""}
+                          <span
+                            aria-hidden
+                            className="inline-block align-baseline ml-[2px]"
+                            style={{
+                              width: 2,
+                              height: "0.95em",
+                              background: "rgba(165,243,252,0.85)",
+                              transform: "translateY(2px)",
+                              animation:
+                                "mossaic-typing-caret 1s steps(1, end) infinite",
+                            }}
+                          />
+                        </>
+                      ) : (
+                        m.text
+                      )}
                     </div>
                   </div>
 
-                  {/* Suggestion chips — only on the latest bot message that asks for them */}
+                  {/* Suggestion chips — only on the latest bot message that
+                      asks for them, and only once the message has finished
+                      streaming (otherwise they'd float under an empty bubble
+                      while the dots are still pulsing). */}
                   {m.role === "bot" &&
                     m.showSuggestions &&
+                    !m.isThinking &&
+                    !m.isTyping &&
                     idx === lastBotIndex && (
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {FAQS.filter((f) => !f.hideFromChips).map((f) => (
@@ -1638,6 +1873,18 @@ export default function Chatbot() {
           0%   { box-shadow: 0 0 0 0   rgba(34,211,238,0.40); }
           70%  { box-shadow: 0 0 0 14px rgba(34,211,238,0); }
           100% { box-shadow: 0 0 0 0   rgba(34,211,238,0); }
+        }
+        /* Three-dot "typing" indicator inside the bot bubble. Each dot uses
+           the same keyframe with a staggered animation-delay so the wave
+           reads naturally. Drops to ~30% opacity + 70% scale at the trough. */
+        @keyframes mossaic-typing-dot {
+          0%, 80%, 100% { opacity: 0.30; transform: scale(0.70); }
+          40%           { opacity: 1.00; transform: scale(1.00); }
+        }
+        /* Soft blinking caret while the per-character reveal is running. */
+        @keyframes mossaic-typing-caret {
+          0%, 49%   { opacity: 1; }
+          50%, 100% { opacity: 0; }
         }
       `}</style>
     </>
