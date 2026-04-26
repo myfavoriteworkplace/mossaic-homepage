@@ -437,6 +437,9 @@ export default function Chatbot() {
   // Set true once the tooltip has auto-shown for the first time so it doesn't
   // re-trigger on every subsequent settle (e.g. after walk-again).
   const tooltipAutoShownRef = useRef(false);
+  /* Ensures Mossie's greeting is spoken at most once per page session,
+     no matter how many times the user opens and closes the chat panel. */
+  const greetSpokenRef = useRef(false);
 
   /* Persist mute preference. */
   useEffect(() => {
@@ -668,6 +671,20 @@ export default function Chatbot() {
     },
     [muted],
   );
+
+  /* On the first time the user opens the chat in this page session, have
+     Mossie speak her greeting out loud — but only if voice isn't muted.
+     `speak()` already no-ops when `muted` is true and when the browser
+     has no SpeechSynthesis support, so accessibility / "voice off" prefs
+     are honored automatically. A small delay lets the panel mount first
+     so the user sees Mossie's bubble before her voice begins. */
+  useEffect(() => {
+    if (!open) return;
+    if (greetSpokenRef.current) return;
+    greetSpokenRef.current = true;
+    const t = window.setTimeout(() => speak(FAQ_GREETING), 320);
+    return () => window.clearTimeout(t);
+  }, [open, speak]);
 
   const sendQuery = useCallback(
     (raw: string) => {
