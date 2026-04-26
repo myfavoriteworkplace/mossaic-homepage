@@ -678,71 +678,82 @@ export default function Chatbot() {
           )}
         </AnimatePresence>
 
-        {/* Mossie's two legs — gentle alternating swing for the calm-stroll
-            walk. They plant (no swing) during the mid-walk wave so she looks
-            stable while waving, and retract smoothly into the body once
-            she's settled in her home spot. */}
-        {/* Left leg — kicks back on push-off, swings forward to plant. */}
+        {/* Mossie's two stepping feet — small cyan dots that lift and shift
+            forward in alternating phase, like little stepping motions. No leg
+            shaft connecting them to the body, which keeps the look minimal
+            and matches the dot-and-curve face above. They plant flat and
+            still during the mid-walk wave, then fade up into the body once
+            she settles in her home spot. */}
+        {/* Left foot — lifts first half of the cycle, plants second half. */}
         <motion.span
           aria-hidden
           className="absolute pointer-events-none rounded-full"
           animate={{
             opacity: settled ? 0 : 1,
+            scaleX: settled ? 0.3 : 1,
             scaleY: settled ? 0.3 : 1,
-            rotate: settled ? 0 : waving ? -4 : [-18, 16, -18],
-            y: settled ? 0 : 0,
+            y: settled ? 0 : waving ? 0 : [0, -3, 0],
+            x: settled ? 0 : waving ? 0 : [0, 2, 0],
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
+            scaleX: { duration: 0.3, ease: "easeOut" },
             scaleY: { duration: 0.3, ease: "easeOut" },
-            rotate: settled
+            y: settled
               ? { duration: 0.25, ease: "easeOut" }
               : waving
                 ? { duration: 0.3, ease: "easeOut" }
                 : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
-            y: { duration: 0.25, ease: "easeOut" },
+            x: settled
+              ? { duration: 0.25, ease: "easeOut" }
+              : waving
+                ? { duration: 0.3, ease: "easeOut" }
+                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
           }}
           style={{
-            width: 4,
-            height: 13,
-            bottom: -8,
-            left: "calc(50% - 8px)",
+            width: 5,
+            height: 5,
+            bottom: -3,
+            left: "calc(50% - 6px)",
             background:
-              "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
-            boxShadow: "0 0 6px rgba(34,211,238,0.55)",
-            transformOrigin: "50% 0%",
+              "radial-gradient(circle at 35% 35%, rgba(165,243,252,0.95) 0%, rgba(34,211,238,0.85) 60%, rgba(34,211,238,0.7) 100%)",
+            boxShadow: "0 0 6px rgba(34,211,238,0.6)",
           }}
         />
-        {/* Right leg — opposite phase. Together with the left leg, the two
-            create the calm alternating-step gait. */}
+        {/* Right foot — opposite phase: planted while left foot lifts. */}
         <motion.span
           aria-hidden
           className="absolute pointer-events-none rounded-full"
           animate={{
             opacity: settled ? 0 : 1,
+            scaleX: settled ? 0.3 : 1,
             scaleY: settled ? 0.3 : 1,
-            rotate: settled ? 0 : waving ? 4 : [16, -18, 16],
-            y: settled ? 0 : 0,
+            y: settled ? 0 : waving ? 0 : [-3, 0, -3],
+            x: settled ? 0 : waving ? 0 : [2, 0, 2],
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
+            scaleX: { duration: 0.3, ease: "easeOut" },
             scaleY: { duration: 0.3, ease: "easeOut" },
-            rotate: settled
+            y: settled
               ? { duration: 0.25, ease: "easeOut" }
               : waving
                 ? { duration: 0.3, ease: "easeOut" }
                 : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
-            y: { duration: 0.25, ease: "easeOut" },
+            x: settled
+              ? { duration: 0.25, ease: "easeOut" }
+              : waving
+                ? { duration: 0.3, ease: "easeOut" }
+                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
           }}
           style={{
-            width: 4,
-            height: 13,
-            bottom: -8,
-            left: "calc(50% + 4px)",
+            width: 5,
+            height: 5,
+            bottom: -3,
+            left: "calc(50% + 1px)",
             background:
-              "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
-            boxShadow: "0 0 6px rgba(34,211,238,0.55)",
-            transformOrigin: "50% 0%",
+              "radial-gradient(circle at 35% 35%, rgba(165,243,252,0.95) 0%, rgba(34,211,238,0.85) 60%, rgba(34,211,238,0.7) 100%)",
+            boxShadow: "0 0 6px rgba(34,211,238,0.6)",
           }}
         />
 
