@@ -3,7 +3,28 @@ export type Faq = {
   label: string;
   question: string;
   keywords: string[];
+  /** Static answer. Ignored when `dynamicAnswer` is provided. */
   answer: string;
+  /**
+   * Optional reply generator — used when the answer needs runtime context
+   * (e.g. the time-of-day greeting). Takes precedence over `answer`.
+   */
+  dynamicAnswer?: () => string;
+  /**
+   * Explicit control over whether the suggestion-chip menu appears under
+   * this reply. Undefined = inherit the legacy default (no chips when an
+   * FAQ matched, chips when it didn't). Setting `true` for a Tier-1
+   * conversational entry (greeting / "what can you do") keeps the menu
+   * easy to find; setting `false` for a "thanks" / "bye" reply prevents
+   * a tone-deaf chip-shower after a polite goodbye.
+   */
+  showSuggestions?: boolean;
+  /**
+   * When true, this entry is excluded from the chip list rendered under
+   * bot messages. Used for small-talk and meta entries so the chip menu
+   * stays tightly focused on Mossaic's product / company topics.
+   */
+  hideFromChips?: boolean;
 };
 
 export const FAQ_GREETING =
@@ -12,7 +33,46 @@ export const FAQ_GREETING =
 export const FAQ_FALLBACK =
   "I don't know that one yet — but here's what I can help with:";
 
+/* ── Tier-3 fallback replies ─────────────────────────────────────────────
+ * Used by Chatbot.tsx when no FAQ matches and the input pattern hints at
+ * a specific kind of "miss". Keeps the brand voice warm even on rejections.
+ * `gibberish` and `off-topic` still surface the chip menu so the user has
+ * a next step; `profanity` deliberately does not. */
+export const FAQ_FALLBACK_OFFTOPIC =
+  "I only know about Mossaic, I'm afraid — but I'd be glad to help with anything about our products, pricing, or company.";
+
+export const FAQ_FALLBACK_PROFANITY =
+  "Let's keep it friendly. I'm here for Mossaic questions whenever you're ready.";
+
+export const FAQ_FALLBACK_GIBBERISH =
+  "I didn't quite catch that. Here's what I can help with —";
+
+/* ── Time-of-day helper for the dynamic "good morning" reply ───────────── */
+function timeOfDayGreeting(): string {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12)
+    return "Good morning. Hope your day's off to a calm start. What can I help you with at Mossaic?";
+  if (h >= 12 && h < 17)
+    return "Good afternoon. Mossie here — what can I help you with at Mossaic today?";
+  if (h >= 17 && h < 21)
+    return "Good evening. Mossie here — anything I can help you with at Mossaic?";
+  return "Hope you're winding down for the night. I'll be here whenever you're back — or write to us at connect@mossaic.in.";
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * FAQ entries
+ *
+ * Order matters when the matcher hits a tie: the first entry with the top
+ * score wins. So the array runs:
+ *   1. Substantive product / company FAQs (highest priority on a tie)
+ *   2. Tier-2 Mossaic meta gaps (founders, hiring, name origin, …)
+ *   3. Tier-1 conversational / small-talk entries (lowest priority on a tie)
+ *
+ * That way "hi, what's the pricing" still routes to the pricing answer
+ * rather than the greeting.
+ * ────────────────────────────────────────────────────────────────────── */
 export const FAQS: Faq[] = [
+  /* ── Tier 0 — original substantive entries ─────────────────────────── */
   {
     id: "what-is-mossaic",
     label: "About Mossaic",
@@ -198,7 +258,7 @@ export const FAQS: Faq[] = [
       "speak",
       "get in touch",
       "support",
-      "help",
+      "help desk",
       "human",
       "person",
     ],
@@ -244,5 +304,465 @@ export const FAQS: Faq[] = [
     ],
     answer:
       "Our stack: React, Node.js, PostgreSQL and Supabase for the data layer, Python for AI workloads with Grad-CAM, all served via REST APIs and hosted on India-region infrastructure.",
+  },
+
+  /* ── Tier 2 — Mossaic-meta gaps (hidden from chips, surface naturally) ─ */
+  {
+    id: "founder",
+    label: "Founder",
+    question: "Who founded Mossaic?",
+    keywords: [
+      "founder",
+      "founded by",
+      "ceo",
+      "leader",
+      "leadership",
+      "team",
+      "who runs",
+      "who leads",
+      "sourabh",
+      "founders",
+    ],
+    answer:
+      "Mossaic was founded in 2025 and is led from Kerala by a small, India-first team. For specifics on leadership or to reach the founder, drop a note via the Contact section or email connect@mossaic.in.",
+    hideFromChips: true,
+  },
+  {
+    id: "hiring",
+    label: "Careers",
+    question: "Are you hiring?",
+    keywords: [
+      "hiring",
+      "career",
+      "careers",
+      "job",
+      "jobs",
+      "work with you",
+      "join",
+      "internship",
+      "intern",
+      "opening",
+      "openings",
+      "vacancy",
+      "recruit",
+      "recruitment",
+    ],
+    answer:
+      "We're a small team and grow selectively. If you'd like to be considered for future roles, please send your background to connect@mossaic.in — we read every note.",
+    hideFromChips: true,
+  },
+  {
+    id: "customers",
+    label: "Customers",
+    question: "Who are your customers?",
+    keywords: [
+      "customer",
+      "customers",
+      "client",
+      "clients",
+      "users",
+      "how many users",
+      "traction",
+      "who uses",
+      "case study",
+      "case studies",
+    ],
+    answer:
+      "bookMySlot is live in 50+ clinics across Kerala. Retail CRM and AI Imaging are pre-launch — interest lists open via the Contact section.",
+    hideFromChips: true,
+  },
+  {
+    id: "name-origin",
+    label: "The name",
+    question: "Why the name Mossaic?",
+    keywords: [
+      "name",
+      "why mossaic",
+      "mossaic mean",
+      "mossaic means",
+      "name origin",
+      "why the name",
+      "what does mossaic mean",
+      "meaning",
+    ],
+    answer:
+      "Mossaic = mosaic + AI. Each product is a tile, and together they form a picture of modular, India-first software. The capital 'AI' in the wordmark is a deliberate nod to that.",
+    hideFromChips: true,
+  },
+  {
+    id: "roadmap",
+    label: "Roadmap",
+    question: "What's on the roadmap?",
+    keywords: [
+      "roadmap",
+      "what's next",
+      "whats next",
+      "upcoming",
+      "future",
+      "future products",
+      "timeline",
+      "launching",
+      "launch",
+      "next product",
+    ],
+    answer:
+      "Next on the roadmap: Retail CRM in 2026, then AI Imaging in 2027. The Roadmap section on this page has the full timeline.",
+    hideFromChips: true,
+  },
+  {
+    id: "refund",
+    label: "Refunds",
+    question: "Can I get a refund or cancel?",
+    keywords: [
+      "refund",
+      "refunds",
+      "cancel",
+      "cancellation",
+      "money back",
+      "terminate",
+      "unsubscribe",
+    ],
+    answer:
+      "For bookMySlot subscriptions, please write to connect@mossaic.in — we handle these case-by-case so the right person can look after you.",
+    hideFromChips: true,
+  },
+  {
+    id: "payments",
+    label: "Payment methods",
+    question: "What payment methods do you accept?",
+    keywords: [
+      "payment",
+      "payments",
+      "pay",
+      "razorpay",
+      "upi",
+      "card",
+      "cards",
+      "netbanking",
+      "wallet",
+      "paytm",
+      "gpay",
+      "phonepe",
+    ],
+    answer:
+      "bookMySlot accepts UPI, cards, and netbanking via Razorpay. For enterprise or custom billing, please write to connect@mossaic.in.",
+    hideFromChips: true,
+  },
+  {
+    id: "mobile-app",
+    label: "Mobile app",
+    question: "Do you have a mobile app?",
+    keywords: [
+      "app",
+      "mobile app",
+      "android",
+      "ios",
+      "iphone",
+      "play store",
+      "app store",
+      "download",
+      "apk",
+    ],
+    answer:
+      "bookMySlot today is a responsive web app, optimised for the tablets clinics use at reception. A dedicated mobile app is on the post-2026 roadmap.",
+    hideFromChips: true,
+  },
+  {
+    id: "integrations",
+    label: "Integrations",
+    question: "What does it integrate with?",
+    keywords: [
+      "integration",
+      "integrations",
+      "api",
+      "whatsapp api",
+      "tally",
+      "zoho",
+      "sync",
+      "third party",
+      "connect with",
+    ],
+    answer:
+      "bookMySlot integrates with WhatsApp for patient reminders. Retail CRM will ship with WhatsApp and GST billing integrations from day one.",
+    hideFromChips: true,
+  },
+  {
+    id: "privacy-terms",
+    label: "Privacy & terms",
+    question: "Where can I read your privacy policy and terms?",
+    keywords: [
+      "privacy",
+      "privacy policy",
+      "terms",
+      "tos",
+      "terms of service",
+      "gdpr",
+      "data protection",
+      "policy",
+    ],
+    answer:
+      "Privacy and terms are part of our compliance posture (DISHA + IT Act). Detailed policies are available on request — just write to connect@mossaic.in.",
+    hideFromChips: true,
+  },
+
+  /* ── Tier 1 — Conversational small-talk ─────────────────────────────
+   * Placed last so a tie with any substantive entry above resolves in
+   * favour of the substantive answer (matcher returns first-best). All
+   * are hidden from the chip menu so the chip list stays product-focused. */
+  {
+    id: "smalltalk-time-of-day",
+    label: "Time of day",
+    question: "Good morning",
+    keywords: [
+      "good morning",
+      "good afternoon",
+      "good evening",
+      "good night",
+      "good day",
+      "morning",
+      "afternoon",
+      "evening",
+      "night",
+      "shubh prabhat",
+    ],
+    answer: "",
+    dynamicAnswer: timeOfDayGreeting,
+    showSuggestions: true,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-greeting",
+    label: "Greeting",
+    question: "Hi",
+    keywords: [
+      "hi",
+      "hii",
+      "hiii",
+      "hiya",
+      "hey",
+      "heyy",
+      "hello",
+      "helo",
+      "hola",
+      "namaste",
+      "namaskar",
+      "namaskaram",
+      "vanakkam",
+      "salaam",
+    ],
+    answer:
+      "Hello — Mossie here. Lovely to have you stop by. What would you like to know about Mossaic?",
+    showSuggestions: true,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-how-are-you",
+    label: "How are you",
+    question: "How are you?",
+    keywords: [
+      "how are you",
+      "how r u",
+      "how are u",
+      "how's it going",
+      "hows it going",
+      "how do you do",
+      "how you doing",
+      "what's up",
+      "whats up",
+      "sup",
+      "hru",
+    ],
+    answer:
+      "I'm doing well, thank you for asking. The more interesting question is how I can help you with Mossaic today.",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-thanks",
+    label: "Thanks",
+    question: "Thanks",
+    keywords: [
+      "thanks",
+      "thank you",
+      "thank u",
+      "thanx",
+      "thx",
+      "ty",
+      "tysm",
+      "thankyou",
+      "dhanyavaad",
+      "dhanyawad",
+      "shukriya",
+      "appreciate",
+      "appreciated",
+    ],
+    answer:
+      "You're most welcome. Do let me know if there's anything else.",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-goodbye",
+    label: "Goodbye",
+    question: "Bye",
+    keywords: [
+      "bye",
+      "byee",
+      "goodbye",
+      "good bye",
+      "see you",
+      "see ya",
+      "later",
+      "ttyl",
+      "alvida",
+      "cya",
+    ],
+    answer:
+      "Goodbye, and thank you for stopping by. We're at connect@mossaic.in whenever you'd like to pick this up again.",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-ack",
+    label: "Acknowledgment",
+    question: "Ok",
+    keywords: [
+      "ok",
+      "okay",
+      "okey",
+      "k",
+      "kk",
+      "got it",
+      "gotcha",
+      "cool",
+      "alright",
+      "sure",
+      "fine",
+      "hmm",
+      "hmmm",
+      "right",
+      "noted",
+    ],
+    answer:
+      "Sounds good. I'm right here if anything else comes up.",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-compliment",
+    label: "Compliment",
+    question: "You're great",
+    keywords: [
+      "you're cool",
+      "youre cool",
+      "you are cool",
+      "nice",
+      "awesome",
+      "amazing",
+      "well done",
+      "great job",
+      "good job",
+      "love it",
+      "kudos",
+      "brilliant",
+      "fantastic",
+    ],
+    answer:
+      "That's very kind — thank you. The Mossaic team will be glad to hear it.",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-apology",
+    label: "Apology",
+    question: "Sorry",
+    keywords: ["sorry", "my bad", "apologies", "oops", "my mistake"],
+    answer:
+      "No need to apologise at all. What can I help you with?",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-who-are-you",
+    label: "Who are you",
+    question: "Who are you?",
+    keywords: [
+      "who are you",
+      "your name",
+      "what's your name",
+      "whats your name",
+      "what should i call you",
+      "what is your name",
+      "who am i talking to",
+      "introduce yourself",
+    ],
+    answer:
+      "I'm Mossie — Mossaic's FAQ helper. Ask me about our products, pricing, compliance, or how to reach the team.",
+    showSuggestions: true,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-bot-or-human",
+    label: "Bot or human",
+    question: "Are you a bot?",
+    keywords: [
+      "are you a bot",
+      "are you bot",
+      "are you real",
+      "are you human",
+      "are you a person",
+      "are you ai",
+      "are you chatgpt",
+      "chatgpt",
+      "openai",
+      "claude",
+      "gemini",
+      "llm",
+      "robot",
+    ],
+    answer:
+      "I'm a small FAQ helper built specifically for Mossaic — not a person, and not ChatGPT or any other large model. For anything outside my list, the team is one email away at connect@mossaic.in.",
+    showSuggestions: true,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-capabilities",
+    label: "What can you do",
+    question: "What can you do?",
+    keywords: [
+      "what can you do",
+      "what can u do",
+      "what should i ask",
+      "help me",
+      "help",
+      "options",
+      "menu",
+      "capabilities",
+      "your capabilities",
+      "show me",
+    ],
+    answer:
+      "Plenty. I can tell you about Mossaic, our three products (bookMySlot, Retail CRM, AI Imaging), pricing, compliance, hosting, and how to get in touch. Tap a topic below, or just type your question.",
+    showSuggestions: true,
+    hideFromChips: true,
+  },
+  {
+    id: "smalltalk-who-built-you",
+    label: "Who built you",
+    question: "Who built you?",
+    keywords: [
+      "who built you",
+      "who built mossie",
+      "who made you",
+      "who created you",
+      "who designed you",
+      "your maker",
+      "who developed you",
+      "your creator",
+    ],
+    answer:
+      "I was built by the Mossaic team in Kerala, India. Would you like to know more about the company or our products?",
+    showSuggestions: true,
+    hideFromChips: true,
   },
 ];

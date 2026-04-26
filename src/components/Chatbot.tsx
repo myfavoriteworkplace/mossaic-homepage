@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, X, Send, Mic, Volume2, VolumeX } from "lucide-react";
-import { FAQS, FAQ_GREETING, FAQ_FALLBACK, type Faq } from "../data/faqs";
+import {
+  FAQS,
+  FAQ_GREETING,
+  FAQ_FALLBACK,
+  FAQ_FALLBACK_OFFTOPIC,
+  FAQ_FALLBACK_PROFANITY,
+  FAQ_FALLBACK_GIBBERISH,
+  type Faq,
+} from "../data/faqs";
 
 /* ──────────────────────────────────────────────────────────────────────────────
  * Chatbot
@@ -193,6 +201,84 @@ function findBestFaq(query: string): Faq | null {
   }
   return bestScore > 0 ? best : null;
 }
+
+/* ── Fallback classifier ─────────────────────────────────────────────────
+ * When no FAQ matches, classify the input so we can pick a fallback that
+ * actually fits what the user just said. All four categories use polite,
+ * brand-consistent copy from `faqs.ts`. */
+type FallbackKind = "off-topic" | "profanity" | "gibberish" | "default";
+
+/* Small, deliberately conservative profanity list (English + common Hindi).
+ * Whole-word match only via \b boundaries to avoid false positives. */
+const PROFANITY_RE =
+  /\b(fuck|fucking|shit|bitch|asshole|bastard|dick|piss|cunt|chutiya|chutia|bhenchod|madarchod|behenchod|gandu|saala|kamina|harami|randi|lawde|lund)\b/i;
+
+/* Topical hints that, when no Mossaic FAQ matched, indicate the user is
+ * asking about something off-topic. Kept short on purpose — anything not
+ * here just falls through to the generic default reply. */
+const OFFTOPIC_HINTS = [
+  "weather",
+  "temperature",
+  "rain",
+  "joke",
+  "funny",
+  "time now",
+  "news",
+  "headline",
+  "prime minister",
+  "modi",
+  "election",
+  "politics",
+  "cricket",
+  "football",
+  "ipl",
+  "movie",
+  "film",
+  "song",
+  "music",
+  "netflix",
+  "spotify",
+  "recipe",
+  "biryani",
+  "stock",
+  "crypto",
+  "bitcoin",
+  "dating",
+  "girlfriend",
+  "boyfriend",
+  "homework",
+];
+
+function classifyFallback(raw: string): FallbackKind {
+  const t = raw.trim().toLowerCase();
+  if (!t) return "gibberish";
+  if (PROFANITY_RE.test(t)) return "profanity";
+  /* Pure symbols / very short / no-vowel mash → gibberish. */
+  if (t.length <= 2) return "gibberish";
+  if (/^[\W_]+$/.test(t)) return "gibberish";
+  if (!/[aeiou]/i.test(t) && t.length < 6) return "gibberish";
+  for (const hint of OFFTOPIC_HINTS) {
+    if (t.includes(hint)) return "off-topic";
+  }
+  return "default";
+}
+
+const FALLBACK_REPLIES: Record<FallbackKind, string> = {
+  "off-topic": FAQ_FALLBACK_OFFTOPIC,
+  profanity: FAQ_FALLBACK_PROFANITY,
+  gibberish: FAQ_FALLBACK_GIBBERISH,
+  default: FAQ_FALLBACK,
+};
+
+/* Whether to render the chip menu under each fallback reply. We hide chips
+ * after a profanity warning (don't reward it with the menu) and show them
+ * for the other three so the user has a clear next step. */
+const FALLBACK_SHOW_CHIPS: Record<FallbackKind, boolean> = {
+  "off-topic": true,
+  profanity: false,
+  gibberish: true,
+  default: true,
+};
 
 /* ── Walk-in animation constants ────────────────────────────────────────── */
 
@@ -693,12 +779,28 @@ export default function Chatbot() {
 
       const userMsg: Message = { id: nextId.current++, role: "user", text };
       const faq = findBestFaq(text);
-      const replyText = faq?.answer ?? FAQ_FALLBACK;
+
+      let replyText: string;
+      let showSuggestions: boolean;
+
+      if (faq) {
+        /* Prefer dynamicAnswer (e.g. time-of-day greeting) when present,
+           otherwise the static answer string. */
+        replyText = faq.dynamicAnswer ? faq.dynamicAnswer() : faq.answer;
+        /* Explicit per-FAQ control wins; otherwise default to no chips on
+           a successful match (the original behaviour). */
+        showSuggestions = faq.showSuggestions ?? false;
+      } else {
+        const kind = classifyFallback(text);
+        replyText = FALLBACK_REPLIES[kind];
+        showSuggestions = FALLBACK_SHOW_CHIPS[kind];
+      }
+
       const botMsg: Message = {
         id: nextId.current++,
         role: "bot",
         text: replyText,
-        showSuggestions: !faq,
+        showSuggestions,
       };
 
       setMessages((prev) => [...prev, userMsg, botMsg]);
@@ -1286,7 +1388,7 @@ export default function Chatbot() {
                     m.showSuggestions &&
                     idx === lastBotIndex && (
                       <div className="flex flex-wrap gap-1.5 pt-1">
-                        {FAQS.map((f) => (
+                        {FAQS.filter((f) => !f.hideFromChips).map((f) => (
                           <button
                             key={f.id}
                             type="button"
