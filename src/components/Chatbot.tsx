@@ -468,6 +468,17 @@ export default function Chatbot() {
 
   useEffect(() => {
     if (open) {
+      /* Only auto-focus the input on devices with a fine pointer + real
+         hover (i.e. desktop with a mouse/trackpad). On phones and tablets,
+         focusing the input would force the on-screen keyboard to slide
+         up the moment the panel opens, hiding Mossie's greeting and the
+         suggestion chips before the user has read them. The user can
+         tap the input themselves when they actually want to type. */
+      const isDesktopPointer =
+        typeof window !== "undefined" &&
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (!isDesktopPointer) return;
       const t = window.setTimeout(() => inputRef.current?.focus(), 220);
       return () => window.clearTimeout(t);
     }
