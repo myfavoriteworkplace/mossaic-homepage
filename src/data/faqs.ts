@@ -25,6 +25,15 @@ export type Faq = {
    * stays tightly focused on Mossaic's product / company topics.
    */
   hideFromChips?: boolean;
+  /**
+   * Optional contextual follow-up chips to render after THIS specific reply,
+   * overriding the global FAQ chip list. Each value is an FAQ `id` to surface
+   * as a chip. When present, only these chips show — useful for routing the
+   * user from a product answer (e.g. bookMySlot) into the most likely next
+   * questions (Pricing, Demo, Compliance) without flooding them with the
+   * full menu.
+   */
+  nextChips?: string[];
 };
 
 export const FAQ_GREETING =
@@ -121,6 +130,22 @@ export const FAQS: Faq[] = [
     ],
     answer:
       "bookMySlot is our live dental practice management product — slot booking, clinical records, doctor assignments, patient reminders, inventory, and Smile Deals. It's used by 50+ clinics across Kerala. You can see it at bookmyslot.dental.mossaic.in.",
+    /* Dynamic phrasing — auto-stamps the current month/year so the answer
+       reads "live" rather than evergreen. Static `answer` above is kept as
+       a fallback for any tooling that doesn't call dynamicAnswer. */
+    dynamicAnswer: () => {
+      const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+      ];
+      const now = new Date();
+      const stamp = `${months[now.getMonth()]} ${now.getFullYear()}`;
+      return `bookMySlot is our live dental practice management product — slot booking, clinical records, doctor assignments, patient reminders, inventory, and Smile Deals. As of ${stamp}, 50+ clinics across Kerala trust bookMySlot — and the list keeps growing. You can see it at bookmyslot.dental.mossaic.in.`;
+    },
+    /* After the bookMySlot answer, surface the three most likely next
+       questions instead of the full chip menu. */
+    showSuggestions: true,
+    nextChips: ["pricing", "demo", "compliance"],
   },
   {
     id: "pricing",
@@ -369,6 +394,17 @@ export const FAQS: Faq[] = [
     ],
     answer:
       "bookMySlot is live in 50+ clinics across Kerala. Retail CRM and AI Imaging are pre-launch — interest lists open via the Contact section.",
+    /* Same time-stamped phrasing as the bookMySlot entry, so a "how many
+       clinics use you" question reads as freshly true rather than canned. */
+    dynamicAnswer: () => {
+      const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+      ];
+      const now = new Date();
+      const stamp = `${months[now.getMonth()]} ${now.getFullYear()}`;
+      return `As of ${stamp}, bookMySlot is live in 50+ clinics across Kerala — and the list keeps growing. Retail CRM and AI Imaging are pre-launch — interest lists open via the Contact section.`;
+    },
     hideFromChips: true,
   },
   {
@@ -721,7 +757,7 @@ export const FAQS: Faq[] = [
       "robot",
     ],
     answer:
-      "I'm a small FAQ helper built specifically for Mossaic — not a person, and not ChatGPT or any other large model. For anything outside my list, the team is one email away at connect@mossaic.in.",
+      "At knowing Mossaic inside out? Absolutely. At everything else, I leave that to the big models. I'm a small FAQ helper built specifically for Mossaic — for anything outside my list, the team is one email away at connect@mossaic.in.",
     showSuggestions: true,
     hideFromChips: true,
   },
@@ -763,6 +799,83 @@ export const FAQS: Faq[] = [
     answer:
       "I was built by the Mossaic team in Kerala, India. Would you like to know more about the company or our products?",
     showSuggestions: true,
+    hideFromChips: true,
+  },
+
+  /* ── Easter eggs ──────────────────────────────────────────────────────
+     Light, on-brand deflections for off-topic curiosities. Each pivots
+     warmly back to product or brand vocabulary so the surprise doesn't
+     leave the user without a next step. All hidden from the chip menu
+     so they never advertise themselves — they're rewards for asking. */
+  {
+    id: "easter-egg-arithmetic-joke",
+    label: "Joke / arithmetic",
+    question: "Tell me a joke",
+    keywords: [
+      "tell me a joke",
+      "joke",
+      "make me laugh",
+      "be funny",
+      "say something funny",
+      "what's 2+2",
+      "whats 2+2",
+      "2+2",
+      "2 + 2",
+      "what is 2+2",
+      "1+1",
+      "1 + 1",
+      "what's 1+1",
+      "math",
+      "do math",
+      "calculate",
+      "arithmetic",
+    ],
+    answer:
+      "I'm better at dental software than arithmetic — but I hear bookMySlot handles billing flawlessly.",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "easter-egg-meaning-of-life",
+    label: "Meaning of life",
+    question: "What's the meaning of life?",
+    keywords: [
+      "meaning of life",
+      "purpose of life",
+      "why are we here",
+      "what's the point",
+      "whats the point",
+      "what is the meaning of life",
+      "answer to life",
+      "answer to everything",
+      "life the universe and everything",
+    ],
+    answer:
+      "42, apparently — but at Mossaic we think it's modular software that actually works.",
+    showSuggestions: false,
+    hideFromChips: true,
+  },
+  {
+    id: "easter-egg-sing-or-story",
+    label: "Sing / story",
+    question: "Sing me a song",
+    keywords: [
+      "sing me a song",
+      "sing a song",
+      "sing",
+      "song",
+      "tell me a story",
+      "tell a story",
+      "story",
+      "perform",
+      "entertain me",
+      "rap",
+      "poem",
+      "recite",
+    ],
+    answer:
+      "I'm more of a facts bot than a bard — but I can tell you the story of how bookMySlot is reshaping dental care in Kerala. Want me to start there?",
+    showSuggestions: false,
     hideFromChips: true,
   },
 ];

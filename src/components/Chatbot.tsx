@@ -39,6 +39,10 @@ type Message = {
   isThinking?: boolean;
   isTyping?: boolean;
   displayText?: string;
+  /* FAQ id that produced this reply, when one matched. Used by the chip
+     renderer to honor a per-FAQ `nextChips` override (contextual follow-up
+     chips) instead of the global menu. */
+  faqId?: string;
 };
 
 const MUTE_KEY = "mossaic.chatbot.muted";
@@ -986,22 +990,36 @@ export default function Chatbot() {
       }
 
       const userMsg: Message = { id: nextId.current++, role: "user", text };
-      const faq = findBestFaq(text);
+
+      /* Malayalam bridge — if the user typed in Malayalam script, respond
+         once warmly in Malayalam and gently steer follow-ups to English.
+         Skips the FAQ matcher entirely for this single turn. The chip menu
+         is suppressed (chips are English-labelled and would feel jarring). */
+      const hasMalayalam = /[\u0D00-\u0D7F]/.test(text);
 
       let replyText: string;
       let showSuggestions: boolean;
+      let matchedFaqId: string | undefined;
 
-      if (faq) {
-        /* Prefer dynamicAnswer (e.g. time-of-day greeting) when present,
-           otherwise the static answer string. */
-        replyText = faq.dynamicAnswer ? faq.dynamicAnswer() : faq.answer;
-        /* Explicit per-FAQ control wins; otherwise default to no chips on
-           a successful match (the original behaviour). */
-        showSuggestions = faq.showSuggestions ?? false;
+      if (hasMalayalam) {
+        replyText =
+          "നമസ്കാരം! ഞാൻ Mossie — Mossaic-ന്റെ FAQ helper. നിങ്ങളെ സഹായിക്കാൻ സന്തോഷം. തുടർന്നുള്ള ചോദ്യങ്ങൾ ഇംഗ്ലീഷിൽ ചോദിച്ചാൽ കൂടുതൽ വിശദമായ ഉത്തരങ്ങൾ നൽകാം.";
+        showSuggestions = false;
       } else {
-        const kind = classifyFallback(text);
-        replyText = FALLBACK_REPLIES[kind];
-        showSuggestions = FALLBACK_SHOW_CHIPS[kind];
+        const faq = findBestFaq(text);
+        if (faq) {
+          /* Prefer dynamicAnswer (e.g. time-of-day greeting) when present,
+             otherwise the static answer string. */
+          replyText = faq.dynamicAnswer ? faq.dynamicAnswer() : faq.answer;
+          /* Explicit per-FAQ control wins; otherwise default to no chips on
+             a successful match (the original behaviour). */
+          showSuggestions = faq.showSuggestions ?? false;
+          matchedFaqId = faq.id;
+        } else {
+          const kind = classifyFallback(text);
+          replyText = FALLBACK_REPLIES[kind];
+          showSuggestions = FALLBACK_SHOW_CHIPS[kind];
+        }
       }
 
       const botId = nextId.current++;
@@ -1010,6 +1028,7 @@ export default function Chatbot() {
         role: "bot",
         text: replyText,
         showSuggestions,
+        faqId: matchedFaqId,
         /* Start in the thinking-dots phase. `streamMessage` (called below)
            drives the dots → typing → settled lifecycle from here. */
         isThinking: true,
@@ -1764,33 +1783,51 @@ export default function Chatbot() {
                     m.showSuggestions &&
                     !m.isThinking &&
                     !m.isTyping &&
-                    idx === lastBotIndex && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {FAQS.filter((f) => !f.hideFromChips).map((f) => (
-                          <button
-                            key={f.id}
-                            type="button"
-                            onClick={() => handleSuggestion(f)}
-                            className="text-[11px] px-2.5 py-1 rounded-full transition-colors"
-                            style={{
-                              background: "rgba(34,211,238,0.06)",
-                              border: `1px solid ${ACCENT_SOFT}`,
-                              color: "rgba(186,230,253,0.95)",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background =
-                                "rgba(34,211,238,0.14)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background =
-                                "rgba(34,211,238,0.06)";
-                            }}
-                          >
-                            {f.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    idx === lastBotIndex &&
+                    (() => {
+                      /* Per-FAQ contextual chips override the global menu.
+                         If the matched FAQ defines `nextChips` (an array of
+                         FAQ ids), surface only those — useful for routing a
+                         user from a product answer (e.g. bookMySlot) into
+                         the most likely follow-ups (Pricing, Demo, …).
+                         Falls back to the global chip menu otherwise. */
+                      const sourceFaq = m.faqId
+                        ? FAQS.find((f) => f.id === m.faqId)
+                        : undefined;
+                      const chipFaqs =
+                        sourceFaq?.nextChips && sourceFaq.nextChips.length > 0
+                          ? sourceFaq.nextChips
+                              .map((id) => FAQS.find((f) => f.id === id))
+                              .filter((f): f is Faq => Boolean(f))
+                          : FAQS.filter((f) => !f.hideFromChips);
+                      return (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {chipFaqs.map((f) => (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() => handleSuggestion(f)}
+                              className="text-[11px] px-2.5 py-1 rounded-full transition-colors"
+                              style={{
+                                background: "rgba(34,211,238,0.06)",
+                                border: `1px solid ${ACCENT_SOFT}`,
+                                color: "rgba(186,230,253,0.95)",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(34,211,238,0.14)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(34,211,238,0.06)";
+                              }}
+                            >
+                              {f.label}
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
                 </div>
               ))}
               <div ref={messagesEndRef} />
