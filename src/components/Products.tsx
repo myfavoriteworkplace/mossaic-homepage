@@ -67,7 +67,7 @@ export default function Products() {
     <section
       id="products"
       className="bg-page"
-      style={{ padding: "100px var(--pad)" }}
+      style={{ padding: "var(--section-pad-y) var(--pad)" }}
     >
       <div className="container-x">
         <Reveal className="text-center mb-16">

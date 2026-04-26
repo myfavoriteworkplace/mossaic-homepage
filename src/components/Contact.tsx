@@ -24,7 +24,7 @@ export default function Contact({ onSubmitted }: Props) {
     <section
       id="contact"
       className="bg-page"
-      style={{ padding: "100px var(--pad)" }}
+      style={{ padding: "var(--section-pad-y) var(--pad)" }}
     >
       <div className="max-w-container mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
         <Reveal>
@@ -110,14 +110,20 @@ export default function Contact({ onSubmitted }: Props) {
               width: 100%;
               border: 1.5px solid var(--border);
               border-radius: 9px;
-              padding: 11px 14px;
-              font-size: 14px;
+              padding: 10px 14px;
+              /* 16px prevents iOS Safari from auto-zooming the page when an
+                 input is focused. Padding tightened so the field doesn't
+                 grow visually compared to the previous 14px design. */
+              font-size: 16px;
               font-family: var(--sans);
               color: var(--text);
               background: var(--bg);
               outline: none;
               transition: border-color .2s, box-shadow .2s;
               appearance: none;
+            }
+            @media (min-width: 768px) {
+              .form-input { font-size: 14px; padding: 11px 14px; }
             }
             .form-input:focus {
               border-color: var(--accent);

@@ -15,7 +15,7 @@ export default function About() {
     <section
       id="about"
       className="bg-surface"
-      style={{ padding: "100px var(--pad)" }}
+      style={{ padding: "var(--section-pad-y) var(--pad)" }}
     >
       <div className="container-x">
         <div className="grid lg:[grid-template-columns:340px_1fr] gap-12 lg:gap-20 items-start">

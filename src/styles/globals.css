@@ -169,6 +169,15 @@
   /* Layout */
   --max: 1160px;
   --pad: clamp(20px, 5vw, 64px);
+  /* Vertical padding for full-page sections — shrinks on small viewports
+     so phones don't waste 200px above and below every section. */
+  --section-pad-y: clamp(60px, 10vw, 100px);
+}
+
+/* Anchor sections sit below the 60px fixed nav. Without this, tapping a nav
+   link on mobile lands the section heading hidden behind the nav. */
+section[id] {
+  scroll-margin-top: 80px;
 }
 
 * {

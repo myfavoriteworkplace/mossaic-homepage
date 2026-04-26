@@ -8,7 +8,7 @@ export default function Testimonials() {
     <section
       id="testimonials"
       className="bg-surface"
-      style={{ padding: "100px var(--pad)" }}
+      style={{ padding: "var(--section-pad-y) var(--pad)" }}
     >
       <div className="container-x">
         <Reveal className="text-center mb-12">

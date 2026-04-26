@@ -7,7 +7,7 @@ export default function Why() {
     <section
       id="why"
       className="bg-surface"
-      style={{ padding: "100px var(--pad)" }}
+      style={{ padding: "var(--section-pad-y) var(--pad)" }}
     >
       <div className="max-w-container mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
         <div>

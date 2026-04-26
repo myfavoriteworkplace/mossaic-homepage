@@ -20,7 +20,7 @@ export default function Roadmap() {
     <section
       id="roadmap"
       className="relative overflow-hidden"
-      style={{ padding: "100px var(--pad)", background: "var(--moss-deeper)" }}
+      style={{ padding: "var(--section-pad-y) var(--pad)", background: "var(--moss-deeper)" }}
     >
       <div
         className="absolute inset-0 pointer-events-none"

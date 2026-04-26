@@ -11,7 +11,7 @@ export default function Hero() {
       className="relative overflow-hidden min-h-screen flex flex-col justify-center"
       style={{
         background: "var(--hero-bg)",
-        padding: "120px var(--pad) 100px",
+        padding: "clamp(96px, 18vw, 120px) var(--pad) var(--section-pad-y)",
       }}
     >
       {/* grid */}
@@ -86,7 +86,7 @@ export default function Hero() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="display text-white mb-6"
             style={{
-              fontSize: "clamp(44px, 6vw, 78px)",
+              fontSize: "clamp(36px, 8vw, 78px)",
               lineHeight: 0.98,
               letterSpacing: "-0.035em",
               fontWeight: 800,
@@ -173,16 +173,16 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.7 }}
-            className="flex items-center gap-7 flex-wrap"
+            className="flex flex-wrap items-center gap-x-7 gap-y-5"
           >
             {HERO_STATS.map((s, i) => {
               const numeric = parseInt(s.value, 10);
               const isNumber = !Number.isNaN(numeric);
+              const isLast = i === HERO_STATS.length - 1;
               return (
-                <div key={s.label} className="flex items-center gap-7">
-                  {i > 0 && <div className="w-px h-8 bg-white/10 -ml-7" />}
+                <div key={s.label} className="flex items-center">
                   <div>
-                    <div className="display text-[30px] text-white leading-none font-bold">
+                    <div className="display text-[26px] sm:text-[30px] text-white leading-none font-bold">
                       {isNumber ? (
                         <AnimatedCounter value={numeric} suffix={s.suffix} />
                       ) : (
@@ -199,18 +199,27 @@ export default function Hero() {
                       {s.label}
                     </div>
                   </div>
+                  {!isLast && (
+                    <div
+                      aria-hidden
+                      className="w-px h-8 bg-white/10 ml-7"
+                    />
+                  )}
                 </div>
               );
             })}
           </motion.div>
         </div>
 
-        {/* right — product card */}
+        {/* right — product card. Stacks below the text on mobile/tablet
+             (mt-4 on small screens) and sits to the right on lg+. The two
+             floating sub-cards are hidden below lg because they overflow
+             when the parent isn't constrained to half the viewport. */}
         <motion.div
           initial={{ opacity: 0, y: 30, rotateX: -8 }}
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
           transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="hidden lg:flex justify-center items-center"
+          className="flex justify-center items-center mt-6 lg:mt-0"
           style={{ perspective: 1200 }}
         >
           <div className="relative w-full max-w-[480px]">
@@ -339,12 +348,13 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* floating cards */}
+            {/* floating cards — hidden below lg because they overflow when
+                the hero stacks to a single column. */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 1.3, duration: 0.7 }}
-              className="absolute -right-12 top-14 flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 backdrop-blur-md animate-float1"
+              className="hidden lg:flex absolute -right-12 top-14 items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 backdrop-blur-md animate-float1"
               style={{
                 background: "rgba(10,22,40,0.85)",
                 border: "1px solid var(--hero-border)",
@@ -371,7 +381,7 @@ export default function Hero() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 1.5, duration: 0.7 }}
-              className="absolute -left-14 bottom-20 flex items-center gap-2.5 rounded-[10px] pl-2 pr-3.5 py-2 backdrop-blur-md animate-float2"
+              className="hidden lg:flex absolute -left-14 bottom-20 items-center gap-2.5 rounded-[10px] pl-2 pr-3.5 py-2 backdrop-blur-md animate-float2"
               style={{
                 background: "rgba(10,22,40,0.85)",
                 border: "1px solid var(--hero-border)",

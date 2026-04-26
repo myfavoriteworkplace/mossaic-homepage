@@ -1142,6 +1142,22 @@ export default function Chatbot() {
       {/* ── Chat panel ─────────────────────────────────────────────────── */}
       <AnimatePresence>
         {open && (
+          <motion.button
+            key="chat-backdrop"
+            type="button"
+            aria-label="Close chat"
+            onClick={() => setOpen(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            /* Only shown on small viewports — gives mobile users a tap-
+               outside-to-close affordance since the panel covers most
+               of the screen. */
+            className="sm:hidden fixed inset-0 z-[898] bg-black/45"
+          />
+        )}
+        {open && (
           <motion.div
             key="panel"
             initial={{ opacity: 0, y: 16, scale: 0.96 }}

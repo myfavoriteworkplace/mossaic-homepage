@@ -6,7 +6,7 @@ export default function Mission() {
     <section
       id="mission"
       className="bg-page"
-      style={{ padding: "100px var(--pad)" }}
+      style={{ padding: "var(--section-pad-y) var(--pad)" }}
     >
       <div className="container-x">
         {/* Mission */}
@@ -24,7 +24,7 @@ export default function Mission() {
             <p className="text-[17px] leading-[1.75] text-ink-2 mb-8">
               {MISSION.body}
             </p>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
               {MISSION.pillars.map((p) => (
                 <div
                   key={p.title}
@@ -46,7 +46,7 @@ export default function Mission() {
         </div>
 
         {/* Vision — separated by hairline */}
-        <div className="mt-20 pt-16 border-t border-border1 grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+        <div className="mt-16 pt-12 sm:mt-20 sm:pt-16 border-t border-border1 grid lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           <Reveal className="lg:col-span-5">
             <div className="tag tag-green mb-4">{VISION.tag}</div>
             <h2 className="section-title">

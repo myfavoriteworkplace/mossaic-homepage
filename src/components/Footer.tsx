@@ -66,7 +66,7 @@ export default function Footer() {
                   href={s.href}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="w-8 h-8 rounded-md bg-white/5 border border-white/10 hover:bg-moss/20 hover:border-[rgba(34,211,238,0.35)] flex items-center justify-center text-white/50 hover:text-white transition-all"
+                  className="w-10 h-10 rounded-md bg-white/5 border border-white/10 hover:bg-moss/20 hover:border-[rgba(34,211,238,0.35)] flex items-center justify-center text-white/50 hover:text-white transition-all"
                   aria-label="Social link"
                 >
                   {s.icon}
@@ -95,7 +95,7 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-white/[0.06] pt-6 flex items-center justify-between flex-wrap gap-3">
+        <div className="border-t border-white/[0.06] pt-6 flex flex-col-reverse sm:flex-row items-center justify-center sm:justify-between gap-3 text-center sm:text-left">
           <span className="display text-sm text-white/50 tracking-tight">
             {TAGLINE}
           </span>
