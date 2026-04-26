@@ -119,8 +119,9 @@ function findBestFaq(query: string): Faq | null {
 
 /* ── Walk-in animation constants ────────────────────────────────────────── */
 
-/** Seconds to traverse the bottom from the left edge to home. */
-const WALK_DURATION_S = 12;
+/** Seconds to traverse the bottom from the left edge to home (includes the
+ *  mid-walk wave pause — see WAVE_START_S / WAVE_DURATION_S). */
+const WALK_DURATION_S = 13.4;
 /** Distance in pixels from Mossie within which the cursor "spooks" her home. */
 const PROXIMITY_PX = 140;
 /** Bubble width — used to compute the walk distance. */
@@ -129,6 +130,13 @@ const BUBBLE_PX = 56;
 const EDGE_MARGIN = 24;
 /** Below this viewport width the walk is skipped (too little room). */
 const MIN_WALK_VIEWPORT = 480;
+/** Seconds into the walk when Mossie pauses to wave at the user. Picked so
+ *  she's roughly mid-screen when the wave begins. */
+const WAVE_START_S = 6;
+/** Seconds the wave lasts. Body x-translation is held still for this long. */
+const WAVE_DURATION_S = 1.4;
+/** Fraction of the walk distance Mossie has covered when she pauses to wave. */
+const WAVE_AT_PCT = 0.5;
 
 /** Compute the maximum leftward translation for the walk-in. */
 function computeWalkDistance(): number {
@@ -136,6 +144,136 @@ function computeWalkDistance(): number {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
   if (window.innerWidth < MIN_WALK_VIEWPORT) return 0;
   return Math.max(0, window.innerWidth - BUBBLE_PX - EDGE_MARGIN * 2);
+}
+
+/* ── MossieFace — eyes + mouth SVG ──────────────────────────────────────── */
+
+type Expression = "walking" | "happy" | "surprised" | "idle";
+
+/** A tiny SVG face that lives inside the bubble. Switches between four
+ *  expressions and supports a small pupil offset (used for "looking forward"
+ *  while walking and "tracking the cursor" once settled). Includes its own
+ *  randomized blink scheduler. */
+function MossieFace({
+  expression,
+  pupilOffset,
+}: {
+  expression: Expression;
+  pupilOffset: { x: number; y: number };
+}) {
+  const [blinking, setBlinking] = useState(false);
+
+  // Schedule the next blink between 2.6s and 5.2s out. Each blink lasts 110ms.
+  useEffect(() => {
+    let openTimer = 0;
+    let closeTimer = 0;
+    const scheduleNext = () => {
+      const delay = 2600 + Math.random() * 2600;
+      openTimer = window.setTimeout(() => {
+        setBlinking(true);
+        closeTimer = window.setTimeout(() => {
+          setBlinking(false);
+          scheduleNext();
+        }, 110);
+      }, delay);
+    };
+    scheduleNext();
+    return () => {
+      window.clearTimeout(openTimer);
+      window.clearTimeout(closeTimer);
+    };
+  }, []);
+
+  const happy = expression === "happy";
+  const surprised = expression === "surprised";
+  // Pupils centre themselves when surprised so the "o" mouth + wide eyes read
+  // as a unified expression rather than a glance.
+  const pup = surprised ? { x: 0, y: 0 } : pupilOffset;
+
+  return (
+    <svg
+      viewBox="0 0 36 36"
+      width="36"
+      height="36"
+      style={{ display: "block" }}
+      aria-hidden
+    >
+      {/* Left eye — squinty curve when happy, oval otherwise. */}
+      {happy ? (
+        <path
+          d="M 9 15 Q 12 11 15 15"
+          stroke="#e6faff"
+          strokeWidth="1.8"
+          fill="none"
+          strokeLinecap="round"
+        />
+      ) : (
+        <>
+          <ellipse
+            cx="13"
+            cy="14"
+            rx="3"
+            ry={blinking ? 0.4 : surprised ? 3.4 : 3}
+            fill="#e6faff"
+          />
+          {!blinking && (
+            <circle
+              cx={13 + pup.x}
+              cy={14 + pup.y}
+              r="1.4"
+              fill="#0a1628"
+            />
+          )}
+        </>
+      )}
+
+      {/* Right eye — mirror of the left. */}
+      {happy ? (
+        <path
+          d="M 21 15 Q 24 11 27 15"
+          stroke="#e6faff"
+          strokeWidth="1.8"
+          fill="none"
+          strokeLinecap="round"
+        />
+      ) : (
+        <>
+          <ellipse
+            cx="23"
+            cy="14"
+            rx="3"
+            ry={blinking ? 0.4 : surprised ? 3.4 : 3}
+            fill="#e6faff"
+          />
+          {!blinking && (
+            <circle
+              cx={23 + pup.x}
+              cy={14 + pup.y}
+              r="1.4"
+              fill="#0a1628"
+            />
+          )}
+        </>
+      )}
+
+      {/* Mouth — surprise "o", happy wide arc, or neutral smile. */}
+      {surprised ? (
+        <ellipse cx="18" cy="24" rx="2" ry="2.5" fill="#e6faff" />
+      ) : (
+        <path
+          d={
+            happy
+              ? "M 11 22 Q 18 30 25 22"
+              : "M 13 23 Q 18 27 23 23"
+          }
+          stroke="#e6faff"
+          strokeWidth="1.8"
+          fill="none"
+          strokeLinecap="round"
+        />
+      )}
+    </svg>
+  );
 }
 
 /* ── Component ──────────────────────────────────────────────────────────── */
@@ -152,11 +290,23 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
 
-  // Walk-in state — Mossie enters from the far-left, struts to her home spot
-  // in the bottom-right, and "settles" when the user comes near, taps, opens
-  // the chat, or the walk timer completes.
+  // Walk-in state — Mossie enters from the far-left, strolls to her home spot
+  // in the bottom-right, pauses mid-screen to wave at the user, and "settles"
+  // when the user comes near, taps, opens the chat, or the walk timer ends.
   const [walkDistance] = useState<number>(() => computeWalkDistance());
   const [settled, setSettled] = useState<boolean>(() => computeWalkDistance() === 0);
+  // Mid-walk wave state. While `waving` is true, body x is held still and the
+  // face switches to a happy expression with a small waving "hand".
+  const [waving, setWaving] = useState(false);
+  // Brief surprise reaction the moment the cursor enters the spook radius —
+  // mouth becomes a small "o" and eyes widen for a beat before settling.
+  const [spooked, setSpooked] = useState(false);
+  // Where the pupils look. Forward (+x) while walking, mouse-tracked when
+  // settled. Centred during wave / surprise via the face component itself.
+  const [pupilOffset, setPupilOffset] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
 
   const recognitionCtor = useMemo(() => getRecognitionCtor(), []);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -165,6 +315,8 @@ export default function Chatbot() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const nextId = useRef(2);
+  // Guard so the spook reaction only fires once per walk.
+  const spookFiredRef = useRef(false);
 
   /* Persist mute preference. */
   useEffect(() => {
@@ -215,9 +367,69 @@ export default function Chatbot() {
     };
   }, []);
 
-  /* Walk-in: settle when the cursor approaches Mossie. */
+  /* Walk-in: settle when the cursor approaches Mossie. The first time the
+   * cursor enters the spook radius, briefly show a surprise face, *then*
+   * spring her into her home spot. The surprise reaction adds a beat of
+   * personality to the otherwise instant settle. */
   useEffect(() => {
     if (settled) return;
+    const handler = (e: MouseEvent) => {
+      if (spookFiredRef.current) return;
+      const btn = btnRef.current;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      if (dx * dx + dy * dy < PROXIMITY_PX * PROXIMITY_PX) {
+        spookFiredRef.current = true;
+        setSpooked(true);
+        // Wave is interrupted — drop it immediately so the surprise reads.
+        setWaving(false);
+        window.setTimeout(() => setSettled(true), 360);
+        window.setTimeout(() => setSpooked(false), 900);
+      }
+    };
+    window.addEventListener("mousemove", handler, { passive: true });
+    return () => window.removeEventListener("mousemove", handler);
+  }, [settled]);
+
+  /* Walk-in: schedule the mid-walk wave. Triggers WAVE_START_S into the walk,
+   * lasts WAVE_DURATION_S, then resumes walking. Skipped if Mossie has
+   * already settled (e.g. because of cursor proximity or a tap). */
+  useEffect(() => {
+    if (settled) return;
+    const startTimer = window.setTimeout(() => {
+      // Don't start the wave if she's been spooked / settled in the meantime.
+      if (spookFiredRef.current) return;
+      setWaving(true);
+    }, WAVE_START_S * 1000);
+    const endTimer = window.setTimeout(
+      () => setWaving(false),
+      (WAVE_START_S + WAVE_DURATION_S) * 1000,
+    );
+    return () => {
+      window.clearTimeout(startTimer);
+      window.clearTimeout(endTimer);
+    };
+  }, [settled]);
+
+  /* While walking (and not waving / spooked), pupils look forward in the
+   * direction of travel. Set once on the relevant state changes. */
+  useEffect(() => {
+    if (settled) return;
+    if (waving || spooked) {
+      setPupilOffset({ x: 0, y: 0 });
+    } else {
+      setPupilOffset({ x: 1.2, y: 0 });
+    }
+  }, [settled, waving, spooked]);
+
+  /* Once settled (and the panel is closed), pupils gently track the cursor
+   * around the page — a small detail that makes Mossie feel alive. */
+  useEffect(() => {
+    if (!settled || open) return;
     const handler = (e: MouseEvent) => {
       const btn = btnRef.current;
       if (!btn) return;
@@ -226,11 +438,19 @@ export default function Chatbot() {
       const cy = rect.top + rect.height / 2;
       const dx = e.clientX - cx;
       const dy = e.clientY - cy;
-      if (dx * dx + dy * dy < PROXIMITY_PX * PROXIMITY_PX) setSettled(true);
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      // Capped at ±1.6 px so pupils never leave the eye-whites. Gentle ramp
+      // so far-away cursor positions still produce a small, readable shift.
+      const max = 1.6;
+      const factor = Math.min(max, dist / 80);
+      setPupilOffset({
+        x: (dx / dist) * factor,
+        y: (dy / dist) * factor,
+      });
     };
     window.addEventListener("mousemove", handler, { passive: true });
     return () => window.removeEventListener("mousemove", handler);
-  }, [settled]);
+  }, [settled, open]);
 
   /* Walk-in: settle on the first tap anywhere on touch devices. */
   useEffect(() => {
@@ -369,28 +589,53 @@ export default function Chatbot() {
         }}
         animate={{
           opacity: 1,
-          x: 0,
-          // Pogo hop — body launches, arcs to apex, lands. Squash-and-stretch
-          // physics: wide+short on landing, narrow+tall at apex. Two hops per
-          // gait cycle (one per leg). Once settled, everything snaps to rest.
-          y: settled ? 0 : [0, -14, 0],
-          scaleX: settled ? 1 : [1.12, 0.9, 1.12],
-          scaleY: settled ? 1 : [0.85, 1.15, 0.85],
+          // X-translation: walks from far-left, holds the mid-screen position
+          // for the wave, then continues home. The hold is built into the
+          // keyframes so a single linear animation covers the whole journey.
+          x: settled
+            ? 0
+            : [
+                -walkDistance,
+                -walkDistance * (1 - WAVE_AT_PCT),
+                -walkDistance * (1 - WAVE_AT_PCT),
+                0,
+              ],
+          // Calm A — gentle stroll: 8 px hop, soft squash. During the wave
+          // the body holds still (a tiny breathing scale stays). Once settled,
+          // everything snaps to rest.
+          y: settled ? 0 : waving ? 0 : [0, -8, 0],
+          scaleX: settled ? 1 : waving ? 1.04 : [1.06, 0.94, 1.06],
+          scaleY: settled ? 1 : waving ? 1.04 : [0.94, 1.06, 0.94],
         }}
         transition={{
           opacity: { duration: 0.35 },
           x: settled
             ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
-            : { duration: WALK_DURATION_S, ease: "linear" },
+            : {
+                duration: WALK_DURATION_S,
+                ease: "linear",
+                times: [
+                  0,
+                  WAVE_START_S / WALK_DURATION_S,
+                  (WAVE_START_S + WAVE_DURATION_S) / WALK_DURATION_S,
+                  1,
+                ],
+              },
           y: settled
             ? { duration: 0.25, ease: "easeOut" }
-            : { duration: 0.6, repeat: Infinity, ease: "easeInOut" },
+            : waving
+              ? { duration: 0.3, ease: "easeOut" }
+              : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
           scaleX: settled
             ? { duration: 0.25, ease: "easeOut" }
-            : { duration: 0.6, repeat: Infinity, ease: "easeInOut" },
+            : waving
+              ? { duration: 0.3, ease: "easeOut" }
+              : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
           scaleY: settled
             ? { duration: 0.25, ease: "easeOut" }
-            : { duration: 0.6, repeat: Infinity, ease: "easeInOut" },
+            : waving
+              ? { duration: 0.3, ease: "easeOut" }
+              : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
         }}
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -414,34 +659,48 @@ export default function Chatbot() {
               transition={{ duration: 0.18 }}
               className="flex"
             >
-              <MessageCircle size={22} strokeWidth={2 } />
+              {/* Mossie's face — swaps expressions based on what she's
+                  doing right now. Spook reaction has highest priority,
+                  then the mid-walk wave, then walking-vs-settled. */}
+              <MossieFace
+                expression={
+                  spooked
+                    ? "surprised"
+                    : waving
+                      ? "happy"
+                      : settled
+                        ? "idle"
+                        : "walking"
+                }
+                pupilOffset={pupilOffset}
+              />
             </motion.span>
           )}
         </AnimatePresence>
 
-        {/* Mossie's two pogo legs — wide-arc cyan capsules that flail
-            beneath the body during her hop. Paired with the parent button's
-            squash-and-stretch + arc bounce, the result reads as cartoon
-            pogo locomotion. They retract smoothly when she settles. */}
-        {/* Left leg — flails back on push-off, swings forward to plant. */}
+        {/* Mossie's two legs — gentle alternating swing for the calm-stroll
+            walk. They plant (no swing) during the mid-walk wave so she looks
+            stable while waving, and retract smoothly into the body once
+            she's settled in her home spot. */}
+        {/* Left leg — kicks back on push-off, swings forward to plant. */}
         <motion.span
           aria-hidden
           className="absolute pointer-events-none rounded-full"
           animate={{
             opacity: settled ? 0 : 1,
             scaleY: settled ? 0.3 : 1,
-            rotate: settled ? 0 : [-35, 30, -35],
-            y: settled ? 0 : [0, -2, 0],
+            rotate: settled ? 0 : waving ? -4 : [-18, 16, -18],
+            y: settled ? 0 : 0,
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
             scaleY: { duration: 0.3, ease: "easeOut" },
             rotate: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
-            y: settled
-              ? { duration: 0.25, ease: "easeOut" }
-              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+              : waving
+                ? { duration: 0.3, ease: "easeOut" }
+                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
+            y: { duration: 0.25, ease: "easeOut" },
           }}
           style={{
             width: 4,
@@ -455,25 +714,25 @@ export default function Chatbot() {
           }}
         />
         {/* Right leg — opposite phase. Together with the left leg, the two
-            create an alternating "pogo flail" gait. */}
+            create the calm alternating-step gait. */}
         <motion.span
           aria-hidden
           className="absolute pointer-events-none rounded-full"
           animate={{
             opacity: settled ? 0 : 1,
             scaleY: settled ? 0.3 : 1,
-            rotate: settled ? 0 : [30, -35, 30],
-            y: settled ? 0 : [-2, 0, -2],
+            rotate: settled ? 0 : waving ? 4 : [16, -18, 16],
+            y: settled ? 0 : 0,
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
             scaleY: { duration: 0.3, ease: "easeOut" },
             rotate: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
-            y: settled
-              ? { duration: 0.25, ease: "easeOut" }
-              : { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+              : waving
+                ? { duration: 0.3, ease: "easeOut" }
+                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
+            y: { duration: 0.25, ease: "easeOut" },
           }}
           style={{
             width: 4,
@@ -486,6 +745,42 @@ export default function Chatbot() {
             transformOrigin: "50% 0%",
           }}
         />
+
+        {/* Mossie's waving hand — only present during the mid-walk wave. A
+            small cyan capsule that sprouts from the upper-right of the body
+            and rocks back and forth three times. Pivots from the wrist. */}
+        <AnimatePresence>
+          {waving && (
+            <motion.span
+              key="wave-hand"
+              aria-hidden
+              className="absolute pointer-events-none"
+              initial={{ opacity: 0, scaleY: 0.4, rotate: -20 }}
+              animate={{
+                opacity: 1,
+                scaleY: 1,
+                rotate: [-20, 28, -20, 28, -20, 28, -20],
+              }}
+              exit={{ opacity: 0, scaleY: 0.4, rotate: -10 }}
+              transition={{
+                opacity: { duration: 0.18 },
+                scaleY: { duration: 0.18 },
+                rotate: { duration: WAVE_DURATION_S, ease: "easeInOut" },
+              }}
+              style={{
+                width: 7,
+                height: 12,
+                top: 4,
+                right: -4,
+                borderRadius: 4,
+                background:
+                  "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
+                boxShadow: "0 0 6px rgba(34,211,238,0.55)",
+                transformOrigin: "50% 100%",
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Soft pulsing halo — only after Mossie has settled in her home spot
             and only while the panel is closed. Suppressed during the walk so
