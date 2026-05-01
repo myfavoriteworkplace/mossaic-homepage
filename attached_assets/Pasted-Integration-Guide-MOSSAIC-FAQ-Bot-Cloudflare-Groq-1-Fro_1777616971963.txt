@@ -1,0 +1,66 @@
+Integration Guide: MOSSAIC FAQ Bot (Cloudflare + Groq)
+1. Frontend Bot → Worker
+Steps
+In your FAQ bot code (Replit project), update the chatbot’s “send message” function to call your Worker URL:
+javascript
+async function sendMessage(userInput) {
+  const res = await fetch("https://mossaic-faq-bot.itsmyfavoriteworkplace.workers.dev", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: userInput })
+  });
+
+  const data = await res.json();
+  const botReply = data.choices[0].message.content;
+  displayBotReply(botReply);
+}
+Why
+POST request → Worker expects JSON input ({message:"..."}).
+Worker URL → connects frontend to backend proxy.
+Response parsing → extracts Groq’s reply and shows it in chat UI.
+2. Worker → Groq API
+Steps
+Worker script already handles:
+Reading userMessage from request.
+Adding system prompt (FAQ rules, tone, boundaries).
+Calling Groq API with correct model (meta-llama/llama-4-scout-17b-16e-instruct).
+Returning JSON response.
+Why
+Proxy layer → hides API key, enforces rules.
+System prompt → keeps bot aligned with MOSSAIC FAQ context.
+Groq call → provides actual AI response.
+3. Environment Variables
+Steps
+In Cloudflare Worker settings → Variables, add:
+Name: GROQ_API_KEY
+Value: your Groq API key from console.groq.com.
+Why
+Keeps key secure (never exposed in frontend code).
+Worker can access it via env.GROQ_API_KEY.
+4. Testing
+Steps
+Use Postman or curl to send:
+bash
+curl https://mossaic-faq-bot.workers.dev \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Hello bot"}'
+Confirm JSON reply comes back.
+Then test via your FAQ bot UI in Replit.
+Why
+Ensures Worker + Groq integration works before wiring into frontend.
+Confirms correct model name and API key.
+5. Deployment Checklist
+✅ Groq account + API key.
+✅ Cloudflare Worker created (“Start with Hello World!”).
+✅ Worker script replaced with Groq proxy.
+✅ Environment variable added (GROQ_API_KEY).
+✅ Worker deployed → URL available.
+✅ Frontend bot updated to call Worker URL.
+✅ Tested with Postman + bot UI.
+✅ Common‑Man Summary
+Frontend bot sends POST → Worker URL.
+Worker adds FAQ rules → calls Groq → returns JSON.
+Groq generates reply → Worker forwards → bot displays.
+Environment variable keeps API key safe.
+Testing ensures everything works before going live.
