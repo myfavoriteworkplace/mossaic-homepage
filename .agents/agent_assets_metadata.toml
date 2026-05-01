@@ -12,3 +12,9 @@ id = "4uduyZzAg3yZY2B-vsJSU"
 uri = "file://docs/deployment-guide.md"
 type = "text"
 title = "Deployment Guide — Mossaic homepage on GitHub Pages + GoDaddy"
+
+[[outputs]]
+id = "HSXrl4539J-tWHhmJzcGt"
+uri = "file://docs/mossie-chatbot-setup.md"
+type = "text"
+title = "Mossie Chatbot — Complete Setup & Reference"
