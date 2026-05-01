@@ -365,6 +365,11 @@ const PORTAL_LEFT_PX = EDGE_MARGIN + BUBBLE_PX / 2;
 const PORTAL_PARTICLE_COUNT = 8;
 /** How far (in px) each particle travels from the portal centre at peak. */
 const PORTAL_PARTICLE_RADIUS_PX = 56;
+/** Cloudflare Worker that proxies requests to the Groq API. Used only when
+ *  no local FAQ entry matches the user's message — keeps known questions
+ *  instant and free, calls the API only for genuine unknowns. */
+const GROQ_WORKER_URL =
+  "https://mossaic-faq-bot.itsmyfavoriteworkplace.workers.dev";
 /** Milliseconds the open-chat click is debounced so a double-click can be
  *  detected first. Cost: ~250ms perceived latency on single-click open. */
 const CLICK_DELAY_MS = 250;
@@ -514,6 +519,33 @@ function MossieFace({
       )}
     </svg>
   );
+}
+
+/* ── Groq helper ─────────────────────────────────────────────────────────
+ * Sends a single user message to the Cloudflare Worker and returns the
+ * Groq reply string. Throws on any network or parse error so the caller
+ * can decide how to handle the failure gracefully. Kept outside the
+ * component so it has no access to state and is easy to unit-test later. */
+
+async function fetchGroqReply(userMessage: string): Promise<string> {
+  const res = await fetch(GROQ_WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: userMessage }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Worker responded with ${res.status}`);
+  }
+
+  const data = await res.json();
+  const content: string | undefined = data?.choices?.[0]?.message?.content;
+
+  if (!content) {
+    throw new Error("Groq returned an empty reply");
+  }
+
+  return content.trim();
 }
 
 /* ── Component ──────────────────────────────────────────────────────────── */
@@ -988,8 +1020,8 @@ export default function Chatbot() {
       const text = raw.trim();
       if (!text) return;
 
-      /* If a previous bot reply is still streaming, snap it to its complete
-         text and stop its in-flight speech before we start the new one. */
+      /* Snap any still-streaming bot reply to its full text and cancel any
+         in-flight speech before starting a new turn. */
       completeAllInFlight();
       if (typeof window !== "undefined" && window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -997,54 +1029,73 @@ export default function Chatbot() {
 
       const userMsg: Message = { id: nextId.current++, role: "user", text };
 
-      /* Malayalam bridge — if the user typed in Malayalam script, respond
-         once warmly in Malayalam and gently steer follow-ups to English.
-         Skips the FAQ matcher entirely for this single turn. The chip menu
-         is suppressed (chips are English-labelled and would feel jarring). */
-      const hasMalayalam = /[\u0D00-\u0D7F]/.test(text);
-
-      let replyText: string;
-      let showSuggestions: boolean;
-      let matchedFaqId: string | undefined;
-
-      if (hasMalayalam) {
-        replyText =
+      /* ── Path 1: Malayalam ──────────────────────────────────────────────
+       * If the user typed in Malayalam script, reply warmly in Malayalam
+       * and nudge them toward English for follow-ups. Skips the FAQ matcher
+       * entirely; chips are suppressed (they're English-labelled). */
+      if (/[\u0D00-\u0D7F]/.test(text)) {
+        const reply =
           "നമസ്കാരം! ഞാൻ Mossie — Mossaic-ന്റെ FAQ helper. നിങ്ങളെ സഹായിക്കാൻ സന്തോഷം. തുടർന്നുള്ള ചോദ്യങ്ങൾ ഇംഗ്ലീഷിൽ ചോദിച്ചാൽ കൂടുതൽ വിശദമായ ഉത്തരങ്ങൾ നൽകാം.";
-        showSuggestions = false;
-      } else {
-        const faq = findBestFaq(text);
-        if (faq) {
-          /* Prefer dynamicAnswer (e.g. time-of-day greeting) when present,
-             otherwise the static answer string. */
-          replyText = faq.dynamicAnswer ? faq.dynamicAnswer() : faq.answer;
-          /* Explicit per-FAQ control wins; otherwise default to no chips on
-             a successful match (the original behaviour). */
-          showSuggestions = faq.showSuggestions ?? false;
-          matchedFaqId = faq.id;
-        } else {
-          const kind = classifyFallback(text);
-          replyText = FALLBACK_REPLIES[kind];
-          showSuggestions = FALLBACK_SHOW_CHIPS[kind];
-        }
+        const botId = nextId.current++;
+        setMessages((prev) => [
+          ...prev,
+          userMsg,
+          { id: botId, role: "bot", text: reply, showSuggestions: false,
+            isThinking: true, isTyping: false, displayText: "" },
+        ]);
+        setInput("");
+        streamMessage(botId, reply);
+        return;
       }
 
-      const botId = nextId.current++;
-      const botMsg: Message = {
-        id: botId,
-        role: "bot",
-        text: replyText,
-        showSuggestions,
-        faqId: matchedFaqId,
-        /* Start in the thinking-dots phase. `streamMessage` (called below)
-           drives the dots → typing → settled lifecycle from here. */
-        isThinking: true,
-        isTyping: false,
-        displayText: "",
-      };
+      /* ── Path 2: FAQ match ──────────────────────────────────────────────
+       * Known question — answer instantly from the local dataset. Zero
+       * network cost, zero latency, 100% brand-controlled. */
+      const faq = findBestFaq(text);
+      if (faq) {
+        const reply = faq.dynamicAnswer ? faq.dynamicAnswer() : faq.answer;
+        const botId = nextId.current++;
+        setMessages((prev) => [
+          ...prev,
+          userMsg,
+          { id: botId, role: "bot", text: reply,
+            showSuggestions: faq.showSuggestions ?? false, faqId: faq.id,
+            isThinking: true, isTyping: false, displayText: "" },
+        ]);
+        setInput("");
+        streamMessage(botId, reply);
+        return;
+      }
 
-      setMessages((prev) => [...prev, userMsg, botMsg]);
+      /* ── Path 3: Groq fallback ──────────────────────────────────────────
+       * No FAQ entry matched. Show thinking dots immediately, then call the
+       * Cloudflare Worker → Groq. On success, stream the AI reply exactly
+       * like a normal bot message. On any error (network, Worker 5xx, empty
+       * body), fall back to the generic default reply so the UI never stalls
+       * or shows a blank message. */
+      const botId = nextId.current++;
+      setMessages((prev) => [
+        ...prev,
+        userMsg,
+        { id: botId, role: "bot", text: "", showSuggestions: false,
+          isThinking: true, isTyping: false, displayText: "" },
+      ]);
       setInput("");
-      streamMessage(botId, replyText);
+
+      (async () => {
+        let reply: string;
+        try {
+          reply = await fetchGroqReply(text);
+        } catch {
+          reply = FALLBACK_REPLIES.default;
+        }
+        /* Patch the stored text so completeAllInFlight() snaps to the right
+           string if the user sends another message before this one finishes. */
+        setMessages((prev) =>
+          prev.map((m) => (m.id === botId ? { ...m, text: reply } : m)),
+        );
+        streamMessage(botId, reply);
+      })();
     },
     [completeAllInFlight, streamMessage],
   );
