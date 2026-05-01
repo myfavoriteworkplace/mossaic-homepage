@@ -219,7 +219,10 @@ function findBestFaq(query: string): Faq | null {
       best = faq;
     }
   }
-  return bestScore > 0 ? best : null;
+  // Score of 1 means a single common word matched — not enough confidence.
+  // Require at least 2 (one keyphrase OR two distinct keyword words) before
+  // treating this as a known FAQ. Anything below goes to Groq.
+  return bestScore >= 2 ? best : null;
 }
 
 /* ── Fallback classifier ─────────────────────────────────────────────────
@@ -1068,11 +1071,26 @@ export default function Chatbot() {
       }
 
       /* ── Path 3: Groq fallback ──────────────────────────────────────────
-       * No FAQ entry matched. Show thinking dots immediately, then call the
-       * Cloudflare Worker → Groq. On success, stream the AI reply exactly
-       * like a normal bot message. On any error (network, Worker 5xx, empty
-       * body), fall back to the generic default reply so the UI never stalls
-       * or shows a blank message. */
+       * No FAQ entry matched. Guard profanity locally first — no point
+       * sending that to the API. Everything else goes to the Worker → Groq.
+       * On success, stream the AI reply through the same character-by-
+       * character animation as every other bot message. On any error
+       * (network, Worker 5xx, empty body), fall back to the default reply
+       * so the UI never stalls or shows a blank message. */
+      if (PROFANITY_RE.test(text)) {
+        const botId = nextId.current++;
+        const reply = FALLBACK_REPLIES.profanity;
+        setMessages((prev) => [
+          ...prev,
+          userMsg,
+          { id: botId, role: "bot", text: reply, showSuggestions: false,
+            isThinking: true, isTyping: false, displayText: "" },
+        ]);
+        setInput("");
+        streamMessage(botId, reply);
+        return;
+      }
+
       const botId = nextId.current++;
       setMessages((prev) => [
         ...prev,
