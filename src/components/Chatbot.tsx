@@ -373,6 +373,27 @@ const PORTAL_PARTICLE_RADIUS_PX = 56;
  *  instant and free, calls the API only for genuine unknowns. */
 const GROQ_WORKER_URL =
   "https://mossaic-faq-bot.itsmyfavoriteworkplace.workers.dev";
+/** Milliseconds before an in-flight Worker fetch is aborted. Prevents the
+ *  user staring at thinking dots indefinitely if Groq is slow. */
+const GROQ_WORKER_TIMEOUT_MS = 8000;
+/** Max characters accepted from the user before we return a local "too
+ *  long" message without calling the API. Mirrors the Worker's Layer 2. */
+const INPUT_MAX_CHARS = 400;
+/** Max conversation turns stored client-side per session (user + assistant
+ *  messages combined). The last 6 are sent to the Worker so Groq has
+ *  context for follow-up questions. Trimmed on each push. */
+const GROQ_HISTORY_MAX = 12;
+/** Client-side jailbreak guard — mirrors the Worker's Layer 4 so obvious
+ *  injection attempts are rejected locally with zero API cost. */
+const JAILBREAK_RE = [
+  /system prompt/i,
+  /your (instructions|rules|guidelines|constraints)/i,
+  /\bignore\b.*\brules?\b/i,
+  /repeat after me/i,
+  /\b(act as|pretend (you are|to be)|roleplay|you are now)\b/i,
+  /\b(jailbreak|dan mode|developer mode|unrestricted mode)\b/i,
+  /\b(chatgpt|openai|gpt-?4|gemini|copilot|claude|mistral)\b/i,
+];
 /** Milliseconds the open-chat click is debounced so a double-click can be
  *  detected first. Cost: ~250ms perceived latency on single-click open. */
 const CLICK_DELAY_MS = 250;
@@ -530,25 +551,51 @@ function MossieFace({
  * can decide how to handle the failure gracefully. Kept outside the
  * component so it has no access to state and is easy to unit-test later. */
 
-async function fetchGroqReply(userMessage: string): Promise<string> {
-  const res = await fetch(GROQ_WORKER_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: userMessage }),
-  });
+async function fetchGroqReply(
+  userMessage: string,
+  history: { role: "user" | "assistant"; content: string }[],
+): Promise<string> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    GROQ_WORKER_TIMEOUT_MS,
+  );
+
+  let res: Response;
+  try {
+    res = await fetch(GROQ_WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        message: userMessage,
+        // Send last 6 turns so Groq has context for follow-up questions.
+        // The user message we just added is excluded — Worker appends it.
+        history: history.slice(-6),
+      }),
+    });
+  } finally {
+    window.clearTimeout(timeout);
+  }
 
   if (!res.ok) {
     throw new Error(`Worker responded with ${res.status}`);
   }
 
   const data = await res.json();
-  const content: string | undefined = data?.choices?.[0]?.message?.content;
+  // Worker v2 returns { reply: "..." } — clean interface, no raw Groq JSON.
+  const reply: string | undefined = data?.reply;
 
-  if (!content) {
-    throw new Error("Groq returned an empty reply");
+  if (!reply || reply.trim().length === 0) {
+    throw new Error("Worker returned an empty reply");
   }
 
-  return content.trim();
+  // Strip any markdown the model snuck past the Worker's cleaning pass.
+  return reply
+    .replace(/^#{1,3}\s+/gm, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/^\s*[-*]\s/gm, "• ")
+    .trim();
 }
 
 /* ── Component ──────────────────────────────────────────────────────────── */
@@ -614,6 +661,13 @@ export default function Chatbot() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const nextId = useRef(2);
+  /** Conversation history sent to the Worker with every Groq call so the
+   *  model can answer follow-up questions with context. Stored as a ref
+   *  (not state) so pushing to it never triggers a re-render. Trimmed to
+   *  GROQ_HISTORY_MAX entries and cleared whenever the panel closes. */
+  const conversationHistoryRef = useRef<
+    { role: "user" | "assistant"; content: string }[]
+  >([]);
   /* Tracks the in-flight per-character timer for the currently-streaming bot
      message so we can cancel it (snapping the message to its full text) when
      a new query arrives mid-stream or the panel closes. */
@@ -692,6 +746,8 @@ export default function Chatbot() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     recognitionRef.current?.stop();
     setListening(false);
+    // Clear conversation history so a fresh session starts next open.
+    if (!open) conversationHistoryRef.current = [];
     /* Also snap any in-flight typing to its final text and clear its timer
        so reopening the panel doesn't reveal a stranded half-rendered reply
        or restart the per-character cadence from where it left off. */
@@ -1023,6 +1079,24 @@ export default function Chatbot() {
       const text = raw.trim();
       if (!text) return;
 
+      /* Reject walls of text before any processing — mirrors Worker Layer 2
+         and avoids feeding a massive string into the FAQ scorer. */
+      if (text.length > INPUT_MAX_CHARS) {
+        const botId = nextId.current++;
+        const reply =
+          "That message is a little long for me — could you summarise in a " +
+          "sentence or two? I'm best at specific Mossaic questions.";
+        setMessages((prev) => [
+          ...prev,
+          { id: nextId.current++, role: "user", text },
+          { id: botId, role: "bot", text: reply, showSuggestions: false,
+            isThinking: true, isTyping: false, displayText: "" },
+        ]);
+        setInput("");
+        streamMessage(botId, reply);
+        return;
+      }
+
       /* Snap any still-streaming bot reply to its full text and cancel any
          in-flight speech before starting a new turn. */
       completeAllInFlight();
@@ -1071,12 +1145,30 @@ export default function Chatbot() {
       }
 
       /* ── Path 3: Groq fallback ──────────────────────────────────────────
-       * No FAQ entry matched. Guard profanity locally first — no point
-       * sending that to the API. Everything else goes to the Worker → Groq.
-       * On success, stream the AI reply through the same character-by-
-       * character animation as every other bot message. On any error
-       * (network, Worker 5xx, empty body), fall back to the default reply
-       * so the UI never stalls or shows a blank message. */
+       * No FAQ entry matched. Three local guards run first (jailbreak,
+       * profanity, length already checked above) so obvious bad inputs
+       * never hit the API. Everything else goes to Worker → Groq.
+       * Conversation history is passed so Groq can answer follow-up
+       * questions with context. On any error (network, timeout, Worker
+       * 5xx, empty body) the UI falls back to the default reply string —
+       * the user never sees a blank message or an infinite spinner. */
+      if (JAILBREAK_RE.some((re) => re.test(text))) {
+        const botId = nextId.current++;
+        const reply =
+          "I'm a focused FAQ helper for Mossaic — I can't step outside " +
+          "that role. Is there something about our products or company I " +
+          "can help with?";
+        setMessages((prev) => [
+          ...prev,
+          userMsg,
+          { id: botId, role: "bot", text: reply, showSuggestions: false,
+            isThinking: true, isTyping: false, displayText: "" },
+        ]);
+        setInput("");
+        streamMessage(botId, reply);
+        return;
+      }
+
       if (PROFANITY_RE.test(text)) {
         const botId = nextId.current++;
         const reply = FALLBACK_REPLIES.profanity;
@@ -1100,13 +1192,31 @@ export default function Chatbot() {
       ]);
       setInput("");
 
+      // Snapshot history before the async call — the ref may mutate if the
+      // user fires another message while we're waiting for Groq.
+      const historySnapshot = [...conversationHistoryRef.current];
+
       (async () => {
         let reply: string;
+        let groqSucceeded = false;
         try {
-          reply = await fetchGroqReply(text);
+          reply = await fetchGroqReply(text, historySnapshot);
+          groqSucceeded = true;
         } catch {
           reply = FALLBACK_REPLIES.default;
         }
+
+        /* Push this turn into conversation history only when Groq actually
+           answered — fallback strings aren't real AI turns and would confuse
+           the model's context on the next call. */
+        if (groqSucceeded) {
+          conversationHistoryRef.current = [
+            ...historySnapshot,
+            { role: "user",      content: text  },
+            { role: "assistant", content: reply },
+          ].slice(-GROQ_HISTORY_MAX);
+        }
+
         /* Patch the stored text so completeAllInFlight() snaps to the right
            string if the user sends another message before this one finishes. */
         setMessages((prev) =>
