@@ -1,0 +1,63 @@
+detailed documentation of everything we’ve set up and changed in Groq and Cloudflare, with explanations of why each step was done. You can keep this as a reference document to replicate the setup in the future.
+📘 Documentation: MOSSAIC FAQ Bot Setup (Groq + Cloudflare Workers)
+1. Groq Setup
+Steps Taken
+Created Groq account → signed up at console.groq.com (no credit card needed).
+Generated API key → copied from Groq console under “API Keys.”
+Selected model → used "meta-llama/llama-4-scout-17b-16e-instruct" (from Groq’s “Text to Text” section).
+Tested API call → verified with Postman/curl that the key and model worked.
+Why
+Account → needed to access Groq’s inference service.
+API key → secure credential for authentication.
+Model selection → ensures we use a supported model (error earlier was due to wrong name).
+Testing → confirms connectivity before wiring into Cloudflare.
+2. Cloudflare Setup
+Steps Taken
+Created Cloudflare account → free tier (100,000 Worker requests/day).
+Enabled Workers → created a Worker project.
+Selected “Start with Hello World!” → gave us a blank Worker script to edit.
+Replaced default code → pasted Groq proxy script.
+Added environment variable → stored GROQ_API_KEY securely in Worker settings.
+Deployed Worker → got Worker URL (e.g., https://mossaic-faq-bot.workers.dev).
+(Optional) Routing → can map bot.mossaic.in/* to Worker for branded endpoint.
+Added GET fallback → handled preview errors by returning info message when no JSON body is sent.
+Why
+Workers → serverless proxy between site and Groq.
+Hello World template → simplest way to start editing.
+Proxy script → keeps API key hidden, enforces FAQ rules, forwards requests.
+Environment variable → prevents exposing API key in code/browser.
+Deployment → makes Worker accessible via URL.
+Routing → optional branding for production.
+GET fallback → avoids preview errors in Cloudflare dashboard.
+3. Groq Proxy Script (Cloudflare Worker)
+Final Script Highlights
+Receives POST requests with {message:"..."} from homepage chatbot.
+Adds system prompt → defines FAQ bot rules (purpose, boundaries, tone, style, safety).
+Calls Groq API → using secure key and chosen model.
+Returns JSON response → chatbot displays reply.
+Why
+Proxy layer → ensures API key never exposed.
+System prompt → keeps bot aligned with MOSSAIC’s FAQ context.
+Groq call → provides fast, open‑source LLM inference.
+JSON response → easy integration with frontend widget.
+4. Frontend Integration
+Steps Taken
+Homepage chatbot widget updated to send POST requests:
+javascript
+const res = await fetch("https://mossaic-faq-bot.workers.dev", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message: userInput })
+});
+const data = await res.json();
+showBotReply(data.choices[0].message.content);
+Why
+POST request → required for Worker to parse JSON.
+Worker URL → connects frontend to backend proxy.
+Response handling → displays Groq’s reply in chat widget.
+✅ Common‑Man Summary
+Groq → account + API key + correct model name.
+Cloudflare → Worker + environment variable + proxy script + deploy.
+Frontend → chatbot widget sends POST → Worker → Groq → reply.
+System prompt → ensures bot stays safe, professional, and FAQ‑focused.
+👉 In short: We built a secure, fast, FAQ bot stack using Groq + Cloudflare Workers. Each step ensures safety (API key hidden), reliability (Cloudflare edge), and alignment (system prompt).
