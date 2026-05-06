@@ -1,0 +1,52 @@
+What's in the document — broken into the two places it lives
+Part A — System Prompt (lives in your Cloudflare Worker)
+This is a complete rewrite of the prompt your Worker sends to Groq. The document says to paste it into your Worker script in the Cloudflare dashboard and redeploy. I can't do that — you need to do it manually. But I can tell you exactly what changes so you know what you're pasting in:
+What changes	Old behaviour	New behaviour
+Output rules position	Buried near the bottom	Moved to the very top — models obey early rules more reliably
+Personality	Thin, a few lines	Explicit: warm, mirrors user energy, occasional dry humour, one-beat small talk then pivots
+Conversational allowances	Not listed, model guessed	13 explicitly numbered rules — greetings, time/date, name use, empathy, working hours, day-of-week, Malayalam/Hindi, humour, clinic maths, escalation trigger
+Hard boundaries	Present	Same, plus "no competitor naming" (Practo, Zocdoc) and "no clinical/medical advice" added explicitly
+Knowledge base	Unchanged	Unchanged — same facts
+Jailbreak	Present	Unchanged and kept last (so it's fresh in context window)
+The rewrite adds one genuinely new piece of knowledge: Speed: Average booking confirmation in 12 seconds for bookMySlot, which wasn't in the old prompt.
+
+Part B — Client-side additions (live in Chatbot.tsx)
+These are six independent additions. Here's what each one does and whether it conflicts with anything we already have:
+
+Addition	What it does	Status
+B1 — Context prefix	Prepends [Context: Tuesday, 29 April 2026, 10:34 AM IST, weekday] to every Groq call so the model can answer "what time is it?" and use day-of-week personality	New — we don't inject time/date today
+B2 — Name capture	Detects "my name is X" / "I'm Dr X" / "call me X" and injects the name into every subsequent Groq call so Mossie can use it	New
+B3 — Frustration detector	Detects confused/frustrated phrases and prepends [Note: User sounds frustrated. Lead with empathy.] to the message before sending to Groq	New
+B4 — Language injection	When Malayalam/Hindi Unicode is detected, injects a language note into the Groq message instead of blocking with a local reply	Conflicts with current code — right now Malayalam triggers a hardcoded local reply and never reaches Groq. We need to decide: keep the local block, or let Groq handle it with the language note. I'd recommend letting Groq handle it (the new system prompt teaches it how), but flagging this for your call.
+B5 — Thinking reply	"hmm", "one sec", "hold on", "..." etc. get an instant local reply — never reaches FAQ or Groq	Mostly covered — "hmm", "ok", "k", "okay" are already in FAQ Tier 1 (smalltalk-ack). The new additions are "one sec", "hold on", "let me think", and pure-punctuation messages (...). Worth adding the gaps.
+B6 — Idle nudge	45 seconds after the chat opens with no message sent, fires one gentle prompt (never repeats). Resets on every message, clears on close	New — one note: the suggested messages include 😊. Since you've said no emojis unless asked, I'd strip that before adding.
+		
+		
+		
+		
+		
+		
+		
+B7 (Master send function) is a template for people building from scratch. We already have a more complete sendQuery — I would not replace it. Instead I'd wire B1–B6 into our existing pipeline.
+
+Part C — Minimal description (what you asked for)
+This is the plain-English handover text already written in the document. I'd suggest we copy it into the docs file we just created — it's a clean, accurate summary of what the bot does and how the boundary is enforced.
+
+What this means in practice
+You do (in Cloudflare, ~2 minutes):
+1. Open the Worker editor
+2. Find the SYSTEM_PROMPT constant
+3. Replace it entirely with the new string from Part A
+4. Click Save and deploy
+I do (in the codebase):
+1. Add the context prefix builder (B1) and wire it into fetchGroqReply
+2. Add name capture (B2) with a ref that clears on panel close
+3. Add frustration detection (B3) and inject the note before Groq calls
+4. Replace the current Malayalam local-block with a language-injection approach (B4) — only if you want this; let me know
+5. Add the missing thinking-message entries to the existing sendQuery early path (B5 gaps only)
+6. Add idle nudge (B6) with emoji stripped
+
+One decision I need from you before I start
+The Malayalam question (B4): Currently if someone types in Malayalam, Mossie replies locally with a hardcoded message redirecting to email. The new approach instead passes it to Groq with a note, and Groq greets them in Malayalam and asks if they want to continue in English or Malayalam (the system prompt teaches this).
+* Keep local block → faster, no API call, but Mossie can't actually converse in Malayalam
+* Switch to Groq-handled → richer, Mossie can genuinely respond in Malayalam, but costs one Groq call
