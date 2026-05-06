@@ -1212,8 +1212,8 @@ export default function Chatbot() {
         if (groqSucceeded) {
           conversationHistoryRef.current = [
             ...historySnapshot,
-            { role: "user",      content: text  },
-            { role: "assistant", content: reply },
+            { role: "user" as const,      content: text  },
+            { role: "assistant" as const, content: reply },
           ].slice(-GROQ_HISTORY_MAX);
         }
 
