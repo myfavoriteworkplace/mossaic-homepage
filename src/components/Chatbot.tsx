@@ -394,6 +394,14 @@ const JAILBREAK_RE = [
   /\b(jailbreak|dan mode|developer mode|unrestricted mode)\b/i,
   /\b(chatgpt|openai|gpt-?4|gemini|copilot|claude|mistral)\b/i,
 ];
+/** Detects "my name is X", "I'm Dr X", "call me X" so Mossie can address
+ *  the user by name in follow-up Groq replies. */
+const NAME_CAPTURE_RE =
+  /(?:my name is|i(?:'m| am) (?:dr\.?\s+)?|call me)\s+([A-Za-z]+)/i;
+/** Phrases that hint at frustration or confusion — triggers an empathy note
+ *  injected into the Groq message so the model leads with compassion. */
+const FRUSTRATION_RE =
+  /\b(confused|confusing|don'?t understand|not clear|unclear|frustrat|annoyed|useless|doesn'?t work|not helping|not helpful|makes no sense|what do you mean|i give up|forget it|this is stupid|terrible)\b/i;
 /** Milliseconds the open-chat click is debounced so a double-click can be
  *  detected first. Cost: ~250ms perceived latency on single-click open. */
 const CLICK_DELAY_MS = 250;
@@ -551,6 +559,25 @@ function MossieFace({
  * can decide how to handle the failure gracefully. Kept outside the
  * component so it has no access to state and is easy to unit-test later. */
 
+/** Builds a compact context string injected at the front of every Groq
+ *  message so the model knows the current day, date, time, and whether it's
+ *  a weekday or weekend — enabling natural answers to "what time is it?" and
+ *  day-aware personality ("hope your Monday's going well" etc.). */
+function buildContextPrefix(): string {
+  const now = new Date();
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const months = ["January","February","March","April","May","June","July",
+                  "August","September","October","November","December"];
+  const day   = days[now.getDay()];
+  const date  = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  let h = now.getHours();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  const m    = now.getMinutes().toString().padStart(2, "0");
+  const kind = now.getDay() === 0 || now.getDay() === 6 ? "weekend" : "weekday";
+  return `[Context: ${day}, ${date}, ${h}:${m} ${ampm} IST, ${kind}]`;
+}
+
 async function fetchGroqReply(
   userMessage: string,
   history: { role: "user" | "assistant"; content: string }[],
@@ -682,6 +709,18 @@ export default function Chatbot() {
   );
   // Guard so the spook reaction only fires once per walk.
   const spookFiredRef = useRef(false);
+  /** Name captured from "my name is X" / "call me X" — injected into every
+   *  subsequent Groq call so Mossie can address the user personally.
+   *  Stored as a ref (no re-render) and cleared when the panel closes. */
+  const capturedNameRef = useRef<string | null>(null);
+  /** Whether the user has sent at least one message this panel session.
+   *  Used to suppress the idle nudge if they've already been chatting. */
+  const userHasChatted = useRef(false);
+  /** Timer id for the 45-second idle nudge. Cleared on every message send
+   *  and when the panel closes. */
+  const idleNudgeTimerRef = useRef<number | null>(null);
+  /** Guard so the idle nudge fires at most once per panel open. */
+  const idleNudgeFiredRef = useRef(false);
   // Click delay timer — used to defer the chat-open by CLICK_DELAY_MS so a
   // double-click (which fires after two clicks) can cancel the open.
   const clickTimerRef = useRef<number | null>(null);
@@ -746,8 +785,18 @@ export default function Chatbot() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     recognitionRef.current?.stop();
     setListening(false);
-    // Clear conversation history so a fresh session starts next open.
-    if (!open) conversationHistoryRef.current = [];
+    // Clear conversation history, captured name, and activity flags so a
+    // fresh session starts next open.
+    if (!open) {
+      conversationHistoryRef.current = [];
+      capturedNameRef.current = null;
+      userHasChatted.current = false;
+      idleNudgeFiredRef.current = false;
+      if (idleNudgeTimerRef.current !== null) {
+        window.clearTimeout(idleNudgeTimerRef.current);
+        idleNudgeTimerRef.current = null;
+      }
+    }
     /* Also snap any in-flight typing to its final text and clear its timer
        so reopening the panel doesn't reveal a stranded half-rendered reply
        or restart the per-character cadence from where it left off. */
@@ -779,6 +828,10 @@ export default function Chatbot() {
       if (typingTimerRef.current !== null) {
         window.clearTimeout(typingTimerRef.current);
         typingTimerRef.current = null;
+      }
+      if (idleNudgeTimerRef.current !== null) {
+        window.clearTimeout(idleNudgeTimerRef.current);
+        idleNudgeTimerRef.current = null;
       }
     };
   }, []);
@@ -1060,6 +1113,35 @@ export default function Chatbot() {
     [speak],
   );
 
+  /* Idle nudge — 45 seconds after the panel opens with no user message sent,
+   * fire one gentle prompt. Never repeats within a session; resets on close. */
+  useEffect(() => {
+    if (!open) return;
+    idleNudgeFiredRef.current = false;
+    idleNudgeTimerRef.current = window.setTimeout(() => {
+      if (idleNudgeFiredRef.current) return;
+      idleNudgeFiredRef.current = true;
+      const nudgeText =
+        "Wondering where to start? You can ask me about bookMySlot, our pricing, or how to get in touch.";
+      const botId = nextId.current++;
+      setMessages((prev) => {
+        if (prev.some((m) => m.role === "user")) return prev;
+        return [
+          ...prev,
+          { id: botId, role: "bot", text: nudgeText, showSuggestions: true,
+            isThinking: true, isTyping: false, displayText: "" },
+        ];
+      });
+      streamMessage(botId, nudgeText);
+    }, 45_000);
+    return () => {
+      if (idleNudgeTimerRef.current !== null) {
+        window.clearTimeout(idleNudgeTimerRef.current);
+        idleNudgeTimerRef.current = null;
+      }
+    };
+  }, [open, streamMessage]);
+
   /* On the first time the user opens the chat in this page session, kick off
      the greeting's stream — dots first, then her voice + the typed reveal.
      `speak()` already no-ops when `muted` is true and when the browser has
@@ -1104,15 +1186,25 @@ export default function Chatbot() {
         window.speechSynthesis.cancel();
       }
 
+      /* Cancel any pending idle nudge — the user is active now. */
+      if (idleNudgeTimerRef.current !== null) {
+        window.clearTimeout(idleNudgeTimerRef.current);
+        idleNudgeTimerRef.current = null;
+      }
+      userHasChatted.current = true;
+
       const userMsg: Message = { id: nextId.current++, role: "user", text };
 
-      /* ── Path 1: Malayalam ──────────────────────────────────────────────
-       * If the user typed in Malayalam script, reply warmly in Malayalam
-       * and nudge them toward English for follow-ups. Skips the FAQ matcher
-       * entirely; chips are suppressed (they're English-labelled). */
-      if (/[\u0D00-\u0D7F]/.test(text)) {
-        const reply =
-          "നമസ്കാരം! ഞാൻ Mossie — Mossaic-ന്റെ FAQ helper. നിങ്ങളെ സഹായിക്കാൻ സന്തോഷം. തുടർന്നുള്ള ചോദ്യങ്ങൾ ഇംഗ്ലീഷിൽ ചോദിച്ചാൽ കൂടുതൽ വിശദമായ ഉത്തരങ്ങൾ നൽകാം.";
+      /* B2 — Capture the user's name for personalised Groq replies. Runs on
+         every message so it picks up a name even mid-conversation. */
+      const nameMatch = NAME_CAPTURE_RE.exec(text);
+      if (nameMatch?.[1]) capturedNameRef.current = nameMatch[1];
+
+      /* ── Guard: pure punctuation / pause signals ("...", "??", "!") ────
+       * These never score in the FAQ matcher and aren't worth an API call.
+       * Reply with the same quiet acknowledgement as "hmm" / "hold on". */
+      if (/^[\W\s]+$/.test(text)) {
+        const reply = "Take your time — I'm right here whenever you're ready.";
         const botId = nextId.current++;
         setMessages((prev) => [
           ...prev,
@@ -1122,6 +1214,50 @@ export default function Chatbot() {
         ]);
         setInput("");
         streamMessage(botId, reply);
+        return;
+      }
+
+      /* ── Path 1: Malayalam ──────────────────────────────────────────────
+       * If the user typed in Malayalam script, pass to Groq with a language
+       * note so Mossie can genuinely converse in Malayalam and ask if they'd
+       * like to continue in English. Hardcoded greeting is kept as fallback
+       * so there's always a reply even if the Worker is unreachable. */
+      if (/[\u0D00-\u0D7F]/.test(text)) {
+        const MALAYALAM_FALLBACK =
+          "നമസ്കാരം! ഞാൻ Mossie — Mossaic-ന്റെ FAQ helper. നിങ്ങളെ സഹായിക്കാൻ സന്തോഷം. ഇംഗ്ലീഷിൽ ചോദിച്ചാൽ കൂടുതൽ വിശദമായ ഉത്തരങ്ങൾ നൽകാം.";
+        const botId = nextId.current++;
+        setMessages((prev) => [
+          ...prev,
+          userMsg,
+          { id: botId, role: "bot", text: "", showSuggestions: false,
+            isThinking: true, isTyping: false, displayText: "" },
+        ]);
+        setInput("");
+        const mlSnapshot = [...conversationHistoryRef.current];
+        (async () => {
+          let reply: string;
+          let groqSucceeded = false;
+          try {
+            reply = await fetchGroqReply(
+              `[Language: User wrote in Malayalam. Greet warmly in Malayalam, then ask if they want to continue in English or Malayalam.] ${buildContextPrefix()} ${text}`,
+              mlSnapshot,
+            );
+            groqSucceeded = true;
+          } catch {
+            reply = MALAYALAM_FALLBACK;
+          }
+          if (groqSucceeded) {
+            conversationHistoryRef.current = [
+              ...mlSnapshot,
+              { role: "user" as const,      content: text  },
+              { role: "assistant" as const, content: reply },
+            ].slice(-GROQ_HISTORY_MAX);
+          }
+          setMessages((prev) =>
+            prev.map((m) => (m.id === botId ? { ...m, text: reply } : m)),
+          );
+          streamMessage(botId, reply);
+        })();
         return;
       }
 
@@ -1196,11 +1332,26 @@ export default function Chatbot() {
       // user fires another message while we're waiting for Groq.
       const historySnapshot = [...conversationHistoryRef.current];
 
+      /* Build the enhanced message sent to Groq.
+         B1 — prepend date/time/day context so the model can answer time
+              questions and use day-aware personality.
+         B2 — prepend the captured name so Mossie can address the user.
+         B3 — prepend an empathy note when frustration is detected.
+         The raw `text` is still what goes into conversationHistoryRef so
+         history stays clean for the model's context window. */
+      let groqMessage = `${buildContextPrefix()} ${text}`;
+      if (capturedNameRef.current) {
+        groqMessage = `[User's name: ${capturedNameRef.current}] ${groqMessage}`;
+      }
+      if (FRUSTRATION_RE.test(text)) {
+        groqMessage = `[Note: User seems frustrated. Lead with empathy.] ${groqMessage}`;
+      }
+
       (async () => {
         let reply: string;
         let groqSucceeded = false;
         try {
-          reply = await fetchGroqReply(text, historySnapshot);
+          reply = await fetchGroqReply(groqMessage, historySnapshot);
           groqSucceeded = true;
         } catch {
           reply = FALLBACK_REPLIES.default;
