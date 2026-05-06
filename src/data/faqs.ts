@@ -89,7 +89,6 @@ export const FAQS: Faq[] = [
     keywords: [
       "mossaic",
       "what is mossaic",
-      "what is",
       "what do you do",
       "tell me about",
       "about mossaic",
