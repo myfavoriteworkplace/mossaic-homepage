@@ -1,5 +1,6 @@
 import siteJson from "./site.json";
 import productsJson from "./products.json";
+import studioProjectsJson from "./studio-projects.json";
 import testimonialsJson from "./testimonials.json";
 import roadmapJson from "./roadmap.json";
 import type {
@@ -7,12 +8,14 @@ import type {
   ProductStatus,
   RoadmapItem,
   SiteConfig,
+  StudioProject,
   Testimonial,
 } from "./schemas";
 
 // These assertions are backed by the Zod checks in the pre-build content validator.
 export const SITE_CONFIG = siteJson as unknown as SiteConfig;
 export const PRODUCTS = productsJson as unknown as Product[];
+export const STUDIO_PROJECTS = studioProjectsJson as unknown as StudioProject[];
 export const TESTIMONIALS = testimonialsJson as unknown as Testimonial[];
 export const ROADMAP = roadmapJson as unknown as RoadmapItem[];
 
@@ -31,4 +34,4 @@ export const CONTACT_INTERESTS = SITE_CONFIG.contactInterests;
 export const SITE = SITE_CONFIG.site;
 export const TAGLINE = SITE.tagline;
 
-export type { Product, ProductStatus, Testimonial };
+export type { Product, ProductStatus, StudioProject, Testimonial };

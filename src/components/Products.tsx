@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Store, Brain, Zap } from "lucide-react";
+import { ArrowRight, ExternalLink, Store, Brain, Zap } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
 import BookMySlotText from "./ui/BookMySlotText";
-import { PRODUCTS, PRODUCTS_COPY, type Product } from "../data/site";
+import {
+  PRODUCTS,
+  PRODUCTS_COPY,
+  STUDIO_PROJECTS,
+  type Product,
+} from "../data/site";
 
 type Screen = {
   src: string;
@@ -191,7 +196,7 @@ function ProductCard({
       </p>
 
       {/* swap-zone: description + metrics + tags fade out when carousel is active */}
-      <div className="relative">
+      <div className={`relative ${screens ? "min-h-[220px]" : ""}`}>
         <div
           className="transition-opacity duration-300"
           style={{
@@ -247,6 +252,58 @@ function ProductCard({
           </div>
         )}
       </div>
+
+      {p.id === "mossaic-studio" && (
+        <div className="mt-6 border-t border-border1 pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-ink-3">
+              Featured {STUDIO_PROJECTS.length === 1 ? "deployment" : "deployments"}
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-[11px] font-semibold text-moss">
+              <span className="h-2 w-2 rounded-full bg-moss" aria-hidden="true" />
+              {STUDIO_PROJECTS.filter((project) => project.status === "live").length} Live
+            </span>
+          </div>
+
+          <div className="mt-3 grid gap-2">
+            {STUDIO_PROJECTS.map((project) => (
+              <a
+                key={project.id}
+                href={project.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={`Visit ${project.name} (opens in a new tab)`}
+                className="group/project flex min-w-0 items-center justify-between gap-3 rounded-xl border border-border1 bg-surface px-3.5 py-3 no-underline transition-colors hover:border-moss/40 hover:bg-surface/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss"
+              >
+                <span className="min-w-0">
+                  <span className="block break-words text-sm font-semibold leading-snug text-ink">
+                    {project.name}
+                  </span>
+                  <span className="mt-0.5 block break-words text-xs leading-snug text-ink-3">
+                    {project.category}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                      project.status === "live"
+                        ? "bg-moss-light text-moss-dark"
+                        : "bg-page text-ink-3"
+                    }`}
+                  >
+                    {project.status === "live" ? "Live" : "In progress"}
+                  </span>
+                  <ExternalLink
+                    size={15}
+                    aria-hidden="true"
+                    className="text-moss transition-transform group-hover/project:-translate-y-0.5 group-hover/project:translate-x-0.5"
+                  />
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       <a
         href={p.cta.href}
@@ -446,7 +503,7 @@ function ScreenCarousel({ screens, active }: { screens: Screen[]; active: boolea
 
   return (
     <div
-      className="relative w-full rounded-lg overflow-hidden"
+      className="relative w-full max-w-[336px] rounded-lg overflow-hidden"
       style={{
         background: "rgb(var(--bg-rgb))",
         border: "1px solid rgba(34, 211, 238, 0.18)",
@@ -455,7 +512,10 @@ function ScreenCarousel({ screens, active }: { screens: Screen[]; active: boolea
       }}
     >
       {/* viewport */}
-      <div className="relative w-full" style={{ aspectRatio: "16 / 10", background: "#0a1628" }}>
+      <div
+        className="relative w-full"
+        style={{ aspectRatio: "16 / 10", background: "#0a1628" }}
+      >
         <img
           key={current.src}
           src={current.src}

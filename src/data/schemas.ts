@@ -51,6 +51,33 @@ export const ProductsSchema = z
     }
   });
 
+export const StudioProjectSchema = z.object({
+  id: NonEmptyText,
+  name: NonEmptyText,
+  category: NonEmptyText,
+  href: z
+    .string()
+    .url()
+    .refine((href) => new URL(href).protocol === "https:", "Use an HTTPS URL."),
+  status: z.enum(["live", "in-progress"]),
+});
+
+export const StudioProjectsSchema = z
+  .array(StudioProjectSchema)
+  .superRefine((projects, ctx) => {
+    const ids = new Set<string>();
+    for (const [index, project] of projects.entries()) {
+      if (ids.has(project.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: [index, "id"],
+          message: `Duplicate Studio project id: ${project.id}`,
+        });
+      }
+      ids.add(project.id);
+    }
+  });
+
 export const TestimonialSchema = z.object({
   id: NonEmptyText,
   quote: NonEmptyText,
@@ -198,6 +225,7 @@ export const SiteConfigSchema = z.object({
 
 export type Product = z.infer<typeof ProductSchema>;
 export type ProductStatus = Product["status"];
+export type StudioProject = z.infer<typeof StudioProjectSchema>;
 export type Testimonial = z.infer<typeof TestimonialSchema>;
 export type RoadmapItem = z.infer<typeof RoadmapSchema>[number];
 export type SiteConfig = z.infer<typeof SiteConfigSchema>;

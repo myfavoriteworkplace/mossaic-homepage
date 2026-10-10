@@ -11,6 +11,7 @@ export {
   PRODUCTS_COPY,
   ROADMAP,
   SITE,
+  STUDIO_PROJECTS,
   TAGLINE,
   TECH_STACK,
   TESTIMONIALS,
@@ -18,4 +19,4 @@ export {
   VISION,
 } from "./content";
 
-export type { Product, ProductStatus, Testimonial } from "./content";
+export type { Product, ProductStatus, StudioProject, Testimonial } from "./content";
