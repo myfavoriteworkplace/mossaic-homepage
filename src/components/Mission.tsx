@@ -14,9 +14,10 @@ export default function Mission() {
           <Reveal className="lg:col-span-5">
             <div className="tag tag-green mb-4">{MISSION.tag}</div>
             <h2 className="section-title">
-              Make great software <em className="underline-mark">boring</em>
+              {MISSION.heading.lineOne}{" "}
+              <em className="underline-mark">{MISSION.heading.accent}</em>
               <br />
-              for Indian businesses.
+              {MISSION.heading.lineTwo}
             </h2>
           </Reveal>
 
@@ -50,9 +51,10 @@ export default function Mission() {
           <Reveal className="lg:col-span-5">
             <div className="tag tag-green mb-4">{VISION.tag}</div>
             <h2 className="section-title">
-              Every Indian SMB on
+              {VISION.heading.lineOne}
               <br />
-              <em className="underline-mark">world-class</em> software.
+              <em className="underline-mark">{VISION.heading.accent}</em>{" "}
+              {VISION.heading.lineTwo}
             </h2>
           </Reveal>
 

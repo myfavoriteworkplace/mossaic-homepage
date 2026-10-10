@@ -1,0 +1,50 @@
+[
+  {
+    "id": "bookmyslot",
+    "name": "bookMySlot",
+    "category": "Dental SaaS · Practice Management",
+    "description": "Complete dental practice management — slot booking, clinical records, doctor assignments, patient reminders, inventory tracking, and Smile Deals. Built for Indian dental clinics.",
+    "status": "live",
+    "statusLabel": "● Live",
+    "tags": ["Slot booking", "Clinical records", "Smile Deals", "DISHA compliant"],
+    "metrics": [
+      { "value": "850+", "label": "Slots booked", "green": true },
+      { "value": "12s", "label": "Avg confirm time" }
+    ],
+    "cta": { "label": "Visit bookMySlot", "href": "https://bookmyslot.dental.mossaic.in" },
+    "accent": "moss"
+  },
+  {
+    "id": "retail-crm",
+    "name": "Retail CRM",
+    "category": "Retail & Commerce",
+    "description": "Customer relationship management built for Indian retail — inventory sync, loyalty programs, WhatsApp-native communication, and GST-ready billing.",
+    "status": "soon",
+    "statusLabel": "Coming soon",
+    "tags": ["Inventory", "Loyalty", "GST billing"],
+    "cta": { "label": "Express interest", "href": "#contact" },
+    "accent": "amber"
+  },
+  {
+    "id": "ai-imaging",
+    "name": "AI Imaging",
+    "category": "Dental AI · Diagnostic Assist",
+    "description": "Explainable AI-assisted dental imaging with Grad-CAM overlays — helping radiologists and dentists flag anomalies faster with full audit trails.",
+    "status": "future",
+    "statusLabel": "2027",
+    "tags": ["Grad-CAM", "Explainable AI", "Audit trail"],
+    "cta": { "label": "Join waitlist", "href": "#contact" },
+    "accent": "purple"
+  },
+  {
+    "id": "mossaic-studio",
+    "name": "mossaic Studio",
+    "category": "Enterprise Web · Custom Engineering",
+    "description": "Custom, high-density web platforms and digital systems engineered for logistics, healthcare, and retail enterprises. Built on modern static-first architectures.",
+    "status": "live",
+    "statusLabel": "Available",
+    "tags": ["Enterprise platforms", "Custom engineering", "Static-first"],
+    "cta": { "label": "Talk to our team", "href": "#contact" },
+    "accent": "blue"
+  }
+]

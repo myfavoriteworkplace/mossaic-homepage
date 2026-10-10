@@ -1,7 +1,6 @@
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
-import BookMySlotText from "./ui/BookMySlotText";
-import { TESTIMONIALS } from "../data/site";
+import { TESTIMONIALS, TESTIMONIALS_COPY } from "../data/site";
 
 export default function Testimonials() {
   return (
@@ -12,25 +11,22 @@ export default function Testimonials() {
     >
       <div className="container-x">
         <Reveal className="text-center mb-12">
-          <div className="tag tag-green mb-4">From our products in market</div>
+          <div className="tag tag-green mb-4">{TESTIMONIALS_COPY.tag}</div>
           <h2 className="section-title">
-            What customers are <em className="underline-mark">saying.</em>
+            {TESTIMONIALS_COPY.titleLead}{" "}
+            <em className="underline-mark">{TESTIMONIALS_COPY.titleAccent}</em>
           </h2>
-          <p className="section-sub mt-3.5">
-            Quotes from clinics using <BookMySlotText /> today.
-            Retail CRM and AI Imaging customer stories will join them as
-            those products go live.
-          </p>
+          <p className="section-sub mt-3.5">{TESTIMONIALS_COPY.description}</p>
         </Reveal>
 
         <div className="max-w-container mx-auto grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.name} delay={i * 0.08}>
+            <Reveal key={t.id} delay={i * 0.08}>
               <TiltCard className="group h-full rounded-2xl" max={4} scale={1.012}>
                 <div className="bg-page border border-border1 rounded-2xl p-7 transition-all hover:border-moss/40 h-full">
                   <div className="flex items-center justify-between mb-3.5">
                     <div className="flex gap-0.5">
-                      {Array.from({ length: 5 }).map((_, k) => (
+                      {Array.from({ length: t.rating }).map((_, k) => (
                         <span key={k} className="text-[15px] text-amber-400">
                           ★
                         </span>
@@ -56,8 +52,8 @@ export default function Testimonials() {
                   </div>
                 </div>
               </TiltCard>
-            </Reveal>
-          ))}
+          </Reveal>
+        ))}
         </div>
       </div>
     </section>

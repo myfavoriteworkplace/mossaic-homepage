@@ -83,7 +83,9 @@ export default function Contact({ onSubmitted }: Props) {
             <Field label="I'm interested in">
               <select name="interest" className="form-input cursor-pointer">
                 {CONTACT_INTERESTS.map((opt) => (
-                  <option key={opt}>{opt}</option>
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </Field>

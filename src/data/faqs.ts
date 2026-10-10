@@ -95,7 +95,7 @@ export const FAQS: Faq[] = [
       "who are mossaic",
     ],
     answer:
-      "Mossaic is a modular SaaS company founded in 2025, based in Kerala, India. We build vertical software for Indian businesses — starting with healthcare and extending into retail and explainable AI. Our tagline says it best: the future, assembled.",
+      "Mossaic is an India-first software company founded in 2025 and based in Kerala. We build specialized SaaS products and custom enterprise web platforms for businesses in healthcare, retail, and other industries. Our tagline says it best: the future, assembled.",
   },
   {
     id: "products",
@@ -111,7 +111,22 @@ export const FAQS: Faq[] = [
       "portfolio",
     ],
     answer:
-      "We have three products: bookMySlot (live — dental practice management), Retail CRM (coming soon — for Indian retail), and AI Imaging (planned for 2027 — explainable AI diagnostic assist for dental radiology).",
+      "Our SaaS products are bookMySlot (live — dental practice management), Retail CRM (coming soon — for Indian retail), and AI Imaging (planned for 2027 — explainable AI diagnostic assist for dental radiology). We also offer mossaic Studio for custom enterprise web platforms and engineering.",
+  },
+  {
+    id: "mossaic-studio",
+    label: "mossaic Studio",
+    question: "What is mossaic Studio?",
+    keywords: [
+      "mossaic studio",
+      "studio",
+      "custom engineering",
+      "enterprise platform",
+      "custom web development",
+      "bespoke software",
+    ],
+    answer:
+      "mossaic Studio builds custom, high-density web platforms and digital systems for logistics, healthcare, and retail enterprises. If you have a project in mind, use the contact form or write to connect@mossaic.in.",
   },
   {
     id: "bookmyslot",
@@ -784,7 +799,7 @@ export const FAQS: Faq[] = [
       "show me",
     ],
     answer:
-      "Plenty. I can tell you about Mossaic, our three products (bookMySlot, Retail CRM, AI Imaging), pricing, compliance, hosting, and how to get in touch. Tap a topic below, or just type your question.",
+      "Plenty. I can tell you about Mossaic, our products and services (bookMySlot, Retail CRM, AI Imaging, and mossaic Studio), pricing, compliance, hosting, and how to get in touch. Tap a topic below, or just type your question.",
     showSuggestions: true,
     hideFromChips: true,
   },

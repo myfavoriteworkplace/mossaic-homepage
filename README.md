@@ -1,6 +1,6 @@
 # Mossaic — Homepage
 
-Futuristic, performance-first homepage for **Mossaic**, the company building modular SaaS for India (starting with [bookMySlot](https://bookmyslot.dental.mossaic.in)).
+Futuristic, performance-first homepage for **Mossaic**, building modular SaaS for India alongside custom enterprise web platforms (starting with [bookMySlot](https://bookmyslot.dental.mossaic.in)).
 
 Built with **React 18 + TypeScript + Vite + Tailwind CSS + Framer Motion**, plus a tiny custom WebGL/canvas particle network in the hero. Fully static — the production output is plain HTML/CSS/JS that can be hosted **anywhere**.
 
@@ -26,7 +26,14 @@ npm run preview      # serves ./dist on :5000
 src/
 ├─ components/         Section components (Hero, Products, Why, Roadmap, …)
 │  └─ ui/              Reusable bits (TiltCard, MagneticButton, AnimatedCounter, Toast, Reveal)
-├─ data/site.ts        Single source of truth for all copy, products, testimonials, etc.
+├─ data/
+│  ├─ site.json        Site copy, section copy, and contact options
+│  ├─ products.json    Product and service cards
+│  ├─ testimonials.json
+│  ├─ roadmap.json
+│  ├─ schemas.ts       Zod content schemas
+│  ├─ content.ts       Typed data exports
+│  └─ site.ts          Compatibility re-exports for components
 ├─ styles/globals.css  Tailwind layers + design tokens (CSS variables)
 ├─ App.tsx, main.tsx
 index.html
@@ -34,7 +41,7 @@ tailwind.config.ts     Brand colours and typography tokens
 vite.config.ts
 ```
 
-Edit copy, products or testimonials in `src/data/site.ts` — components consume from there.
+Edit homepage copy and data in the matching JSON file under `src/data/`. Run `npm run validate:content` to check it; `npm run build` runs the same validation before TypeScript and Vite builds. Chatbot FAQ entries stay in `src/data/faqs.ts` because some answers include runtime behavior.
 
 ## Deploy anywhere
 

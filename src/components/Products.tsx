@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Store, Brain } from "lucide-react";
+import { ArrowRight, Store, Brain, Zap } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
 import BookMySlotText from "./ui/BookMySlotText";
-import { PRODUCTS, type Product } from "../data/site";
+import { PRODUCTS, PRODUCTS_COPY, type Product } from "../data/site";
 
 type Screen = {
   src: string;
@@ -51,6 +51,7 @@ const ICONS: Record<string, React.ReactNode> = {
   ),
   "retail-crm": <Store size={24} className="text-white" strokeWidth={1.6} />,
   "ai-imaging": <Brain size={24} className="text-white" strokeWidth={1.6} />,
+  "mossaic-studio": <Zap size={24} className="text-white" strokeWidth={1.6} />,
 };
 
 const ACCENT_BG: Record<Product["accent"], string> = {
@@ -71,20 +72,16 @@ export default function Products() {
     >
       <div className="container-x">
         <Reveal className="text-center mb-16">
-          <div className="tag tag-green mb-4">Our products</div>
+          <div className="tag tag-green mb-4">{PRODUCTS_COPY.tag}</div>
           <h2 className="section-title">
-            One company.
+            {PRODUCTS_COPY.titleLine}
             <br />
-            <em className="underline-mark">Products that actually work.</em>
+            <em className="underline-mark">{PRODUCTS_COPY.titleAccent}</em>
           </h2>
-          <p className="section-sub mt-3.5">
-            We build focused, deep software for industries that have been
-            underserved by generic SaaS. Each product ships when it's
-            genuinely ready.
-          </p>
+          <p className="section-sub mt-3.5">{PRODUCTS_COPY.description}</p>
         </Reveal>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:[grid-template-columns:1.4fr_1fr_1fr]">
+        <div className="grid gap-4 md:grid-cols-2">
           {PRODUCTS.map((p, i) => (
             <Reveal key={p.id} delay={i * 0.08}>
               <TiltCard

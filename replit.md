@@ -1,6 +1,6 @@
 # Mossaic Homepage
 
-A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in) and the upcoming Retail CRM and AI Imaging products. Positioned as a company website (Mission / Vision / About) with bookMySlot featured only in the Products section.
+A futuristic, performance-first homepage for **Mossaic** — the company behind [bookMySlot](https://bookmyslot.dental.mossaic.in), upcoming Retail CRM and AI Imaging products, and mossaic Studio for custom enterprise web engineering.
 
 **Brand identity:**
 - **Mosaic-M** mark — capital "M" assembled from glowing tiles with a luminous AI-core and break-away shards. `Logo.tsx` exposes two optical-size variants:
@@ -47,7 +47,15 @@ src/
 │     ├─ Reveal.tsx             scroll fade-up
 │     ├─ ThemeSwitcher.tsx      light / dark / mono dropdown
 │     └─ Toast.tsx              contact form success toast
-├─ data/site.ts                 single source of truth for all page copy
+├─ data/
+│  ├─ site.json                 site and section copy, contact options
+│  ├─ products.json             product and service-card content
+│  ├─ testimonials.json         customer quotes and ratings
+│  ├─ roadmap.json              roadmap items
+│  ├─ schemas.ts                Zod validation and inferred types
+│  ├─ content.ts                typed data exports
+│  ├─ site.ts                   compatibility re-exports
+│  └─ faqs.ts                   chatbot content with runtime reply behavior
 ├─ styles/
 │  ├─ globals.css               Tailwind layers + theme CSS vars under [data-theme]
 │  └─ themes.ts                 THEMES registry, applyTheme, readTheme helpers
@@ -58,7 +66,7 @@ tailwind.config.ts              colors, fonts, keyframes
 vite.config.ts                  binds 0.0.0.0:5000, allows all hosts (proxy/iframe-friendly)
 ```
 
-To edit copy, products, testimonials, or roadmap items, edit **`src/data/site.ts`** — components consume from there.
+To edit homepage copy, products, testimonials, contact-interest options, or roadmap items, edit the matching JSON file in **`src/data/`**. Run `npm run validate:content` for a clear schema check; `npm run build` runs it automatically before compiling the site. The JSON is imported at build time, not fetched from a network. Chatbot FAQ entries remain in `src/data/faqs.ts` because some entries contain runtime reply functions.
 
 ## Local development
 

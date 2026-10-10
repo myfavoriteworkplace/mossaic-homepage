@@ -53,9 +53,9 @@ export default function Roadmap() {
           </p>
         </Reveal>
 
-        <div className="relative grid md:grid-cols-2 lg:grid-cols-4 gap-y-8" ref={lineRef}>
+        <div className="relative grid md:grid-cols-2 lg:grid-cols-5 gap-y-8" ref={lineRef}>
           {/* connecting line */}
-          <div className="hidden lg:block absolute top-7 left-[12%] right-[12%] h-px overflow-hidden">
+          <div className="hidden lg:block absolute top-7 left-[10%] right-[10%] h-px overflow-hidden">
             <motion.div
               initial={{ scaleX: 0 }}
               animate={inView ? { scaleX: 1 } : {}}

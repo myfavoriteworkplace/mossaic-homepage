@@ -3,7 +3,7 @@ import { ArrowRight, Activity, Sparkles } from "lucide-react";
 import HeroBackground from "./HeroBackground";
 import MagneticButton from "./ui/MagneticButton";
 import AnimatedCounter from "./ui/AnimatedCounter";
-import { HERO_STATS, SITE, TAGLINE } from "../data/site";
+import { HERO_COPY, HERO_STATS, SITE, TAGLINE } from "../data/site";
 
 export default function Hero() {
   return (
@@ -92,7 +92,7 @@ export default function Hero() {
               fontWeight: 800,
             }}
           >
-            <span className="block">We build</span>
+            <span className="block">{HERO_COPY.lineOne}</span>
             <span className="block">
               <span
                 className="relative inline-block"
@@ -105,7 +105,7 @@ export default function Hero() {
                   filter: "drop-shadow(0 0 18px rgba(34,211,238,0.35))",
                 }}
               >
-                modular
+                {HERO_COPY.accent}
                 <svg
                   aria-hidden
                   viewBox="0 0 300 14"
@@ -123,9 +123,9 @@ export default function Hero() {
                   />
                 </svg>
               </span>{" "}
-              SaaS for
+              {HERO_COPY.lineTwo}
             </span>
-            <span className="block">India.</span>
+            <span className="block">{HERO_COPY.lineThree}</span>
           </motion.h1>
 
           <motion.p
@@ -135,10 +135,7 @@ export default function Hero() {
             className="text-[17px] leading-[1.7] mb-9 max-w-[480px]"
             style={{ color: "var(--hero-sub)" }}
           >
-            Mossaic builds focused, vertical SaaS for Indian businesses —
-            starting with healthcare and extending into retail and explainable
-            AI. Modular, compliant, and built for the way Indian SMBs
-            actually run.
+            {HERO_COPY.description}
           </motion.p>
 
           <motion.div

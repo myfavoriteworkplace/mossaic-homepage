@@ -1,0 +1,29 @@
+[
+  {
+    "id": "bookmyslot-priya-menon",
+    "quote": "Before bookMySlot we managed everything on WhatsApp and a paper register. Now patients book themselves and I get notified. It just works.",
+    "name": "Dr. Priya Menon",
+    "role": "Elite Dental Avenue, Kochi",
+    "initials": "PM",
+    "product": "bookMySlot",
+    "rating": 5
+  },
+  {
+    "id": "bookmyslot-suresh-kumar",
+    "quote": "Setup took under 10 minutes. Our no-show rate has dropped noticeably since we started using the automated reminders feature.",
+    "name": "Dr. Suresh Kumar",
+    "role": "Sunrise Dental Clinic, Kozhikode",
+    "initials": "SK",
+    "product": "bookMySlot",
+    "rating": 5
+  },
+  {
+    "id": "bookmyslot-asha-nair",
+    "quote": "The Smile Deals section brought in three new patients in the first week. I didn't expect that from a scheduling tool.",
+    "name": "Dr. Asha Nair",
+    "role": "Bright Smile Clinic, Thrissur",
+    "initials": "AN",
+    "product": "bookMySlot",
+    "rating": 5
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "year": "2025",
+    "name": "bookMySlot",
+    "desc": "Dental practice management — live and growing across Kerala clinics",
+    "status": "done"
+  },
+  {
+    "year": "Available",
+    "name": "mossaic Studio",
+    "desc": "Custom enterprise web platforms and digital systems for logistics, healthcare, and retail",
+    "status": "done"
+  },
+  {
+    "year": "2026",
+    "name": "Retail CRM",
+    "desc": "Customer & inventory management for Indian retail businesses",
+    "status": "next"
+  },
+  {
+    "year": "2027",
+    "name": "AI Imaging",
+    "desc": "Explainable AI diagnostic assist for dental radiology",
+    "status": "future"
+  },
+  {
+    "year": "Beyond",
+    "name": "More verticals",
+    "desc": "New industries, new problems — always modular, always compliant",
+    "status": "future"
+  }
+]
