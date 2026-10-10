@@ -4,7 +4,7 @@ A futuristic, performance-first homepage for **Mossaic** — the company behind 
 
 **Brand identity:**
 - **Mosaic-M** mark — capital "M" assembled from glowing tiles with a luminous AI-core and break-away shards. `Logo.tsx` exposes two optical-size variants:
-  - `variant="image"` (default) — full-detail raster brand mark for ≥48px slots (footer / hero). Asset: `public/brand/mossaic-mark-512.png` (1024×1024 master at `mossaic-mark.png`, transparent).
+  - `variant="image"` (default) — full-detail SVG brand mark for ≥48px slots (navigation / footer). Asset: `public/brand/mossaic-faithful.svg`. Existing `mossaic-mark-512.png` and related PNGs are retained as backups and for the assembly backdrop.
   - `variant="mark"` — vector mosaic-M (SVG) for nav, favicon, and any dense UI. Crisp at any size. Same SVG geometry powers `public/favicon.svg`.
 - **Wordmark:** `moss[AI]c` — the **AI** letters render in a glowing cyan→blue gradient — `src/components/ui/Wordmark.tsx`
 - **Tagline:** "The future, assembled."

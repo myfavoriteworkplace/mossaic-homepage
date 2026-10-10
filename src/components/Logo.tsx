@@ -4,7 +4,7 @@ type Props = {
   /** Pixel size (square). */
   size?: number;
   /**
-   * "image" — full-detail raster brand mark (recommended ≥ 48px slots: footer, hero).
+    * "image" — full-detail SVG brand mark (recommended ≥ 48px slots: footer, hero).
    * "mark"  — vector mosaic-M (crisp at any size, recommended for nav/favicon/dense UI).
    */
   variant?: Variant;
@@ -17,8 +17,8 @@ type Props = {
   className?: string;
 };
 
-const MARK_IMAGE = "/brand/mossaic-mark-512.png";
-const MARK_IMAGE_AR = 1115 / 944;
+const MARK_IMAGE = "/brand/mossaic-faithful.svg";
+const MARK_IMAGE_AR = 600 / 520;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Vector "mark" variant — mosaic-M letterform built from a 13×11 tile grid,
