@@ -22,6 +22,12 @@ A futuristic, performance-first homepage for **Mossaic** — the company behind 
 
 Runs on **Node.js 20**.
 
+## Dependency portability
+
+- Use packages published on public registries; do not depend on Replit-only packages or package hosts.
+- Keep npm configured for `https://registry.npmjs.org/` and ensure `package-lock.json` contains no `*.replit.internal` resolved URLs.
+- Before finishing dependency changes, check both `package.json` and the lockfile so clean installs work outside Replit.
+
 ## Project structure
 
 ```
