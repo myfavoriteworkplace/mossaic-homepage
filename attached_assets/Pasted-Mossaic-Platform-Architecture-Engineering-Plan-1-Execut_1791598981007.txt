@@ -1,0 +1,328 @@
+Mossaic Platform Architecture & Engineering Plan
+1. Executive Summary & Objective
+Primary Goal: Transition Mossaic from a pure vertical-SaaS positioning to a hybrid engineering house offering both specialized SaaS products (bookMySlot, Retail CRM, AI Imaging) and bespoke enterprise web engineering (mossaic Studio).   
+JPG
+Architecture: React 18 SPA/SSG powered by Vite, with a decoupled, type-safe data layer using local JSON files validated via Zod schemas.
+Key Deliverables:
+Updated brand positioning in Hero and Mission components.   
+JPG
++ 1
+Integration of the 4th vertical card (mossaic Studio) into a balanced 4-column desktop grid.   
+JPG
++ 2
+Externalization of Testimonials ("What customers are saying") into a dynamic JSON file.
+Updated Contact Form dropdown options and Roadmap milestones.   
+JPG
+2. Directory Structure Re-alignment
+Re-organize the source tree under src/ to separate visual presentation components from raw data models:
+Plaintext
+src/
+├── data/
+│   ├── products.json           # SaaS verticals + mossaic Studio card data
+│   ├── testimonials.json       # Customer stories across all verticals
+│   └── siteConfig.json         # Hero text, mission statements, stats
+├── types/
+│   ├── product.ts              # TypeScript interface & Zod validation schema
+│   └── testimonial.ts          # TypeScript interface & Zod validation schema
+├── components/
+│   ├── Hero.tsx                # Refine copy: "modular software & enterprise platforms"
+│   ├── ProductsGrid.tsx        # Framer Motion animated 4-card grid
+│   ├── TestimonialsSection.tsx # Framer Motion dynamic testimonial cards
+│   ├── ContactForm.tsx         # Updated dropdown with mossaic Studio
+│   └── Roadmap.tsx             # Milestone nodes update
+└── App.tsx
+3. Data Schema & Runtime Validation (Zod)
+To ensure that manual edits to JSON data files never cause runtime render crashes or silent layout bugs, validate all imported data through Zod schemas.
+A. Products Schema (src/types/product.ts)
+TypeScript
+import { z } from 'zod';
+
+export const ProductSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  category: z.string(),
+  badge: z.string(),
+  status: z.enum(['Live', 'Coming soon', '2027', 'Available']),
+  description: z.string(),
+  tags: z.array(z.string()),
+  iconName: z.string(), // Key mapping directly to Lucide React icons
+});
+
+export type Product = z.infer<typeof ProductSchema>;
+B. Testimonials Schema (src/types/testimonial.ts)
+TypeScript
+import { z } from 'zod';
+
+export const TestimonialSchema = z.object({
+  id: z.string(),
+  productTag: z.string(),
+  rating: z.number().min(1).max(5),
+  quote: z.string(),
+  author: z.object({
+    name: z.string(),
+    initials: z.string(),
+    clinicName: z.string(),
+    city: z.string(),
+  }),
+  isFeatured: z.boolean(),
+});
+
+export type Testimonial = z.infer<typeof TestimonialSchema>;
+4. Dynamic Data Layer Files
+A. src/data/products.json
+Includes the existing three SaaS products along with the new mossaic Studio vertical.   
+JPG
+JSON
+[
+  {
+    "id": "bookmyslot",
+    "title": "bookMySlot",
+    "category": "Dental SaaS • Practice Management",
+    "badge": "Live",
+    "status": "Live",
+    "description": "Complete dental practice management — slot booking, clinical records, doctor assignments, patient reminders, inventory tracking, and Smile Deals. Built for Indian dental clinics.",
+    "tags": ["Slots", "Reminders", "Smile Deals"],
+    "iconName": "Calendar"
+  },
+  {
+    "id": "retail-crm",
+    "title": "Retail CRM",
+    "category": "Retail & Commerce",
+    "badge": "Coming soon",
+    "status": "Coming soon",
+    "description": "Customer relationship management built for Indian retail — inventory sync, loyalty programs, WhatsApp-native communication, and GST-ready billing.",
+    "tags": ["Inventory", "Loyalty", "GST billing"],
+    "iconName": "Store"
+  },
+  {
+    "id": "ai-imaging",
+    "title": "AI Imaging",
+    "category": "Dental AI • Diagnostic Assist",
+    "badge": "2027",
+    "status": "2027",
+    "description": "Explainable AI-assisted dental imaging with Grad-CAM overlays — helping radiologists and dentists flag anomalies faster with full audit trails.",
+    "tags": ["Grad-CAM", "Explainable AI", "Audit trail"],
+    "iconName": "Brain"
+  },
+  {
+    "id": "mossaic-studio",
+    "title": "mossaic Studio",
+    "category": "Enterprise Web • Custom Engineering",
+    "badge": "Available",
+    "status": "Available",
+    "description": "Custom, high-density web platforms and digital systems engineered for logistics, healthcare, and retail enterprises. Built on modern static-first architectures.",
+    "tags": ["High Speed", "Astro / Next.js", "Interactive UX"],
+    "iconName": "Zap"
+  }
+]
+B. src/data/testimonials.json
+Externalizes all customer feedback into a single JSON store, allowing enterprise web quotes to sit side-by-side with healthcare quotes.
+JSON
+[
+  {
+    "id": "q-1",
+    "productTag": "BOOKMYSLOT",
+    "rating": 5,
+    "quote": "Before bookMySlot we managed everything on WhatsApp and a paper register. Now patients book themselves and I get notified. It just works.",
+    "author": {
+      "name": "Dr. Priya Menon",
+      "initials": "PM",
+      "clinicName": "Elite Dental Avenue",
+      "city": "Kochi"
+    },
+    "isFeatured": true
+  },
+  {
+    "id": "q-2",
+    "productTag": "BOOKMYSLOT",
+    "rating": 5,
+    "quote": "Setup took under 10 minutes. Our no-show rate has dropped noticeably since we started using the automated reminders feature.",
+    "author": {
+      "name": "Dr. Suresh Kumar",
+      "initials": "SK",
+      "clinicName": "Sunrise Dental Clinic",
+      "city": "Kozhikode"
+    },
+    "isFeatured": true
+  },
+  {
+    "id": "q-3",
+    "productTag": "MOSSAIC STUDIO",
+    "rating": 5,
+    "quote": "The custom enterprise platform Mossaic engineered gave us sub-100ms load speeds, live tracking telematics, and complete code ownership.",
+    "author": {
+      "name": "Anoop Varghese",
+      "initials": "AV",
+      "clinicName": "AeroPulse Logistics",
+      "city": "Kochi"
+    },
+    "isFeatured": true
+  }
+]
+5. React Component Implementations
+A. Dynamic Products Grid (src/components/ProductsGrid.tsx)
+TypeScript
+import React from 'react';
+import { motion } from 'framer-motion';
+import * as LucideIcons from 'lucide-react';
+import rawProductsData from '../data/products.json';
+import { ProductSchema, Product } from '../types/product';
+
+// Validate JSON on module load
+const products: Product[] = rawProductsData.map((p) => ProductSchema.parse(p));
+
+export const ProductsGrid: React.FC = () => {
+  return (
+    <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
+      <div className="text-center space-y-3">
+        <span className="text-xs font-bold text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-wider">
+          OUR PRODUCTS & SERVICES
+        </span>
+        <h2 className="text-3xl md:text-5xl font-extrabold text-white">
+          One company. <span className="text-emerald-400">Products & systems that work.</span>
+        </h2>
+        <p className="text-slate-400 text-sm max-w-xl mx-auto">
+          Deep vertical software alongside custom-engineered enterprise platforms.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {products.map((item, index) => {
+          // Dynamic Lucide Icon Resolution
+          const IconComponent = (LucideIcons as Record<string, React.ElementType>)[item.iconName] || LucideIcons.Box;
+
+          return (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -4 }}
+              className="bg-slate-900/60 border border-slate-800 hover:border-emerald-500/40 rounded-2xl p-6 flex flex-col justify-between transition-all group backdrop-blur-md shadow-xl"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <IconComponent className="w-6 h-6" />
+                  </div>
+                  <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold px-2.5 py-1 rounded-full">
+                    {item.badge}
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                  {item.title}
+                </h3>
+                <div className="text-xs font-medium text-slate-400 mt-0.5 mb-3">
+                  {item.category}
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 mt-6 pt-4 border-t border-slate-800/80">
+                {item.tags.map((tag, tagIdx) => (
+                  <span
+                    key={tagIdx}
+                    className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/50"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+B. Dynamic Testimonials Section (src/components/TestimonialsSection.tsx)
+TypeScript
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Star } from 'lucide-react';
+import rawTestimonialsData from '../data/testimonials.json';
+import { TestimonialSchema, Testimonial } from '../types/testimonial';
+
+const testimonials: Testimonial[] = rawTestimonialsData.map((t) => TestimonialSchema.parse(t));
+
+export const TestimonialsSection: React.FC = () => {
+  return (
+    <section className="py-20 px-6 max-w-7xl mx-auto space-y-12">
+      <div className="text-center space-y-3">
+        <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">
+          FROM OUR PRODUCTS IN MARKET
+        </span>
+        <h2 className="text-3xl md:text-4xl font-extrabold text-white">
+          What customers are <span className="text-emerald-400">saying.</span>
+        </h2>
+        <p className="text-slate-400 text-sm max-w-xl mx-auto">
+          Quotes from clinics using bookMySlot and enterprises built with mossaic Studio.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {testimonials.filter(t => t.isFeatured).map((item, index) => (
+          <motion.div
+            key={item.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+            viewport={{ once: true }}
+            className="bg-slate-900/60 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 flex flex-col justify-between space-y-6 shadow-lg backdrop-blur-md"
+          >
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex text-amber-400 gap-1">
+                  {Array.from({ length: item.rating }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400" />
+                  ))}
+                </div>
+                <span className="text-[10px] font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-md font-semibold">
+                  {item.productTag}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed italic">
+                "{item.quote}"
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-4 border-t border-slate-800/80">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold flex items-center justify-center text-xs">
+                {item.author.initials}
+              </div>
+              <div>
+                <div className="text-xs font-bold text-white">{item.author.name}</div>
+                <div className="text-[11px] text-slate-400">
+                  {item.author.clinicName}, {item.author.city}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+};
+C. Contact Form Interest Dropdown Update (src/components/ContactForm.tsx)
+Update the dropdown selector inside your existing contact form:
+TypeScript
+<div className="space-y-2">
+  <label className="text-xs font-medium text-slate-300">I'm interested in</label>
+  <select className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-emerald-400">
+    <option value="bookmyslot">bookMySlot — Dental Practice Management</option>
+    <option value="retail-crm">Retail CRM — Commerce & Billing</option>
+    <option value="ai-imaging">AI Imaging — Diagnostic Assist</option>
+    <option value="mossaic-studio">mossaic Studio — Custom Enterprise Web System</option>
+    <option value="partnership">Partnership / Investment</option>
+  </select>
+</div>
+6. Verification & Quality Assurance Checklist
+[ ] Zod Build Check: Run npm run build or vite build to ensure all JSON data structures pass TypeScript and Zod parsing with 0 errors.
+[ ] Responsive Grid Check: Verify that the product grid displays 4 columns on large screens (lg:grid-cols-4), 2 columns on tablets (md:grid-cols-2), and 1 column on mobile devices.
+[ ] Lucide Tree-Shaking Check: Ensure dynamic icon rendering (Calendar, Store, Brain, Zap) doesn't bloat bundle size during Vite compilation.
+[ ] Contact Form Flow: Submit a test message selecting mossaic Studio — Custom Enterprise Web System to verify backend handling.
