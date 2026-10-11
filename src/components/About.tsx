@@ -4,7 +4,15 @@ import {
   useState,
 } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { Linkedin, Mail, MapPin, Calendar, Users, Target } from "lucide-react";
+import {
+  Linkedin,
+  Mail,
+  MapPin,
+  Calendar,
+  Users,
+  Target,
+  UserRound,
+} from "lucide-react";
 import "./About.css";
 import Reveal from "./ui/Reveal";
 import BookMySlotText from "./ui/BookMySlotText";
@@ -56,6 +64,7 @@ const FACTS = [
 export default function About() {
   const prefersReducedMotion = useReducedMotion() ?? false;
   const [portraitAvailable, setPortraitAvailable] = useState(true);
+  const [portraitPinned, setPortraitPinned] = useState(false);
   const [founderTitle, ...companyParts] = SITE.founder.role.split(" · ");
   const roleNodes = founderTitle.split(" & ");
   const companyLabel = companyParts.join(" · ");
@@ -115,27 +124,52 @@ export default function About() {
           {/* Founder card + facts */}
           <Reveal>
             <div className="about-founder-card bg-page border border-border1 rounded-[20px] p-7 text-center max-w-[340px] mx-auto">
-              <div
-                className="about-founder-avatar relative w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center"
+              <button
+                type="button"
+                className="about-founder-avatar relative w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center p-0 border-0 bg-transparent disabled:cursor-default"
                 data-testid="avatar-founder"
+                data-portrait-available={portraitAvailable}
+                data-portrait-pinned={portraitPinned}
+                aria-label={
+                  portraitAvailable
+                    ? portraitPinned
+                      ? `Show the generic avatar for ${SITE.founder.name}`
+                      : `Keep ${SITE.founder.name}'s portrait visible`
+                    : `Generic avatar for ${SITE.founder.name}`
+                }
+                aria-pressed={portraitAvailable ? portraitPinned : undefined}
+                disabled={!portraitAvailable}
+                onClick={() => setPortraitPinned((pinned) => !pinned)}
               >
-                {portraitAvailable ? (
+                <div
+                  className="about-founder-avatar__face about-founder-avatar__generic"
+                  aria-hidden="true"
+                >
+                  {portraitAvailable ? (
+                    <UserRound
+                      className="about-founder-avatar__icon"
+                      size={42}
+                      strokeWidth={1.5}
+                    />
+                  ) : (
+                    <span className="about-founder-avatar__initials display text-4xl font-bold">
+                      {SITE.founder.initials}
+                    </span>
+                  )}
+                </div>
+                {portraitAvailable && (
                   <img
-                    className="about-founder-avatar__portrait"
+                    className="about-founder-avatar__face about-founder-avatar__portrait"
                     src="/brand/founder-portrait.png"
                     alt={`Portrait of ${SITE.founder.name}`}
-                    onError={() => setPortraitAvailable(false)}
+                    onError={() => {
+                      setPortraitAvailable(false);
+                      setPortraitPinned(false);
+                    }}
                     loading="lazy"
                     decoding="async"
                     data-testid="image-founder-portrait"
                   />
-                ) : (
-                  <span
-                    className="about-founder-avatar__initials display text-4xl font-bold text-moss-dark"
-                    data-testid="avatar-founder-initials"
-                  >
-                    {SITE.founder.initials}
-                  </span>
                 )}
                 <svg
                   className="about-founder-avatar__frame"
@@ -147,9 +181,9 @@ export default function About() {
                     className="about-founder-avatar__frame-base"
                     points="28,3 84,3 109,56 84,109 28,109 3,56"
                   />
-                  <polygon
-                    className="about-founder-avatar__frame-segments"
-                    points="28,3 84,3 109,56 84,109 28,109 3,56"
+                  <path
+                    className="about-founder-avatar__frame-accents"
+                    d="M39 3 H73 M89.7 15 L103.3 44 M103.3 68 L89.7 97 M73 109 H39 M8.7 68 L22.3 97 M22.3 15 L8.7 44"
                   />
                 </svg>
                 <span
@@ -164,7 +198,7 @@ export default function About() {
                   className="about-founder-avatar__shard about-founder-avatar__shard--three"
                   aria-hidden="true"
                 />
-              </div>
+              </button>
               <div
                 className="text-lg font-semibold text-ink mb-1"
                 data-testid="text-founder-name"
