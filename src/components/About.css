@@ -1,0 +1,320 @@
+.about-section {
+  --about-spotlight-x: 50%;
+  --about-spotlight-y: 50%;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.about-spotlight,
+.about-geometry {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.about-spotlight {
+  z-index: 0;
+  opacity: 0;
+  background: radial-gradient(
+    520px circle at var(--about-spotlight-x) var(--about-spotlight-y),
+    rgb(var(--accent-rgb) / 0.11),
+    transparent 74%
+  );
+  transition: opacity 420ms ease;
+}
+
+.about-content {
+  position: relative;
+  z-index: 1;
+}
+
+.about-geometry {
+  z-index: 0;
+  overflow: hidden;
+  color: rgb(var(--accent-rgb));
+}
+
+.about-geometry svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.72;
+}
+
+.about-geometry__cluster {
+  fill: rgb(var(--accent-rgb) / 0.035);
+  stroke: rgb(var(--accent-rgb) / 0.11);
+  stroke-width: 1.25;
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.about-geometry__cluster--left {
+  animation: about-hex-drift-left 26s ease-in-out infinite alternate;
+}
+
+.about-geometry__cluster--right {
+  animation: about-hex-drift-right 32s ease-in-out infinite alternate;
+}
+
+.about-founder-card {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 38px rgb(var(--bg-deeper-rgb) / 0.1);
+  transition:
+    border-color 280ms ease,
+    box-shadow 320ms ease,
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-founder-card::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    320px circle at 50% 0%,
+    rgb(var(--accent-rgb) / 0.1),
+    transparent 72%
+  );
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms ease;
+}
+
+.about-founder-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.about-founder-avatar > span[aria-hidden="true"] {
+  transition:
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 320ms ease;
+}
+
+.about-role {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.about-role__signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.about-role__node {
+  transition: color 320ms ease;
+}
+
+.about-role__connector {
+  position: relative;
+  width: 13px;
+  height: 1px;
+  overflow: hidden;
+  background: rgb(var(--accent-rgb) / 0.25);
+}
+
+.about-role__connector > span {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--accent-mid-rgb));
+  transform: translateX(-105%);
+}
+
+.about-role__company {
+  color: rgb(var(--text-3-rgb));
+}
+
+.about-social-link {
+  position: relative;
+  z-index: 2;
+}
+
+.about-social-link:focus-visible {
+  outline: 2px solid rgb(var(--accent-mid-rgb));
+  outline-offset: 3px;
+}
+
+.about-fact {
+  margin: 0 -8px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  transition:
+    background-color 240ms ease,
+    transform 240ms ease;
+}
+
+.about-fact > span:first-child {
+  transition:
+    background-color 240ms ease,
+    color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+.about-story-heading {
+  margin: 0;
+}
+
+.about-story-highlight {
+  background-image: linear-gradient(
+    105deg,
+    rgb(var(--accent-rgb)) 0%,
+    rgb(var(--accent-mid-rgb)) 48%,
+    rgb(var(--accent-mid-rgb)) 54%,
+    rgb(var(--accent-rgb)) 100%
+  );
+  background-position: 100% 0;
+  background-size: 220% 100%;
+  color: rgb(var(--accent-rgb));
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: background-position 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .about-story-highlight {
+    color: transparent;
+  }
+}
+
+.about-story-copy {
+  will-change: opacity;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .about-section[data-spotlight-active="true"] .about-spotlight {
+    opacity: 1;
+  }
+
+  .about-founder-card:hover,
+  .about-founder-card:focus-within {
+    border-color: rgb(var(--accent-rgb) / 0.38);
+    box-shadow:
+      0 18px 48px rgb(var(--bg-deeper-rgb) / 0.16),
+      0 0 28px rgb(var(--accent-rgb) / 0.08);
+    transform: translateY(-3px);
+  }
+
+  .about-founder-card:hover::before,
+  .about-founder-card:focus-within::before {
+    opacity: 1;
+  }
+
+  .about-founder-card:hover .about-founder-avatar > span[aria-hidden="true"],
+  .about-founder-card:focus-within .about-founder-avatar > span[aria-hidden="true"] {
+    box-shadow: 0 0 18px rgb(var(--accent-rgb) / 0.2);
+    transform: rotate(45deg) scale(1.04);
+  }
+
+  .about-founder-card:hover .about-role__node,
+  .about-founder-card:focus-within .about-role__node {
+    color: rgb(var(--accent-mid-rgb));
+  }
+
+  .about-founder-card:hover .about-role__connector > span,
+  .about-founder-card:focus-within .about-role__connector > span {
+    animation: about-role-scan 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .about-founder-card:hover .about-role__connector:nth-of-type(2) > span,
+  .about-founder-card:focus-within .about-role__connector:nth-of-type(2) > span {
+    animation-delay: 120ms;
+  }
+
+  .about-fact:hover {
+    background-color: rgb(var(--accent-rgb) / 0.045);
+    transform: translateX(3px);
+  }
+
+  .about-fact:hover > span:first-child {
+    background-color: rgb(var(--accent-rgb) / 0.13);
+    box-shadow: 0 0 14px rgb(var(--accent-rgb) / 0.12);
+  }
+
+  .about-story-highlight:hover,
+  .about-story-heading:hover .about-story-highlight {
+    background-position: 0 0;
+  }
+}
+
+@keyframes about-hex-drift-left {
+  from {
+    transform: translate3d(-7px, 3px, 0);
+  }
+
+  to {
+    transform: translate3d(10px, -9px, 0);
+  }
+}
+
+@keyframes about-hex-drift-right {
+  from {
+    transform: translate3d(5px, -5px, 0);
+  }
+
+  to {
+    transform: translate3d(-9px, 8px, 0);
+  }
+}
+
+@keyframes about-role-scan {
+  0% {
+    transform: translateX(-105%);
+  }
+
+  48%,
+  100% {
+    transform: translateX(105%);
+  }
+}
+
+@media (max-width: 640px) {
+  .about-geometry svg {
+    opacity: 0.5;
+  }
+
+  .about-geometry__cluster--left,
+  .about-geometry__cluster--right {
+    animation-duration: 42s;
+  }
+
+  .about-spotlight {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-geometry__cluster--left,
+  .about-geometry__cluster--right {
+    animation: none;
+    will-change: auto;
+  }
+
+  .about-spotlight {
+    display: none;
+  }
+
+  .about-founder-card,
+  .about-founder-card::before,
+  .about-role__node,
+  .about-role__connector > span,
+  .about-fact,
+  .about-fact > span:first-child,
+  .about-story-highlight {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .about-story-copy {
+    will-change: auto;
+  }
+}
