@@ -183,21 +183,9 @@ export default function About() {
                   />
                   <path
                     className="about-founder-avatar__frame-accents"
-                    d="M39 3 H73 M89.7 15 L103.3 44 M103.3 68 L89.7 97 M73 109 H39 M8.7 68 L22.3 97 M22.3 15 L8.7 44"
+                    d="M13.5 43 L20.5 29 M91.5 83 L98.5 69"
                   />
                 </svg>
-                <span
-                  className="about-founder-avatar__shard about-founder-avatar__shard--one"
-                  aria-hidden="true"
-                />
-                <span
-                  className="about-founder-avatar__shard about-founder-avatar__shard--two"
-                  aria-hidden="true"
-                />
-                <span
-                  className="about-founder-avatar__shard about-founder-avatar__shard--three"
-                  aria-hidden="true"
-                />
               </button>
               <div
                 className="text-lg font-semibold text-ink mb-1"
