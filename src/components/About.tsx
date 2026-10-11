@@ -1,4 +1,8 @@
-import { Fragment, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  Fragment,
+  type PointerEvent as ReactPointerEvent,
+  useState,
+} from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { Linkedin, Mail, MapPin, Calendar, Users, Target } from "lucide-react";
 import "./About.css";
@@ -51,6 +55,7 @@ const FACTS = [
 
 export default function About() {
   const prefersReducedMotion = useReducedMotion() ?? false;
+  const [portraitAvailable, setPortraitAvailable] = useState(true);
   const [founderTitle, ...companyParts] = SITE.founder.role.split(" · ");
   const roleNodes = founderTitle.split(" & ");
   const companyLabel = companyParts.join(" · ");
@@ -111,20 +116,54 @@ export default function About() {
           <Reveal>
             <div className="about-founder-card bg-page border border-border1 rounded-[20px] p-7 text-center max-w-[340px] mx-auto">
               <div
-                className="about-founder-avatar relative w-[100px] h-[100px] rounded-full mx-auto mb-4 flex items-center justify-center"
-                style={{
-                  background:
-                    "linear-gradient(135deg, rgb(var(--accent-soft-rgb)), rgb(var(--accent-mid-rgb)))",
-                }}
+                className="about-founder-avatar relative w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center"
+                data-testid="avatar-founder"
               >
+                {portraitAvailable ? (
+                  <img
+                    className="about-founder-avatar__portrait"
+                    src="/brand/founder-portrait.png"
+                    alt={`Portrait of ${SITE.founder.name}`}
+                    onError={() => setPortraitAvailable(false)}
+                    loading="lazy"
+                    decoding="async"
+                    data-testid="image-founder-portrait"
+                  />
+                ) : (
+                  <span
+                    className="about-founder-avatar__initials display text-4xl font-bold text-moss-dark"
+                    data-testid="avatar-founder-initials"
+                  >
+                    {SITE.founder.initials}
+                  </span>
+                )}
+                <svg
+                  className="about-founder-avatar__frame"
+                  viewBox="0 0 112 112"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <polygon
+                    className="about-founder-avatar__frame-base"
+                    points="28,3 84,3 109,56 84,109 28,109 3,56"
+                  />
+                  <polygon
+                    className="about-founder-avatar__frame-segments"
+                    points="28,3 84,3 109,56 84,109 28,109 3,56"
+                  />
+                </svg>
                 <span
-                  aria-hidden
-                  className="absolute -inset-1 rounded-full border-2"
-                  style={{ borderColor: "rgb(var(--accent-soft-rgb))" }}
+                  className="about-founder-avatar__shard about-founder-avatar__shard--one"
+                  aria-hidden="true"
                 />
-                <span className="display text-4xl font-bold text-moss-dark">
-                  {SITE.founder.initials}
-                </span>
+                <span
+                  className="about-founder-avatar__shard about-founder-avatar__shard--two"
+                  aria-hidden="true"
+                />
+                <span
+                  className="about-founder-avatar__shard about-founder-avatar__shard--three"
+                  aria-hidden="true"
+                />
               </div>
               <div
                 className="text-lg font-semibold text-ink mb-1"
