@@ -3,6 +3,8 @@ import productsJson from "../src/data/products.json";
 import studioProjectsJson from "../src/data/studio-projects.json";
 import testimonialsJson from "../src/data/testimonials.json";
 import roadmapJson from "../src/data/roadmap.json";
+import deckPresentationJson from "../src/data/deck-presentation.json";
+import { DeckPresentationSchema } from "../src/deck/ui/schema";
 import {
   ProductsSchema,
   RoadmapSchema,
@@ -16,8 +18,10 @@ const products = ProductsSchema.parse(productsJson);
 const studioProjects = StudioProjectsSchema.parse(studioProjectsJson);
 const testimonials = TestimonialsSchema.parse(testimonialsJson);
 const roadmap = RoadmapSchema.parse(roadmapJson);
+DeckPresentationSchema.parse(deckPresentationJson);
 
 console.log(
   `Validated homepage content: ${products.length} products, ${studioProjects.length} Studio projects, ${testimonials.length} testimonials, ${roadmap.length} roadmap items.`,
 );
 console.log(`Validated ${Object.keys(site).length} site-content groups.`);
+console.log("Validated deck presentation and demo content.");

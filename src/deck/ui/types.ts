@@ -3,25 +3,17 @@ export type DeckLink = {
   href: string;
 };
 
-export type DeckMetric = {
-  value: string;
-  label: string;
-};
+export type DeckSlideKind = "bookmyslot" | "aeropulse" | "systems";
 
 export type DeckSlide = {
   id: string;
-  kind?: "cover" | "product" | "principles" | "closing" | "standard";
+  kind: DeckSlideKind;
+  navigationLabel?: string;
   eyebrow: string;
   title: string;
   highlight?: string;
   description: string;
-  status?: string;
-  metrics?: DeckMetric[];
-  points?: string[];
-  tags?: string[];
-  cta?: DeckLink;
-  sideLabel?: string;
-  footer?: string;
+  footer: string;
 };
 
 export type DeckTheme = {
@@ -34,6 +26,24 @@ export type DeckTheme = {
   dim: string;
   accent: string;
   accentBlue: string;
+  accentGreen: string;
+};
+
+export type DemoPatient = {
+  initials: string;
+  name: string;
+  id: string;
+  age: string;
+  scheduled: string;
+  reason: string;
+  status: "pending" | "confirmed";
+};
+
+export type RouteSnapshot = {
+  eta: string;
+  cargo: string;
+  state: string;
+  progress: number;
 };
 
 export type DeckContent = {
@@ -55,29 +65,37 @@ export type DeckContent = {
     nextLabel: string;
     previousSectionLabel: string;
     nextSectionLabel: string;
-    capabilitiesLabel: string;
-    keyFiguresLabel: string;
     documentAriaLabel: string;
     carouselAriaLabel: string;
     sectionCountLabel: string;
-    emptyMessage: string;
     linkCopiedNotice: string;
     copyFallbackNotice: string;
     shareErrorNotice: string;
-  };
-  brand: {
-    name: string;
-    tagline: string;
-    descriptor: string;
-    website: DeckLink;
-    email: DeckLink;
-    location: string;
-  };
-  intro: {
-    eyebrow: string;
-    title: string;
-    highlight: string;
-    description: string;
+    demoUpdateNotice: string;
+    liveLabel: string;
+    tabTitle: string;
+    tabBadge: string;
+    tabHint: string;
+    emptyMessage: string;
   };
   slides: DeckSlide[];
+  narrative: {
+    dashboardTitle: string;
+    dashboardHint: string;
+    demoDisclaimer: string;
+    demoMetricTitle: string;
+    demoMetrics: { value: string; label: string }[];
+    routeLabel: string;
+    routeCities: string;
+    origin: string;
+    destination: string;
+    routeSnapshots: RouteSnapshot[];
+    routeDisclaimer: string;
+    routeFeatures: { title: string; description: string }[];
+    systems: { title: string; description: string }[];
+    pipelineTitle: string;
+    closingTitle: string;
+    closingDescription: string;
+  };
+  demoPatients: DemoPatient[];
 };

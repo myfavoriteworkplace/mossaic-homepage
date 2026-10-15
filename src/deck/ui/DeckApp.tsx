@@ -1,147 +1,445 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  CalendarDays,
   Check,
+  ClipboardList,
   Copy,
   FileText,
+  Globe2,
+  Info,
   Layers3,
+  Mail,
+  MapPin,
+  PackageCheck,
   Printer,
+  RefreshCw,
   Share2,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+  Truck,
+  Wifi,
 } from "lucide-react";
 import Logo from "../../components/Logo";
 import Wordmark from "../../components/ui/Wordmark";
+import { HERO_STATS, PRODUCTS, SITE_CONFIG, STUDIO_PROJECTS } from "../../data/content";
+import type { Product } from "../../data/schemas";
 import type { DeckContent, DeckSlide } from "./types";
+import { LocalQr } from "./qr";
 import "./deck.css";
 
-type DeckAppProps = {
-  config: DeckContent;
-};
+type DeckAppProps = { config: DeckContent };
+type PatientStatus = "pending" | "confirmed";
+
+const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
+const contactHref = `${siteUrl}/#contact`;
+const emailHref = `mailto:${SITE_CONFIG.site.email}`;
+const bookingProduct = PRODUCTS.find((product) => product.id === "bookmyslot");
+const studioService = PRODUCTS.find((product) => product.id === "mossaic-studio");
+const aeroPulse = STUDIO_PROJECTS.find((project) => project.id === "aeropulse-logistics");
 
 function isExternalLink(href: string) {
   return /^https?:\/\//i.test(href);
 }
 
-function SlideMetrics({ metrics, slideId }: { metrics: NonNullable<DeckSlide["metrics"]>; slideId: string }) {
-  if (!metrics.length) return null;
+function resolveLink(href: string) {
+  return href.startsWith("#") ? `${siteUrl}/${href}` : href;
+}
+
+function MetricCard({ value, label, demo = false }: { value: string; label: string; demo?: boolean }) {
   return (
-    <div className="deck-stat-stack" data-testid="deck-metrics">
-      {metrics.map((metric, index) => (
-        <div className="deck-stat" key={`${metric.label}-${index}`} data-testid={`deck-metric-${slideId}-${index}`}>
-          <strong>{metric.value}</strong>
-          <span>{metric.label}</span>
-        </div>
-      ))}
+    <div className={`deck-metric-card ${demo ? "deck-demo-metric" : ""}`}>
+      <strong className="deck-metric-value">{value}</strong>
+      <span className="deck-metric-label">{label}</span>
+      {demo ? <span className="deck-demo-label">Illustrative demo</span> : null}
     </div>
   );
 }
 
-function SlideSide({
+function SlideHeader({
   slide,
-  keyFiguresLabel,
+  href,
+  linkLabel,
+  titleOverride,
+  descriptionOverride,
+  eyebrowOverride,
+  statusLabel,
 }: {
   slide: DeckSlide;
-  keyFiguresLabel: string;
+  href?: string;
+  linkLabel?: string;
+  titleOverride?: string;
+  descriptionOverride?: string;
+  eyebrowOverride?: string;
+  statusLabel?: string;
 }) {
-  if (slide.kind === "cover" || slide.kind === "closing") {
-    return (
-      <div className="deck-orbit" aria-hidden="true">
-        <div className="deck-orbit-core">
-          <Logo size={126} variant="mark" compact={false} idSuffix={`deck-${slide.id}`} />
-        </div>
-        <span className="deck-orbit-caption">{slide.sideLabel}</span>
-      </div>
-    );
-  }
-
-  if (slide.metrics?.length) {
-    return (
-      <aside className="deck-highlight-panel" aria-label={slide.sideLabel || keyFiguresLabel}>
-        <div className="deck-panel-label">{slide.sideLabel || keyFiguresLabel}</div>
-          <SlideMetrics metrics={slide.metrics} slideId={slide.id} />
-      </aside>
-    );
-  }
-
+  const external = href ? isExternalLink(href) : false;
   return (
-    <aside className="deck-highlight-panel deck-highlight-panel-empty">
-      <div className="deck-panel-label">{slide.sideLabel || keyFiguresLabel}</div>
-      <div className="deck-mini-core" aria-hidden="true">
-        <Logo size={102} variant="mark" idSuffix={`deck-side-${slide.id}`} />
+    <div className="deck-slide-head">
+      <div className="deck-slide-head-main">
+        <div className="deck-slide-labels">
+          <span className="deck-slide-kicker">{eyebrowOverride ?? slide.eyebrow}</span>
+          {statusLabel ? <span className="deck-status-canonical">{statusLabel}</span> : null}
+        </div>
+        <h2 className="deck-slide-title">
+          {titleOverride ?? slide.title}
+          {slide.highlight ? <> <em>{slide.highlight}</em></> : null}
+        </h2>
+        <p className="deck-slide-subtitle">{descriptionOverride ?? slide.description}</p>
       </div>
-    </aside>
+      {href && linkLabel ? (
+        <a
+          className={`deck-live-link ${slide.kind === "bookmyslot" ? "is-green" : ""}`}
+          href={href}
+          target={external ? "_blank" : undefined}
+          rel={external ? "noopener noreferrer" : undefined}
+        >
+          {slide.kind === "bookmyslot" ? <span className="deck-live-dot" aria-hidden="true" /> : null}
+          {linkLabel}
+          <ArrowUpRight className="deck-icon" aria-hidden="true" />
+        </a>
+      ) : null}
+    </div>
   );
 }
 
-function DeckSlideView({
-  slide,
-  index,
-  total,
-  capabilitiesLabel,
-  keyFiguresLabel,
+function PatientCard({
+  patient,
+  status,
+  onToggle,
 }: {
-  slide: DeckSlide;
-  index: number;
-  total: number;
-  capabilitiesLabel: string;
-  keyFiguresLabel: string;
+  patient: DeckContent["demoPatients"][number];
+  status: PatientStatus;
+  onToggle: () => void;
 }) {
   return (
-    <article
-      className="deck-slide"
-      data-kind={slide.kind || "standard"}
-      data-testid={`deck-slide-${slide.id}`}
-      aria-label={`${slide.eyebrow}: ${slide.title}`}
-    >
-      <div className="deck-slide-main">
-        <div className="deck-slide-kicker">{slide.eyebrow}</div>
-        <h2 className="deck-slide-title">
-          {slide.title}
-          {slide.highlight ? <> <em>{slide.highlight}</em></> : null}
-        </h2>
-        <p className="deck-slide-description">{slide.description}</p>
-        {slide.status ? (
-          <div className="deck-slide-status">
-            <span className="deck-status-dot" aria-hidden="true" />
-            {slide.status}
+    <article className="deck-patient">
+      <div className="deck-patient-header">
+        <div className="deck-patient-identity">
+          <div className="deck-avatar" aria-hidden="true">{patient.initials}</div>
+          <div>
+            <div className="deck-patient-name">{patient.name}</div>
+            <div className="deck-patient-id">{patient.id} · {patient.age}y</div>
           </div>
-        ) : null}
-        {slide.points?.length ? (
-          <ul className="deck-facts">
-            {slide.points.map((point, pointIndex) => (
-              <li className="deck-fact" key={`${slide.id}-fact-${pointIndex}`}>{point}</li>
-            ))}
-          </ul>
-        ) : null}
-        {slide.tags?.length ? (
-          <div className="deck-tags" aria-label={capabilitiesLabel}>
-            {slide.tags.map((tag) => <span className="deck-tag" key={tag}>{tag}</span>)}
-          </div>
-        ) : null}
-        {slide.cta ? (
-          <a
-            className="deck-slide-link"
-            href={slide.cta.href}
-            target={isExternalLink(slide.cta.href) ? "_blank" : undefined}
-            rel={isExternalLink(slide.cta.href) ? "noopener noreferrer" : undefined}
-            data-testid={`deck-slide-link-${slide.id}`}
-          >
-            {slide.cta.label}
-            <ArrowUpRight className="deck-icon" aria-hidden="true" />
-          </a>
-        ) : null}
+        </div>
+        <button
+          type="button"
+          className="deck-status-button"
+          data-status={status}
+          onClick={onToggle}
+          aria-label={`Demo appointment status for ${patient.name}: ${status}. Toggle status`}
+          aria-pressed={status === "confirmed"}
+        >
+          {status === "confirmed" ? "Confirmed" : "Pending"}
+        </button>
       </div>
-      <div className="deck-slide-side">
-        <SlideSide slide={slide} keyFiguresLabel={keyFiguresLabel} />
-      </div>
-      <div className="deck-slide-foot" aria-hidden="true">
-        <span>{slide.footer}</span>
-        <span>{String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}</span>
+      <div className="deck-patient-details">
+        <div className="deck-patient-detail"><CalendarDays aria-hidden="true" /> <span>{patient.scheduled}</span></div>
+        <div className="deck-patient-detail"><Stethoscope aria-hidden="true" /> <span>{patient.reason}</span></div>
+        <div className="deck-patient-detail"><Mail aria-hidden="true" /> <span>Reminder · enabled</span></div>
       </div>
     </article>
   );
+}
+
+function BookingShowcase({
+  slide,
+  content,
+}: {
+  slide: DeckSlide;
+  content: DeckContent;
+}) {
+  const [patientStatuses, setPatientStatuses] = useState<PatientStatus[]>(
+    content.demoPatients.map((patient) => patient.status),
+  );
+  const officialMetrics = bookingProduct?.metrics ?? [];
+  const productHref = bookingProduct?.cta.href ?? `${siteUrl}/#products`;
+
+  const togglePatient = (index: number) => {
+    setPatientStatuses((current) => current.map((status, statusIndex) =>
+      statusIndex === index ? (status === "pending" ? "confirmed" : "pending") : status,
+    ));
+  };
+
+  return (
+    <article className="deck-slide" data-slide="bookmyslot" aria-label={`${slide.eyebrow}: ${slide.title}`}>
+      <SlideHeader
+        slide={slide}
+        titleOverride={bookingProduct?.name}
+        descriptionOverride={bookingProduct?.description}
+        statusLabel={bookingProduct?.statusLabel}
+        href={productHref}
+        linkLabel="Open product"
+      />
+      <div className="deck-metrics-grid deck-product-metrics" aria-label="Official bookMySlot product metrics">
+        {officialMetrics.map((metric) => (
+          <MetricCard key={`${metric.value}-${metric.label}`} value={metric.value} label={metric.label} />
+        ))}
+        <a
+          className="deck-metric-card deck-qr-card"
+          href={productHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open bookMySlot website"
+        >
+          <LocalQr value={productHref} label="bookMySlot" />
+          <span className="deck-qr-link">Scan to visit</span>
+        </a>
+      </div>
+      <div className="deck-product-tags" aria-label="Product capabilities">
+        {bookingProduct?.tags.map((tag) => <span className="deck-tag" key={tag}>{tag}</span>)}
+      </div>
+      <div>
+        <div className="deck-dashboard-title">
+          <span>{content.narrative.dashboardTitle}</span>
+          <small>{content.narrative.dashboardHint}</small>
+        </div>
+        <div className="deck-patient-grid">
+          {content.demoPatients.map((patient, index) => (
+            <PatientCard
+              key={patient.id}
+              patient={patient}
+              status={patientStatuses[index] ?? patient.status}
+              onToggle={() => togglePatient(index)}
+            />
+          ))}
+        </div>
+        <p className="deck-demo-note"><Info aria-hidden="true" />{content.narrative.demoDisclaimer}</p>
+      </div>
+      <div className="deck-demo-snapshot">
+        <div className="deck-section-eyebrow">{content.narrative.demoMetricTitle}</div>
+        <div className="deck-metrics-grid deck-demo-metrics">
+          {content.narrative.demoMetrics.map((metric) => (
+            <MetricCard key={metric.label} value={metric.value} label={metric.label} demo />
+          ))}
+        </div>
+      </div>
+      <SlideFoot slide={slide} />
+    </article>
+  );
+}
+
+function RouteGraphic({ progress, origin, destination }: { progress: number; origin: string; destination: string }) {
+  const markerX = 30 + ((570 - 30) * progress) / 100;
+  const markerY = 40 + Math.sin((progress / 100) * Math.PI) * -14;
+  return (
+    <svg className="deck-route-visual" viewBox="0 0 600 80" role="img" aria-label={`Illustrative route progress ${progress}%`}>
+      <path d="M30 40 Q180 10 300 40 T570 40" fill="none" stroke="#1e293b" strokeWidth="6" strokeLinecap="round" />
+      <path className="deck-route-dash" d="M30 40 Q180 10 300 40 T570 40" fill="none" stroke="#38bdf8" strokeWidth="2" />
+      <circle cx="30" cy="40" r="7" fill="#030712" stroke="#38bdf8" strokeWidth="3" />
+      <circle cx="570" cy="40" r="7" fill="#030712" stroke="#10b981" strokeWidth="3" />
+      <g className="deck-route-marker">
+        <circle cx={markerX} cy={markerY} r="11" fill="#38bdf8" fillOpacity=".2" />
+        <circle cx={markerX} cy={markerY} r="5" fill="#38bdf8" />
+      </g>
+      <text x="30" y="71" textAnchor="middle">{origin}</text>
+      <text x="570" y="71" textAnchor="middle">{destination}</text>
+    </svg>
+  );
+}
+
+function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
+  slide: DeckSlide;
+  content: DeckContent;
+  onDemoUpdate: () => void;
+}) {
+  const [snapshotIndex, setSnapshotIndex] = useState(0);
+  const snapshot = content.narrative.routeSnapshots[snapshotIndex];
+  const projectHref = aeroPulse?.href ?? siteUrl;
+  const nextSnapshot = () => {
+    setSnapshotIndex((index) => (index + 1) % content.narrative.routeSnapshots.length);
+    onDemoUpdate();
+  };
+
+  return (
+    <article className="deck-slide" data-slide="aeropulse" aria-label={`${slide.eyebrow}: ${slide.title}`}>
+      <SlideHeader
+        slide={slide}
+        titleOverride={aeroPulse?.name}
+        eyebrowOverride={aeroPulse ? `Studio project · ${aeroPulse.category}` : "Studio project"}
+        href={projectHref}
+        linkLabel="View Studio project"
+      />
+      <section className="deck-route-card" aria-label="AeroPulse illustrative route simulator">
+        <div className="deck-route-head">
+          <div className="deck-route-title"><Truck aria-hidden="true" />{content.narrative.routeLabel}</div>
+          <span className="deck-route-name">{content.narrative.routeCities}</span>
+        </div>
+        <RouteGraphic progress={snapshot.progress} origin={content.narrative.origin} destination={content.narrative.destination} />
+        <div className="deck-route-stats">
+          <div className="deck-route-stat">
+            <div className="deck-route-stat-label">Estimated delivery window</div>
+            <div className="deck-route-stat-value">{snapshot.eta}</div>
+          </div>
+          <div className="deck-route-stat">
+            <div className="deck-route-stat-label">Cargo payload</div>
+            <div className="deck-route-stat-value">{snapshot.cargo}</div>
+          </div>
+          <div className="deck-route-stat">
+            <div className="deck-route-stat-label">Telematics state</div>
+            <div className="deck-route-stat-value">{snapshot.state}</div>
+          </div>
+        </div>
+        <p className="deck-demo-note"><Info aria-hidden="true" />{content.narrative.routeDisclaimer}</p>
+        <div className="deck-sim-controls">
+          <p>Snapshot {snapshotIndex + 1} of {content.narrative.routeSnapshots.length} · simulated locally</p>
+          <button type="button" className="deck-button" onClick={nextSnapshot}>
+            <RefreshCw className="deck-icon" aria-hidden="true" /> Refresh route demo
+          </button>
+        </div>
+      </section>
+      <div className="deck-route-feature-grid">
+        {content.narrative.routeFeatures.map((feature, index) => (
+          <article className="deck-feature-card" key={feature.title}>
+            <span className="deck-feature-icon" aria-hidden="true">
+              {index === 0 ? <PackageCheck /> : null}
+              {index === 1 ? <Wifi /> : null}
+              {index === 2 ? <RefreshCw /> : null}
+            </span>
+            <h4>{feature.title}</h4>
+            <p>{feature.description}</p>
+          </article>
+        ))}
+      </div>
+      <SlideFoot slide={slide} />
+    </article>
+  );
+}
+
+function SystemsShowcase({ slide, content }: { slide: DeckSlide; content: DeckContent }) {
+  const projectHref = aeroPulse?.href ?? siteUrl;
+  const contactLink = studioService?.cta.href ? resolveLink(studioService.cta.href) : contactHref;
+  return (
+    <article className="deck-slide" data-slide="systems" aria-label={`${slide.eyebrow}: ${slide.title}`}>
+      <SlideHeader
+        slide={slide}
+        titleOverride={studioService?.name}
+        descriptionOverride={studioService?.description}
+        statusLabel={studioService?.statusLabel}
+        href={contactLink}
+        linkLabel="Discuss a system"
+      />
+      <div className="deck-systems-grid">
+        {content.narrative.systems.map((system, index) => (
+          <article className="deck-system-card" key={system.title}>
+            <div className="deck-system-index">{String(index + 1).padStart(2, "0")}</div>
+            <h3>{system.title}</h3>
+            <p>{system.description}</p>
+          </article>
+        ))}
+      </div>
+      {aeroPulse ? (
+        <div className="deck-project-strip">
+          <div className="deck-project-copy">
+            <div className="deck-project-label"><Sparkles aria-hidden="true" /> Featured custom system deployment</div>
+            <h3 className="deck-project-title">{aeroPulse.name}</h3>
+            <p className="deck-project-category">{aeroPulse.category} · Studio project</p>
+          </div>
+          <a className="deck-button" href={projectHref} target="_blank" rel="noopener noreferrer">
+            View project <ArrowUpRight className="deck-icon" aria-hidden="true" />
+          </a>
+        </div>
+      ) : null}
+      <ul className="deck-principles-list" aria-label="How Mossaic works">
+        {SITE_CONFIG.principles.slice(0, 4).map((principle) => (
+          <li className="deck-principle" key={principle.num}>
+            <span className="deck-principle-index">{principle.num}</span>
+            <div><strong>{principle.title}</strong><span>{principle.desc}</span></div>
+          </li>
+        ))}
+      </ul>
+      <SlideFoot slide={slide} />
+    </article>
+  );
+}
+
+function ProductPipeline({ content }: { content: DeckContent }) {
+  const pipeline = PRODUCTS.filter((product) => product.id !== "bookmyslot" && product.status !== "live");
+  return (
+    <section className="deck-pipeline-contact" id="deck-contact-panel" aria-labelledby="deck-pipeline-title">
+      <h2 className="deck-pipeline-title" id="deck-pipeline-title">{content.narrative.pipelineTitle}</h2>
+      <div className="deck-pipeline-grid">
+        {pipeline.map((product) => (
+          <PipelineProduct key={product.id} product={product} />
+        ))}
+      </div>
+      <div className="deck-contact-row">
+        <div className="deck-contact-copy">
+          <h2>{content.narrative.closingTitle}</h2>
+          <p>{content.narrative.closingDescription}</p>
+          <div className="deck-contact-details">
+            <a href={emailHref}><Mail aria-hidden="true" />{SITE_CONFIG.site.email}</a>
+            <a href={siteUrl} target="_blank" rel="noopener noreferrer"><Globe2 aria-hidden="true" />{siteUrl.replace(/^https?:\/\//, "")}</a>
+            <span className="deck-contact-location"><MapPin aria-hidden="true" />{SITE_CONFIG.site.location}</span>
+          </div>
+        </div>
+        <div className="deck-contact-qrs" aria-label="Scan for Mossaic destinations">
+          <a className="deck-contact-qr" href={siteUrl} target="_blank" rel="noopener noreferrer">
+            <LocalQr value={siteUrl} label="Mossaic website" />Company site
+          </a>
+          <a className="deck-contact-qr" href={emailHref}>
+            <LocalQr value={emailHref} label="Mossaic email" />Email Mossaic
+          </a>
+        </div>
+      </div>
+      <div className="deck-copyright">
+        {SITE_CONFIG.site.name} · {SITE_CONFIG.company.hq} · {SITE_CONFIG.company.team}
+      </div>
+    </section>
+  );
+}
+
+function PipelineProduct({ product }: { product: Product }) {
+  const href = resolveLink(product.cta.href);
+  return (
+    <a className="deck-pipeline-item" href={href} target={isExternalLink(href) ? "_blank" : undefined} rel={isExternalLink(href) ? "noopener noreferrer" : undefined}>
+      <div>
+        <h3>{product.name}</h3>
+        <p>{product.description}</p>
+      </div>
+      <span className={`deck-pipeline-status deck-status-${product.status}`}>{product.statusLabel}</span>
+    </a>
+  );
+}
+
+function ClosingShowcase({ slide, content }: { slide: DeckSlide; content: DeckContent }) {
+  return (
+    <>
+      <article className="deck-slide deck-closing" data-slide="closing" aria-label={`${slide.eyebrow}: ${slide.title}`}>
+        <SlideHeader slide={slide} href={contactHref} linkLabel="Start a conversation" />
+        <div className="deck-closing-facts">
+          {SITE_CONFIG.complianceBadges.map((badge) => <span className="deck-tag" key={badge}><ShieldCheck aria-hidden="true" />{badge}</span>)}
+          <p className="deck-fact-note"><ClipboardList aria-hidden="true" />{SITE_CONFIG.company.focus}</p>
+        </div>
+        <SlideFoot slide={slide} />
+      </article>
+      <ProductPipeline content={content} />
+    </>
+  );
+}
+
+function SlideFoot({ slide }: { slide: DeckSlide }) {
+  return (
+    <div className="deck-slide-foot">
+      <span>{slide.footer}</span>
+      <span>{SITE_CONFIG.site.location}</span>
+    </div>
+  );
+}
+
+function SlideContent({ slide, content, onDemoUpdate }: {
+  slide: DeckSlide;
+  content: DeckContent;
+  onDemoUpdate: () => void;
+}) {
+  if (slide.kind === "bookmyslot") return <BookingShowcase slide={slide} content={content} />;
+  if (slide.kind === "aeropulse") return <AeroPulseShowcase slide={slide} content={content} onDemoUpdate={onDemoUpdate} />;
+  if (slide.kind === "systems") return <SystemsShowcase slide={slide} content={content} />;
+  return <ClosingShowcase slide={slide} content={content} />;
 }
 
 export function DeckApp({ config }: DeckAppProps) {
@@ -163,19 +461,22 @@ export function DeckApp({ config }: DeckAppProps) {
     "--deck-dim": config.theme.dim,
     "--deck-cyan": config.theme.accent,
     "--deck-blue": config.theme.accentBlue,
+    "--deck-green": config.theme.accentGreen,
   } as CSSProperties;
+  const introStats = useMemo(() => HERO_STATS.map((stat) => ({
+    ...stat,
+    value: `${stat.value}${stat.suffix}`,
+  })), []);
 
   const announce = useCallback((message: string) => {
     setNotice(message);
     window.clearTimeout(noticeTimer.current);
     noticeTimer.current = window.setTimeout(() => setNotice(""), 2400);
   }, []);
-
   const goTo = useCallback((index: number) => {
     if (!total) return;
     setActiveIndex((index + total) % total);
   }, [total]);
-
   const previous = useCallback(() => goTo(activeIndex - 1), [activeIndex, goTo]);
   const next = useCallback(() => goTo(activeIndex + 1), [activeIndex, goTo]);
 
@@ -205,16 +506,13 @@ export function DeckApp({ config }: DeckAppProps) {
   }, [documentMode, goTo, next, previous, total]);
 
   const shareDeck = async () => {
-    const shareData = { title: config.brand.name, text: config.brand.tagline, url: window.location.href };
+    const shareData = { title: config.meta.title, text: SITE_CONFIG.site.tagline, url: window.location.href };
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else if (navigator.clipboard?.writeText) {
+      if (navigator.share) await navigator.share(shareData);
+      else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(window.location.href);
         announce(config.ui.linkCopiedNotice);
-      } else {
-        announce(config.ui.copyFallbackNotice);
-      }
+      } else announce(config.ui.copyFallbackNotice);
     } catch (error) {
       if (error instanceof Error && error.name !== "AbortError") announce(config.ui.shareErrorNotice);
     }
@@ -224,25 +522,20 @@ export function DeckApp({ config }: DeckAppProps) {
     if (!documentMode) {
       setDocumentMode(true);
       window.setTimeout(() => window.print(), 80);
-      return;
-    }
-    window.print();
+    } else window.print();
   };
-
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
-    if (event.pointerType === "mouse") return;
+    if (event.pointerType === "mouse" || (event.target as HTMLElement).closest("button, a")) return;
     pointerStart.current = event.clientX;
   };
-
   const handlePointerUp = (event: ReactPointerEvent<HTMLElement>) => {
     if (pointerStart.current === null) return;
     const delta = event.clientX - pointerStart.current;
     pointerStart.current = null;
     if (Math.abs(delta) > 48) (delta > 0 ? previous : next)();
   };
-
-  const slideNav = (className = "") => (
-    <nav className={`deck-tab-list ${className}`} aria-label={config.ui.chooseSectionLabel} data-testid="deck-slide-tabs">
+  const slideNav = () => (
+    <nav className="deck-tab-list" aria-label={config.ui.chooseSectionLabel} data-testid="deck-slide-tabs">
       {slides.map((slide, index) => (
         <button
           type="button"
@@ -253,13 +546,12 @@ export function DeckApp({ config }: DeckAppProps) {
           onClick={() => goTo(index)}
           data-testid={`deck-tab-${slide.id}`}
         >
-          <span>{String(index + 1).padStart(2, "0")}</span>
-          {" · "}
-          {slide.title}
+          <span>{String(index + 1).padStart(2, "0")}.</span>{slide.title}
         </button>
       ))}
     </nav>
   );
+  const onDemoUpdate = () => announce(config.ui.demoUpdateNotice);
 
   return (
     <main
@@ -269,42 +561,23 @@ export function DeckApp({ config }: DeckAppProps) {
     >
       <div className="deck-shell">
         <header className="deck-topbar">
-          <a
-            className="deck-brand"
-            href={config.brand.website.href}
-            target={isExternalLink(config.brand.website.href) ? "_blank" : undefined}
-            rel={isExternalLink(config.brand.website.href) ? "noopener noreferrer" : undefined}
-            data-testid="deck-brand-link"
-          >
-            <Logo size={37} variant="mark" compact />
+          <a className="deck-brand" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-brand-link">
+            <Logo size={36} variant="mark" compact />
             <span className="deck-brand-copy">
-              <Wordmark variant="nav" textColor="#edf5ff" />
-              <span>{config.brand.descriptor}</span>
+              <Wordmark variant="nav" textColor="#f1f5f9" />
+              <span>EXECUTIVE PORTFOLIO · SOFTWARE &amp; SYSTEMS</span>
             </span>
           </a>
           <div className="deck-header-actions">
-            <button
-              type="button"
-              className="deck-button"
-              onClick={() => setDocumentMode((current) => !current)}
-              aria-pressed={documentMode}
-              data-testid="deck-toggle-view"
-            >
-              {documentMode ? <Layers3 className="deck-icon" /> : <FileText className="deck-icon" />}
-               <span>{documentMode ? config.ui.carouselLabel : config.ui.documentLabel}</span>
+            <button type="button" className="deck-button" onClick={() => setDocumentMode((current) => !current)} aria-pressed={documentMode} data-testid="deck-toggle-view">
+              {documentMode ? <Layers3 className="deck-icon" aria-hidden="true" /> : <FileText className="deck-icon" aria-hidden="true" />}
+              <span>{documentMode ? config.ui.carouselLabel : config.ui.documentLabel}</span>
             </button>
             <button type="button" className="deck-button" onClick={shareDeck} data-testid="deck-share" aria-label={config.ui.shareLabel}>
-              <Share2 className="deck-icon" />
-              <span>{config.ui.shareLabel}</span>
+              <Share2 className="deck-icon" aria-hidden="true" /><span>{config.ui.shareLabel}</span>
             </button>
-            <button
-              type="button"
-              className="deck-button deck-button-primary"
-              onClick={printDeck}
-              data-testid="deck-print"
-            >
-              <Printer className="deck-icon" />
-              <span>{config.ui.printLabel}</span>
+            <button type="button" className="deck-button deck-button-primary" onClick={printDeck} data-testid="deck-print">
+              <Printer className="deck-icon" aria-hidden="true" /><span>{config.ui.printLabel}</span>
             </button>
           </div>
         </header>
@@ -315,84 +588,69 @@ export function DeckApp({ config }: DeckAppProps) {
             <h1 id="deck-title">{config.intro.title} <span>{config.intro.highlight}</span></h1>
             <p>{config.intro.description}</p>
           </div>
-          <div className="deck-intro-index" aria-hidden="true">
-            <span>{config.brand.location}</span>
+          <div className="deck-intro-index">
+            {SITE_CONFIG.company.hq}
           </div>
         </section>
+        <div className="deck-intro-stats" aria-label="Company facts">
+          {introStats.map((stat) => (
+            <span key={stat.label}><strong>{stat.value}</strong>{stat.label}</span>
+          ))}
+        </div>
 
         {documentMode ? (
           <section className="deck-document" aria-label={config.ui.documentAriaLabel} data-testid="deck-document">
             <div className="deck-document-heading">
-              <span>{config.brand.tagline}</span>
-              <span>{total} {config.ui.sectionCountLabel}</span>
+              <span>{SITE_CONFIG.site.tagline}</span><span>{total} {config.ui.sectionCountLabel}</span>
             </div>
-            {slides.map((slide, index) => (
-              <div className="deck-stage" key={slide.id}>
-              <DeckSlideView
-                slide={slide}
-                index={index}
-                total={total}
-                capabilitiesLabel={config.ui.capabilitiesLabel}
-                keyFiguresLabel={config.ui.keyFiguresLabel}
-              />
+            {slides.map((slide) => (
+              <div className="deck-showcase" key={slide.id}>
+                <SlideContent slide={slide} content={config} onDemoUpdate={onDemoUpdate} />
               </div>
             ))}
           </section>
         ) : activeSlide ? (
           <>
-            {slideNav("deck-controls")}
+            <div className="deck-tabs-wrap">
+              <div className="deck-tabs-copy">
+                <h2 className="deck-tabs-title">Interactive portfolio</h2>
+                <p className="deck-tabs-hint">Choose a system or use the arrow keys to move through the work.</p>
+              </div>
+              {slideNav()}
+            </div>
             <section
-              className="deck-stage"
+              className="deck-showcase"
               aria-roledescription="carousel"
               aria-label={config.ui.carouselAriaLabel}
               onPointerDown={handlePointerDown}
               onPointerUp={handlePointerUp}
               data-testid="deck-carousel"
             >
-              <DeckSlideView
-                slide={activeSlide}
-                index={activeIndex}
-                total={total}
-                capabilitiesLabel={config.ui.capabilitiesLabel}
-                keyFiguresLabel={config.ui.keyFiguresLabel}
-              />
+              <SlideContent slide={activeSlide} content={config} onDemoUpdate={onDemoUpdate} />
             </section>
-            <div className="deck-controlbar deck-controls">
+            <div className="deck-controlbar">
               <button type="button" className="deck-button deck-nav-arrow" onClick={previous} aria-label={config.ui.previousSectionLabel} data-testid="deck-previous">
-                <ArrowLeft className="deck-icon" />
-                <span className="deck-nav-word">{config.ui.previousLabel}</span>
+                <ArrowLeft className="deck-icon" aria-hidden="true" /><span>{config.ui.previousLabel}</span>
               </button>
               <div className="deck-progress" aria-live="polite" data-testid="deck-progress">
                 <span><strong>{String(activeIndex + 1).padStart(2, "0")}</strong> / {String(total).padStart(2, "0")}</span>
-                <span className="deck-progress-track" aria-hidden="true">
-                  <span style={{ transform: `scaleX(${total ? (activeIndex + 1) / total : 0})` }} />
-                </span>
+                <span className="deck-progress-track" aria-hidden="true"><span style={{ transform: `scaleX(${total ? (activeIndex + 1) / total : 0})` }} /></span>
               </div>
               <button type="button" className="deck-button deck-nav-arrow" onClick={next} aria-label={config.ui.nextSectionLabel} data-testid="deck-next">
-                <span className="deck-nav-word">{config.ui.nextLabel}</span>
-                <ArrowRight className="deck-icon" />
+                <span>{config.ui.nextLabel}</span><ArrowRight className="deck-icon" aria-hidden="true" />
               </button>
             </div>
           </>
         ) : (
-          <section className="deck-stage" role="status" data-testid="deck-empty">
-            <div className="deck-slide-main">{config.ui.emptyMessage}</div>
-          </section>
+          <section className="deck-empty" role="status" data-testid="deck-empty">{config.ui.emptyMessage}</section>
         )}
 
         <footer className="deck-bottom-meta">
-          <span>{config.brand.tagline}</span>
-          <a className="deck-email-link" href={config.brand.email.href} data-testid="deck-contact">
-            {config.brand.email.label}
-          </a>
+          <span>{SITE_CONFIG.site.tagline} · {SITE_CONFIG.site.location}</span>
+          <a className="deck-email-link" href={emailHref} data-testid="deck-contact">{SITE_CONFIG.site.email}</a>
         </footer>
       </div>
-      {notice ? (
-        <div className="deck-toast" role="status" data-testid="deck-notice">
-          {notice === config.ui.linkCopiedNotice ? <Check className="deck-icon" aria-hidden="true" /> : <Copy className="deck-icon" aria-hidden="true" />}
-          {notice}
-        </div>
-      ) : null}
+      {notice ? <div className="deck-toast" role="status" data-testid="deck-notice"><Check className="deck-icon" aria-hidden="true" />{notice}</div> : null}
     </main>
   );
 }

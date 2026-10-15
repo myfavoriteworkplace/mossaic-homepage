@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "title": "Mossaic — Executive portfolio",
+    "description": "An interactive look at Mossaic's India-first software products and custom enterprise systems.",
+    "ogTitle": "Mossaic — Executive portfolio",
+    "ogDescription": "Dental SaaS, logistics systems and custom enterprise engineering from Kerala, India."
+  },
+  "theme": {
+    "background": "#030712",
+    "surface": "#0f172a",
+    "panel": "#0f172a",
+    "border": "#1e293b",
+    "text": "#f3f4f6",
+    "muted": "#94a3b8",
+    "dim": "#64748b",
+    "accent": "#38bdf8",
+    "accentBlue": "#38bdf8",
+    "accentGreen": "#10b981"
+  },
+  "ui": {
+    "documentLabel": "Full document",
+    "carouselLabel": "Carousel view",
+    "shareLabel": "Share",
+    "printLabel": "Print / save PDF",
+    "chooseSectionLabel": "Choose a portfolio section",
+    "goToSectionLabel": "Go to section",
+    "previousLabel": "Previous system",
+    "nextLabel": "Next system",
+    "previousSectionLabel": "Previous portfolio section",
+    "nextSectionLabel": "Next portfolio section",
+    "documentAriaLabel": "Full Mossaic portfolio document",
+    "carouselAriaLabel": "Mossaic interactive portfolio",
+    "sectionCountLabel": "showcases",
+    "linkCopiedNotice": "Portfolio link copied",
+    "copyFallbackNotice": "Copy this page URL to share the portfolio",
+    "shareErrorNotice": "Unable to share right now",
+    "demoUpdateNotice": "Illustrative demo updated",
+    "liveLabel": "Live interactive deck",
+    "tabTitle": "Interactive portfolio flipbook",
+    "tabBadge": "Live showcase",
+    "tabHint": "Hover cards to tilt. Use the section buttons or arrow keys to move through the portfolio.",
+    "emptyMessage": "No portfolio sections are available."
+  },
+  "slides": [
+    {
+      "id": "bookmyslot",
+      "kind": "bookmyslot",
+      "navigationLabel": "bookMySlot (SaaS)",
+      "eyebrow": "Product · dental practice management",
+      "title": "Flagship product",
+      "highlight": "— a calmer clinic day",
+      "description": "A more considered way to shape the clinic day, from the first appointment on the calendar through the work that follows.",
+      "footer": "DENTAL PRACTICE MANAGEMENT · PRODUCT FACTS FROM MOSSAIC"
+    },
+    {
+      "id": "aeropulse",
+      "kind": "aeropulse",
+      "navigationLabel": "AeroPulse (Logistics)",
+      "eyebrow": "Featured Studio project",
+      "title": "Operations in motion",
+      "highlight": "— operations, in motion",
+      "description": "A custom logistics platform concept from Mossaic Studio. The route and operational readouts shown here are a local, illustrative interface demo—not live tracking data.",
+      "footer": "MOSSAIC STUDIO PROJECT · SIMULATED ROUTE DATA"
+    },
+    {
+      "id": "systems",
+      "kind": "systems",
+      "navigationLabel": "Custom Web Systems",
+      "eyebrow": "Custom enterprise engineering",
+      "title": "Custom Web Systems",
+      "highlight": "— built around your operation.",
+      "description": "When standard software stops short, Mossaic Studio works from the shape of the business: its users, data, handoffs and moments where a system needs to be dependable.",
+      "footer": "CUSTOM ENGINEERING · ENTERPRISE WEB SYSTEMS"
+    }
+  ],
+  "narrative": {
+    "dashboardTitle": "Clinical workspace · illustrative preview",
+    "dashboardHint": "Status buttons are local demo interactions",
+    "demoDisclaimer": "Illustrative demo data only. Synthetic patient names, ages, visit reasons, timings, weekly revenue and confirmation example are not customer records or product performance claims.",
+    "demoMetricTitle": "Example clinic snapshot · illustrative demo data",
+    "demoMetrics": [
+      { "value": "2 min", "label": "Example confirmation" },
+      { "value": "₹38k", "label": "Example weekly revenue" }
+    ],
+    "routeLabel": "Illustrative route simulator",
+    "routeCities": "Kochi → Mumbai",
+    "origin": "Kochi Port",
+    "destination": "Mumbai Hub",
+    "routeSnapshots": [
+      { "eta": "18h 24m", "cargo": "14.2 t · chilled", "state": "Operational", "progress": 49 },
+      { "eta": "16h 50m", "cargo": "12.8 t · dry goods", "state": "At transit hub", "progress": 68 },
+      { "eta": "21h 10m", "cargo": "9.4 t · priority", "state": "Route recalculated", "progress": 35 }
+    ],
+    "routeDisclaimer": "Illustrative route, ETA, cargo and operating states for interface demonstration only; not connected to a live vehicle, customer shipment or telematics feed.",
+    "routeFeatures": [
+      { "title": "Route-aware operations", "description": "A focused view for dispatchers to scan a journey, its progress and the next decision point." },
+      { "title": "Operational clarity", "description": "Bring shipment context, status and exceptions into one shared working surface." },
+      { "title": "Systems that connect", "description": "Shape integrations around the ERP, warehouse and communication tools already in use." }
+    ],
+    "systems": [
+      { "title": "Fast, focused experiences", "description": "Purpose-built interfaces that keep the core task clear across desktop and mobile." },
+      { "title": "Maintainable foundations", "description": "Modular architecture and clear ownership make change safer after launch." },
+      { "title": "Workflows with context", "description": "Dashboards and automation mapped to the handoffs and decisions your team actually makes." }
+    ],
+    "pipelineTitle": "Product pipeline",
+    "closingTitle": "Let's build something that matters.",
+    "closingDescription": "Bring a clinic workflow, an operational bottleneck or an ambitious product idea. We will start by understanding the work."
+  },
+  "demoPatients": [
+    { "initials": "NR", "name": "Nila R.", "id": "DEMO-014", "age": "29", "scheduled": "Today · 10:30 AM", "reason": "Routine check-up", "status": "pending" },
+    { "initials": "AD", "name": "Arun D.", "id": "DEMO-021", "age": "41", "scheduled": "Today · 12:15 PM", "reason": "Consultation", "status": "confirmed" },
+    { "initials": "SK", "name": "Sana K.", "id": "DEMO-028", "age": "35", "scheduled": "Tomorrow · 9:00 AM", "reason": "Cleaning visit", "status": "confirmed" }
+  ]
+}
