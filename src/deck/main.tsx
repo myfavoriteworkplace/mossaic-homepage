@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import "../../styles/globals.css";
+import "../styles/globals.css";
 import DeckApp from "./ui/DeckApp";
 import type { DeckContent, DeckLink, DeckMetric, DeckSlide, DeckTheme } from "./ui/types";
 
