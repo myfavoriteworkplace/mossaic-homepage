@@ -1,0 +1,35 @@
+This is feasible without changing the site’s framework or adding a backend.
+The supplied sample already has a useful starting structure: a three-slide carousel, a full-document view, QR codes, contact links, and print styling for PDF output. I’d adapt its content and behavior into the existing React/Vite project rather than copy the standalone HTML as-is; that avoids relying on its Tailwind CDN and external QR-code script, and lets the deck share the site’s brand and load efficiently.
+For the separate address, I recommend /deck/ on the same domain. It can be a real, directly shareable page with its own title and social preview, while a small fixed bottom link on the homepage points to it. I’d make it responsive, support keyboard/touch slide navigation, and include a print-to-PDF action. A direct “Download PDF” link would require maintaining an actual PDF file as well; the browser’s print dialog can’t reliably save automatically across devices.
+One content caveat: the sample includes product details, claims, QR destinations, and contact information. Those should be checked against what you want published, especially where they may differ from the current site.
+No files have been changed. Which URL approach should I use if you want me to proceed?
+
+Choose the deck URL
+Same domain: /deck/ (recommended)
+Additional comments
+ALSO LOAD ALL THE DATA FROM A json AND MAKE IT CONFIGURABLE - PLEASE ANALYSE AND LET ME KNOW YOU PLAN BEFORE MAKING ANY CHANEGS
+
+Worked for 53 seconds
+
+Checkpoint made
+27 minutes ago
+
+
+
+
+
+5 actions
+Yes—this fits the project. I recommend implementing the deck at /deck/ as a separate static page, so it has its own shareable URL without adding a backend or changing the homepage framework.
+Plan
+1. Add a separate Vite page entry for /deck/, so the address loads directly and survives refreshes.
+2. Add a compact, fixed deck link at the bottom of the homepage.
+3. Put the deck’s editable content in a JSON file: title and intro, slide order and copy, products, metrics, features, contact details, CTAs, links, and QR destinations. The deck will read and validate that JSON when it loads. Content changes will require updating the JSON and deploying the updated file, but won’t require changing the React components.
+4. Keep presentation and behavior in the code: responsive slides, touch and keyboard navigation, a full-document view, and print styling. The JSON can configure the copy and selected visual settings; it won’t be an in-browser admin editor.
+5. Preserve the sample’s Print / Save as PDF behavior. A separate one-click PDF download is possible, but it means maintaining a PDF file alongside the JSON so both stay in sync.
+6. Before publishing, check the sample’s product claims, links, QR destinations, and contact details for accuracy.
+I haven’t made any changes. Please choose whether to proceed with this plan and whether you want a separate downloadable PDF in addition to print/save.
+
+
+I’ll implement the approved `/deck/` page using a JSON content file, add the homepage link, and keep PDF handling to browser print/save. I’ll first check the app’s existing conventions and the required React/Vite guidance, then build and verify the page at desktop and mobile sizes.
+
+I found an important content difference: the sample deck mentions a logistics product, while the current site’s product JSON lists bookMySlot, Retail CRM, AI Imaging, and mossaic Studio. I’ll use the current project data for the deck rather than carry over possibly stale sample claims. I’m now preparing the separate page and its JSON loader within the existing static build.
