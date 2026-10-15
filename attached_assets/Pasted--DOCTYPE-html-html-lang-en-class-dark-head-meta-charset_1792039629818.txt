@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mossAIc — Executive Deck & Interactive Systems Showcase</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Configuration -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              cyan: '#38bdf8',
+              emerald: '#10b981',
+              dark: '#030712',
+              card: '#0f172a',
+              border: '#1e293b'
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'dash': 'dash 20s linear infinite',
+          },
+          keyframes: {
+            dash: {
+              'to': { 'stroke-dashoffset': '-100' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Libraries -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #030712;
+      color: #f3f4f6;
+      overflow-x: hidden;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* 3D Perspective Canvas setup */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+
+    .card-3d-wrap {
+      transform-style: preserve-3d;
+      transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+    }
+
+    .card-3d-wrap:hover {
+      box-shadow: 0 25px 50px -12px rgba(56, 189, 248, 0.15);
+    }
+
+    .preserve-3d {
+      transform-style: preserve-3d;
+    }
+
+    /* Print Specific Styles for Crisp A4 Output */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-card {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+        transform: none !important;
+      }
+      .print-text-dark {
+        color: #0f172a !important;
+      }
+      .print-text-muted {
+        color: #475569 !important;
+      }
+      .print-border {
+        border-color: #cbd5e1 !important;
+      }
+      .print-accent-cyan {
+        background-color: #f0f9ff !important;
+        color: #0369a1 !important;
+        border: 1px solid #bae6fd !important;
+      }
+      .print-accent-emerald {
+        background-color: #ecfdf5 !important;
+        color: #047857 !important;
+        border: 1px solid #a7f3d0 !important;
+      }
+      a {
+        text-decoration: none !important;
+        color: inherit !important;
+      }
+      .document-mode-only {
+        display: block !important;
+      }
+      .carousel-mode-only {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased p-3 sm:p-6 md:p-10">
+
+  <!-- TOP HEADER / CONTROL BAR -->
+  <header class="no-print max-w-6xl mx-auto mb-8 bg-slate-900/90 border border-slate-800 backdrop-blur-xl p-4 md:p-6 rounded-3xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="space-y-1 text-center md:text-left">
+      <div class="flex items-center justify-center md:justify-start gap-3">
+        <a href="https://mossaic.in" target="_blank" rel="noopener noreferrer" class="text-2xl md:text-3xl font-extrabold tracking-tight text-white hover:opacity-90 transition-opacity">
+          moss<span class="text-sky-400">AI</span>c
+        </a>
+        <span class="text-[10px] font-mono-code bg-sky-500/10 border border-sky-500/20 text-sky-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+          LIVE INTERACTIVE DECK
+        </span>
+      </div>
+      <p class="text-xs text-slate-400 font-medium">Smart, Reliable Software & Custom Web Development Company</p>
+    </div>
+
+    <!-- Quick Controls -->
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <!-- Toggle Mode Button -->
+      <button 
+        id="toggleViewBtn" 
+        onclick="toggleViewMode()" 
+        class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-md"
+      >
+        <span id="toggleIcon">📄</span> <span id="toggleLabel">Switch to Full Document Sheet</span>
+      </button>
+
+      <!-- Print CTA -->
+      <button 
+        onclick="window.print()" 
+        class="px-4 py-2.5 bg-gradient-to-r from-sky-400 to-emerald-400 hover:from-sky-300 hover:to-emerald-300 text-slate-950 font-extrabold text-xs rounded-xl transition-all flex items-center gap-2 shadow-lg cursor-pointer"
+      >
+        🖨️ Print / Save A4 PDF
+      </button>
+
+      <!-- WhatsApp Quick Contact -->
+      <a 
+        href="https://wa.me/919746767146?text=Hi%20mossAIc%20Team,%20I%20saw%20your%20interactive%20deck%20and%20would%20like%20to%20discuss%20a%20project." 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+      >
+        <span>💬 WhatsApp Us</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-6xl mx-auto space-y-8">
+
+    <!-- ================================================================= -->
+    <!-- MODE 1: OPTION 7 ANIMATED CAROUSEL / 3D FLIPBOOK VIEW (DEFAULT)   -->
+    <!-- ================================================================= -->
+    <div id="carouselView" class="carousel-mode-only space-y-8 transition-all duration-500">
+      
+      <!-- Carousel Navigation Header -->
+      <div class="no-print flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 p-4 rounded-2xl backdrop-blur-md">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>✨ Interactive Portfolio Flipbook</span>
+            <span class="text-xs font-mono-code text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">Option 7 Showcase</span>
+          </h2>
+          <p class="text-xs text-slate-400">Hover over cards to tilt in 3D. Click indicators or use arrows to slide through systems.</p>
+        </div>
+
+        <!-- Carousel Indicators / Tab Navigation -->
+        <div class="flex items-center gap-2">
+          <button onclick="goToSlide(0)" id="tab-0" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-sky-500 text-slate-950 shadow-lg">
+            01. bookMySlot (SaaS)
+          </button>
+          <button onclick="goToSlide(1)" id="tab-1" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-slate-800 text-slate-400 hover:text-white">
+            02. AeroPulse (Logistics)
+          </button>
+          <button onclick="goToSlide(2)" id="tab-2" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-slate-800 text-slate-400 hover:text-white">
+            03. Custom Web Systems
+          </button>
+        </div>
+      </div>
+
+      <!-- CAROUSEL PERSPECTIVE WRAPPER -->
+      <div class="perspective-1000 min-h-[580px] relative">
+
+        <!-- SLIDE 1: BOOKMYSLOT DENTAL SAAS -->
+        <div id="slide-0" class="slide-card card-3d-wrap transition-all duration-500 transform opacity-100 scale-100 relative bg-slate-900/90 border border-emerald-500/30 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <span class="text-[10px] font-mono-code text-emerald-400 uppercase tracking-widest font-bold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-md">
+                LIVE SaaS PRODUCT
+              </span>
+              <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1.5">
+                <a href="https://bookmyslot.dental.mossaic.in" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 transition-colors inline-flex items-center gap-2">
+                  <span>book<span class="text-emerald-400">My</span>Slot</span>
+                  <span class="text-slate-400 font-normal text-sm md:text-base">— Dental Practice Management ↗</span>
+                </a>
+              </h3>
+            </div>
+            <a href="https://bookmyslot.dental.mossaic.in" target="_blank" rel="noopener noreferrer" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold px-4 py-2 rounded-full transition-all flex items-center gap-2 shrink-0">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Active in 50+ Clinics</span>
+              <span>↗</span>
+            </a>
+          </div>
+
+          <!-- Live Metrics Grid & Mini QR -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-center">
+              <div id="metric-slots" class="text-2xl md:text-3xl font-extrabold text-emerald-400">850+</div>
+              <div class="text-[11px] text-slate-400 font-mono-code mt-0.5">Slots Booked</div>
+            </div>
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-center">
+              <div class="text-2xl md:text-3xl font-extrabold text-emerald-400">2 mins</div>
+              <div class="text-[11px] text-slate-400 font-mono-code mt-0.5">Avg Confirm Time</div>
+            </div>
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-center">
+              <div class="text-2xl md:text-3xl font-extrabold text-emerald-400">₹38k</div>
+              <div class="text-[11px] text-slate-400 font-mono-code mt-0.5">Weekly Revenue</div>
+            </div>
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-center flex flex-col items-center justify-center">
+              <div id="carousel-qr-bookmyslot" class="bg-white p-1 rounded-lg"></div>
+              <a href="https://bookmyslot.dental.mossaic.in" target="_blank" rel="noopener noreferrer" class="text-[9px] font-mono-code text-emerald-400 hover:underline mt-1">Scan to Visit ↗</a>
+            </div>
+          </div>
+
+          <!-- Interactive Clinical Schedule Demo Preview -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-300">
+              <span class="flex items-center gap-2">
+                <span>Clinical Dashboard Preview</span>
+                <span class="text-[10px] text-slate-500 font-mono-code">(Click status badge to simulate live update)</span>
+              </span>
+              <a href="https://bookmyslot.dental.mossaic.in" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono-code text-emerald-400 hover:underline">
+                bookmyslot.dental.mossaic.in ↗
+              </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Patient 1 -->
+              <div class="bg-slate-950 border border-amber-500/30 rounded-2xl p-4 space-y-3 hover:border-amber-400/60 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs border border-slate-700">AK</div>
+                    <div>
+                      <div class="text-xs font-bold text-white">Anand K.</div>
+                      <div class="text-[10px] font-mono-code text-slate-400">PAT-0033 • 28y Male</div>
+                    </div>
+                  </div>
+                  <button onclick="togglePatientStatus(this)" class="text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md hover:bg-amber-500/20 cursor-pointer transition-colors">
+                    Pending ⚡
+                  </button>
+                </div>
+                <div class="text-[11px] text-slate-300 space-y-1 font-mono-code border-t border-slate-800/80 pt-2">
+                  <div>📅 Scheduled: Today, 8:00 AM</div>
+                  <div>💬 Reason: Tooth Pain / Checkup</div>
+                  <div>✉️ Reminders: Email Active</div>
+                </div>
+              </div>
+
+              <!-- Patient 2 -->
+              <div class="bg-slate-950 border border-emerald-500/30 rounded-2xl p-4 space-y-3 hover:border-emerald-400/60 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs border border-slate-700">MS</div>
+                    <div>
+                      <div class="text-xs font-bold text-white">Meera S.</div>
+                      <div class="text-[10px] font-mono-code text-slate-400">PAT-0031 • 32y Female</div>
+                    </div>
+                  </div>
+                  <button onclick="togglePatientStatus(this)" class="text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md hover:bg-emerald-500/20 cursor-pointer transition-colors">
+                    Confirmed ✓
+                  </button>
+                </div>
+                <div class="text-[11px] text-slate-300 space-y-1 font-mono-code border-t border-slate-800/80 pt-2">
+                  <div>📅 Scheduled: Mon, 2:00 PM</div>
+                  <div>💬 Reason: Consultation</div>
+                  <div>✉️ Reminders: Email Active</div>
+                </div>
+              </div>
+
+              <!-- Patient 3 -->
+              <div class="bg-slate-950 border border-emerald-500/30 rounded-2xl p-4 space-y-3 hover:border-emerald-400/60 transition-all">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center text-xs border border-slate-700">VR</div>
+                    <div>
+                      <div class="text-xs font-bold text-white">Vikram R.</div>
+                      <div class="text-[10px] font-mono-code text-slate-400">PAT-0030 • 45y Male</div>
+                    </div>
+                  </div>
+                  <button onclick="togglePatientStatus(this)" class="text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md hover:bg-emerald-500/20 cursor-pointer transition-colors">
+                    Confirmed ✓
+                  </button>
+                </div>
+                <div class="text-[11px] text-slate-300 space-y-1 font-mono-code border-t border-slate-800/80 pt-2">
+                  <div>📅 Scheduled: Mon, 5:00 PM</div>
+                  <div>💬 Reason: Teeth Cleaning</div>
+                  <div>✉️ Reminders: Email Active</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 2: AEROPULSE LOGISTICS PLATFORM -->
+        <div id="slide-1" class="slide-card card-3d-wrap hidden transition-all duration-500 transform opacity-0 scale-95 relative bg-slate-900/90 border border-sky-500/30 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <span class="text-[10px] font-mono-code text-sky-400 uppercase tracking-widest font-bold bg-sky-500/10 border border-sky-500/20 px-2.5 py-0.5 rounded-md">
+                CUSTOM SYSTEM DEPLOYMENT
+              </span>
+              <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1.5">
+                <a href="https://mossaic-logistics.onrender.com/" target="_blank" rel="noopener noreferrer" class="hover:text-sky-400 transition-colors inline-flex items-center gap-2">
+                  <span>AeroPulse Logistics Platform</span>
+                  <span>↗</span>
+                </a>
+              </h3>
+            </div>
+            <a href="https://mossaic-logistics.onrender.com/" target="_blank" rel="noopener noreferrer" class="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-semibold px-4 py-2 rounded-full transition-all flex items-center gap-2 shrink-0">
+              <span>View Live Operational App</span>
+              <span>↗</span>
+            </a>
+          </div>
+
+          <!-- Live Freight Tracking Simulator Graphics -->
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></span>
+                <span class="text-xs font-mono-code text-sky-400 font-bold">LIVE TELEMATICS SIMULATOR: ROUTE #AP-8842</span>
+              </div>
+              <span class="text-[10px] font-mono-code text-slate-400">Kochi ➔ Mumbai (Transit)</span>
+            </div>
+
+            <!-- SVG Route & Shipment Path Animation -->
+            <div class="relative py-4">
+              <svg class="w-full h-20" viewBox="0 0 600 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Track Line -->
+                <path d="M 30 40 Q 180 10, 300 40 T 570 40" stroke="#1e293b" stroke-width="6" stroke-linecap="round"/>
+                <path d="M 30 40 Q 180 10, 300 40 T 570 40" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 8" class="animate-dash"/>
+                
+                <!-- Origin Node -->
+                <circle cx="30" cy="40" r="8" fill="#030712" stroke="#38bdf8" stroke-width="3"/>
+                <text x="30" y="65" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Kochi Port</text>
+                
+                <!-- Destination Node -->
+                <circle cx="570" cy="40" r="8" fill="#030712" stroke="#10b981" stroke-width="3"/>
+                <text x="570" y="65" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="JetBrains Mono">Mumbai Hub</text>
+
+                <!-- Animated Truck Marker -->
+                <g class="animate-pulse">
+                  <circle cx="300" cy="40" r="10" fill="#38bdf8" fill-opacity="0.3"/>
+                  <circle cx="300" cy="40" r="5" fill="#38bdf8"/>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Interactive Route Calculator Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-800">
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-slate-400 font-mono-code">Est. Delivery Window</div>
+                <div class="text-sm font-extrabold text-white">18 Hours 24 Mins</div>
+              </div>
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-slate-400 font-mono-code">Cargo Payload</div>
+                <div class="text-sm font-extrabold text-sky-400">14.2 Tons (Temperature Controlled)</div>
+              </div>
+              <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                <div class="text-[10px] text-slate-400 font-mono-code">Automated Telematics Sync</div>
+                <div class="text-sm font-extrabold text-emerald-400">100% Operational</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AeroPulse Features Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+              <div class="text-xs font-bold text-white">Real-Time Rate Engine</div>
+              <p class="text-xs text-slate-400 mt-1">Instant dynamic pricing based on distance, cargo density, and fuel surcharges.</p>
+            </div>
+            <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+              <div class="text-xs font-bold text-white">Multi-Modal Dispatch</div>
+              <p class="text-xs text-slate-400 mt-1">Seamless tracking for road freight, air cargo, and maritime container shipments.</p>
+            </div>
+            <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+              <div class="text-xs font-bold text-white">Custom API Integrations</div>
+              <p class="text-xs text-slate-400 mt-1">Direct ERP and warehouse management integration with automated WhatsApp updates.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 3: CUSTOM ENGINEERING VERTICAL -->
+        <div id="slide-2" class="slide-card card-3d-wrap hidden transition-all duration-500 transform opacity-0 scale-95 relative bg-slate-900/90 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl space-y-6">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <span class="text-[10px] font-mono-code text-cyan-400 uppercase tracking-widest font-bold bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-md">
+                HIGH-PERFORMANCE ARCHITECTURE
+              </span>
+              <h3 class="text-2xl md:text-3xl font-extrabold text-white mt-1.5">Custom Websites & Enterprise Applications</h3>
+            </div>
+            <a href="https://mossaic.in" target="_blank" rel="noopener noreferrer" class="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-semibold px-4 py-2 rounded-full transition-all shrink-0">
+              Available for Hire ↗
+            </a>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3 hover:border-sky-500/40 transition-colors">
+              <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-extrabold text-base">01</div>
+              <h4 class="text-base font-bold text-white">Lightning-Fast Speed</h4>
+              <p class="text-xs text-slate-400 leading-relaxed">Sub-second loading times ensuring maximum user retention and optimal mobile responsiveness on any network.</p>
+            </div>
+            <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3 hover:border-sky-500/40 transition-colors">
+              <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-extrabold text-base">02</div>
+              <h4 class="text-base font-bold text-white">Safe & Easy Maintenance</h4>
+              <p class="text-xs text-slate-400 leading-relaxed">Clean static-first & modular architecture enabling hassle-free updates with zero security vulnerabilities.</p>
+            </div>
+            <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3 hover:border-sky-500/40 transition-colors">
+              <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-extrabold text-base">03</div>
+              <h4 class="text-base font-bold text-white">Interactive Custom Workflows</h4>
+              <p class="text-xs text-slate-400 leading-relaxed">Tailor-made dashboards, live tracking overlays, and automated booking systems designed specifically for your ops.</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="text-sm font-bold text-white">Have a custom business software requirement?</div>
+              <div class="text-xs text-slate-400">Our engineering team designs custom enterprise web systems, SaaS platforms, and internal tools.</div>
+            </div>
+            <a href="https://wa.me/919746767146?text=Hi%20mossAIc,%20I'd%20like%20to%20discuss%20a%20custom%20web%20project." target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 bg-gradient-to-r from-sky-400 to-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl hover:opacity-90 transition-opacity shrink-0">
+              Schedule Tech Consultation ↗
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Controls Bottom Bar -->
+      <div class="no-print flex items-center justify-between bg-slate-900/60 border border-slate-800 p-4 rounded-2xl backdrop-blur-md">
+        <button onclick="prevSlide()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center gap-2">
+          ← Previous System
+        </button>
+        <div class="text-xs font-mono-code text-slate-400">
+          <span id="currentSlideNum" class="text-sky-400 font-bold">1</span> / 3
+        </div>
+        <button onclick="nextSlide()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center gap-2">
+          Next System →
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODE 2: FULL DOCUMENT SHEET VIEW (FOR FULL READING & A4 PRINTING) -->
+    <!-- ================================================================= -->
+    <div id="documentView" class="document-mode-only hidden space-y-8">
+
+      <!-- HEADER / BRAND IDENTITY -->
+      <header class="print-card bg-slate-900/80 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl relative overflow-hidden shadow-2xl">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-slate-800/80 pb-6 print-border relative z-10">
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center gap-3">
+              <a href="https://mossaic.in" target="_blank" rel="noopener noreferrer" class="group flex items-center">
+                <span class="text-3xl md:text-4xl font-extrabold tracking-tight text-white print-text-dark">moss<span class="text-sky-400">AI</span>c</span>
+              </a>
+              <span class="text-[10px] font-mono-code bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider print-accent-cyan">
+                SOFTWARE & WEB SYSTEMS
+              </span>
+            </div>
+            <p class="text-xs md:text-sm text-slate-300 font-medium print-text-muted">
+              Smart, Reliable Software & Custom Web Development Company
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-4 text-xs font-mono-code">
+            <a href="https://wa.me/919746767146" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 text-slate-300 hover:text-sky-400 transition-colors print-text-dark">
+              <span class="text-sky-400">📞</span> +91 9746767146
+            </a>
+            <a href="mailto:contact@mossaic.in" class="flex items-center gap-1.5 text-slate-300 hover:text-sky-400 transition-colors print-text-dark">
+              <span class="text-sky-400">✉️</span> contact@mossaic.in
+            </a>
+            <a href="https://mossaic.in" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 text-slate-300 hover:text-sky-400 transition-colors print-text-dark">
+              <span class="text-sky-400">🌐</span> mossaic.in ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-3 relative z-10">
+          <span class="inline-block text-[11px] font-bold text-cyan-400 border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 rounded-full uppercase tracking-wider print-accent-cyan">
+            THE FUTURE, ASSEMBLED · MODULAR SYSTEMS & SOFTWARE BUILT FOR REAL BUSINESS
+          </span>
+          <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight leading-tight print-text-dark">
+            Ready-To-Use Software & <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">Custom Business Systems.</span>
+          </h1>
+          <p class="text-slate-300 text-xs md:text-sm max-w-3xl leading-relaxed print-text-muted">
+            mossAIc engineers custom, high-performance web systems and compliance-ready SaaS platforms for Indian & global enterprises — from mission-critical operational tools to automated booking ecosystems.
+          </p>
+        </div>
+      </header>
+
+      <!-- SECTION 1: FLAGSHIP LIVE PRODUCT (BOOKMYSLOT) -->
+      <section class="print-card bg-slate-900/70 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl space-y-6 shadow-xl">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4 print-border">
+          <div>
+            <span class="text-[10px] font-mono-code text-emerald-400 uppercase tracking-widest font-bold print-accent-emerald">LIVE FLAGSHIP SaaS PRODUCT</span>
+            <h2 class="text-2xl font-bold text-white print-text-dark">
+              <a href="https://bookmyslot.dental.mossaic.in" target="_blank" rel="noopener noreferrer" class="hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                <span>book</span><span class="text-emerald-400">My</span><span>Slot</span><span class="text-slate-400 font-normal text-base md:text-lg">— Dental Practice Management Software ↗</span>
+              </a>
+            </h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <a href="https://bookmyslot.dental.mossaic.in" target="_blank" rel="noopener noreferrer" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-semibold px-3 py-1 rounded-full transition-colors print-accent-emerald">
+              ● Active in 50+ Clinics ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center gap-6">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1 w-full">
+            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 text-center print-card">
+              <div class="text-2xl font-extrabold text-emerald-400">850+</div>
+              <div class="text-[11px] text-slate-400 font-mono-code mt-0.5 print-text-muted">Slots Booked</div>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 text-center print-card">
+              <div class="text-2xl font-extrabold text-emerald-400">2 mins</div>
+              <div class="text-[11px] text-slate-400 font-mono-code mt-0.5 print-text-muted">Avg Confirm Time</div>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 text-center print-card">
+              <div class="text-2xl font-extrabold text-emerald-400">₹38k</div>
+              <div class="text-[11px] text-slate-400 font-mono-code mt-0.5 print-text-muted">Weekly Revenue</div>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 text-center print-card">
+              <div class="text-2xl font-extrabold text-emerald-400">100%</div>
+              <div class="text-[11px] text-slate-400 font-mono-code mt-0.5 print-text-muted">Email Reminders</div>
+            </div>
+          </div>
+
+          <a href="https://bookmyslot.dental.mossaic.in" target="_blank" rel="noopener noreferrer" class="bg-slate-950/90 hover:bg-slate-950 border border-emerald-500/30 rounded-2xl p-3.5 text-center shrink-0 transition-all group print-card">
+            <div id="doc-qr-bookmyslot" class="bg-white p-1.5 rounded-xl shadow-lg inline-block"></div>
+            <div class="text-[10px] font-mono-code text-emerald-400 group-hover:underline mt-1.5 flex items-center justify-center gap-1">
+              <span>bookMySlot Site</span>
+              <span>↗</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- SECTION 2: CUSTOM WEBSITES & LOGISTICS PLATFORM -->
+      <section class="print-card bg-slate-900/70 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl space-y-6 shadow-xl">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 print-border">
+          <div>
+            <span class="text-[10px] font-mono-code text-sky-400 uppercase tracking-widest font-bold print-accent-cyan">CUSTOM ENGINEERING SERVICES</span>
+            <h2 class="text-2xl font-bold text-white print-text-dark">Custom Websites & Enterprise Applications</h2>
+          </div>
+          <a href="https://mossaic.in" target="_blank" rel="noopener noreferrer" class="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 text-xs font-semibold px-3 py-1 rounded-full transition-colors print-accent-cyan">
+            Available for Hire ↗
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="space-y-2 bg-slate-950/40 border border-slate-800/60 p-4 rounded-2xl print-card">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm">01</div>
+            <h3 class="text-sm font-bold text-white print-text-dark">Lightning-Fast Websites</h3>
+            <p class="text-xs text-slate-400 leading-relaxed print-text-muted">Sub-second loading times ensuring maximum user retention and seamless response across mobile and desktop displays.</p>
+          </div>
+          <div class="space-y-2 bg-slate-950/40 border border-slate-800/60 p-4 rounded-2xl print-card">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm">02</div>
+            <h3 class="text-sm font-bold text-white print-text-dark">Easy & Safe Updates</h3>
+            <p class="text-xs text-slate-400 leading-relaxed print-text-muted">Clean static-first & modular architecture enabling hassle-free updates with zero security vulnerabilities.</p>
+          </div>
+          <div class="space-y-2 bg-slate-950/40 border border-slate-800/60 p-4 rounded-2xl print-card">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-slate-800/60 p-4 rounded-2xl print-card">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm">03</div>
+              <h3 class="text-sm font-bold text-white print-text-dark">Interactive Designs</h3>
+              <p class="text-xs text-slate-400 leading-relaxed print-text-muted">Rich dashboards, live tracking overlays, and tailor-made workflows designed specifically around your operational model.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 print-card">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+              <span class="text-xs font-mono-code text-sky-400 font-semibold">FEATURED CUSTOM SYSTEM DEPLOYMENT</span>
+            </div>
+            <div class="text-sm font-bold text-white print-text-dark">AeroPulse Logistics Platform</div>
+            <div class="text-xs text-slate-400 print-text-muted">High-density freight tracking web platform with automated route calculations and real-time fleet telematics.</div>
+          </div>
+          <a href="https://mossaic-logistics.onrender.com/" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all print-accent-cyan shrink-0">
+            View Live App ↗
+          </a>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- PIPELINE & CONTACT FOOTER WITH DYNAMIC QR CODES -->
+    <footer class="print-card bg-slate-900/70 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl space-y-6 shadow-xl">
+      
+      <!-- Pipeline -->
+      <div class="space-y-4">
+        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono-code print-text-dark">Upcoming Product Pipeline</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 flex items-start justify-between print-card">
+            <div class="space-y-1">
+              <div class="text-sm font-bold text-white print-text-dark">Retail CRM Platform</div>
+              <div class="text-xs text-slate-400 print-text-muted">WhatsApp-native customer interaction, real-time inventory sync, loyalty points, and GST-ready billing.</div>
+            </div>
+            <span class="text-[10px] font-mono-code bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-bold shrink-0 ml-2">2026</span>
+          </div>
+
+          <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 flex items-start justify-between print-card">
+            <div class="space-y-1">
+              <div class="text-sm font-bold text-white print-text-dark">AI Dental Imaging Diagnostics</div>
+              <div class="text-xs text-slate-400 print-text-muted">Explainable AI-assisted radiology tools featuring Grad-CAM overlays to assist practitioners in flagging dental anomalies.</div>
+            </div>
+            <span class="text-[10px] font-mono-code bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded font-bold shrink-0 ml-2">2027</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="border-slate-800/80 print-border" />
+
+      <!-- Contact Information & Dynamic QR Codes -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+        
+        <div class="space-y-3 text-center md:text-left">
+          <div class="text-xl font-bold text-white print-text-dark">Let's build something that matters.</div>
+          <p class="text-xs text-slate-400 max-w-md print-text-muted leading-relaxed">
+            Ready to engineer your custom web platform or explore our specialized vertical SaaS tools? Get in touch with our team today.
+          </p>
+          
+          <div class="space-y-1.5 text-xs font-mono-code text-slate-300 print-text-dark pt-1">
+            <div>📞 Phone / WhatsApp: <a href="https://wa.me/919746767146" target="_blank" rel="noopener noreferrer" class="text-sky-400 font-bold hover:underline">+91 9746767146 ↗</a></div>
+            <div>✉️ Primary Email: <a href="mailto:contact@mossaic.in" class="text-sky-400 hover:underline">contact@mossaic.in</a></div>
+            <div>✉️ Secondary Email: <a href="mailto:mossaic@zohomail.in" class="text-sky-400 hover:underline">mossaic@zohomail.in</a></div>
+            <div>🌐 Website: <a href="https://mossaic.in" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline">mossaic.in ↗</a></div>
+            <div>📍 Location: Kerala, India (Remote-First Engineering)</div>
+          </div>
+        </div>
+
+        <!-- Footer Dynamic QR Codes -->
+        <div class="flex items-center gap-6 shrink-0">
+          <a href="https://mossaic.in" target="_blank" rel="noopener noreferrer" class="text-center space-y-2 group">
+            <div id="qr-website" class="bg-white p-2 rounded-xl shadow-lg inline-block transition-transform group-hover:scale-105"></div>
+            <div class="text-[10px] font-mono-code text-slate-400 group-hover:text-sky-400 print-text-muted">mossaic.in ↗</div>
+          </a>
+          <a href="https://wa.me/919746767146" target="_blank" rel="noopener noreferrer" class="text-center space-y-2 group">
+            <div id="qr-whatsapp" class="bg-white p-2 rounded-xl shadow-lg inline-block transition-transform group-hover:scale-105"></div>
+            <div class="text-[10px] font-mono-code text-slate-400 group-hover:text-sky-400 print-text-muted">WhatsApp Chat ↗</div>
+          </a>
+        </div>
+
+      </div>
+
+      <div class="text-center text-[11px] font-mono-code text-slate-500 pt-4 border-t border-slate-800/60 print-border">
+        © 2026 mossAIc Technologies • All rights reserved.
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- JAVASCRIPT: INTERACTIVE 3D CAROUSEL & LOGIC -->
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 3;
+    let isCarouselMode = true;
+
+    // Slide navigation
+    function goToSlide(slideIdx) {
+      currentSlide = slideIdx;
+      updateSlideDisplay();
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateSlideDisplay();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+      updateSlideDisplay();
+    }
+
+    function updateSlideDisplay() {
+      document.getElementById('currentSlideNum').innerText = currentSlide + 1;
+
+      for (let i = 0; i < totalSlides; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        const tab = document.getElementById(`tab-${i}`);
+
+        if (i === currentSlide) {
+          slide.classList.remove('hidden', 'opacity-0', 'scale-95');
+          slide.classList.add('opacity-100', 'scale-100');
+          
+          tab.classList.remove('bg-slate-800', 'text-slate-400');
+          tab.classList.add('bg-sky-500', 'text-slate-950', 'shadow-lg');
+        } else {
+          slide.classList.add('hidden', 'opacity-0', 'scale-95');
+          slide.classList.remove('opacity-100', 'scale-100');
+
+          tab.classList.remove('bg-sky-500', 'text-slate-950', 'shadow-lg');
+          tab.classList.add('bg-slate-800', 'text-slate-400');
+        }
+      }
+    }
+
+    // Toggle between 3D Carousel and Full Document Sheet Mode
+    function toggleViewMode() {
+      isCarouselMode = !isCarouselMode;
+      const carouselView = document.getElementById('carouselView');
+      const documentView = document.getElementById('documentView');
+      const toggleLabel = document.getElementById('toggleLabel');
+      const toggleIcon = document.getElementById('toggleIcon');
+
+      if (isCarouselMode) {
+        carouselView.classList.remove('hidden');
+        documentView.classList.add('hidden');
+        toggleLabel.innerText = "Switch to Full Document Sheet";
+        toggleIcon.innerText = "📄";
+      } else {
+        carouselView.classList.add('hidden');
+        documentView.classList.remove('hidden');
+        toggleLabel.innerText = "Switch to 3D Card Carousel";
+        toggleIcon.innerText = "✨";
+      }
+    }
+
+    // Interactive Patient Status Toggle Simulation
+    function togglePatientStatus(btn) {
+      if (btn.innerText.includes('Pending')) {
+        btn.innerText = 'Confirmed ✓';
+        btn.className = 'text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md hover:bg-emerald-500/20 cursor-pointer transition-colors';
+      } else {
+        btn.innerText = 'Pending ⚡';
+        btn.className = 'text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-md hover:bg-amber-500/20 cursor-pointer transition-colors';
+      }
+    }
+
+    // 3D Tilt Effect on Cards based on Mouse Movement
+    document.addEventListener('mousemove', (e) => {
+      if (!isCarouselMode) return;
+      const activeSlide = document.getElementById(`slide-${currentSlide}`);
+      if (!activeSlide) return;
+
+      const rect = activeSlide.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+
+      const rotateX = (-y / rect.height) * 8; // Adjust intensity
+      const rotateY = (x / rect.width) * 8;
+
+      activeSlide.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1)`;
+    });
+
+    // Reset card tilt when mouse leaves
+    document.addEventListener('mouseleave', () => {
+      const activeSlide = document.getElementById(`slide-${currentSlide}`);
+      if (activeSlide) {
+        activeSlide.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+      }
+    });
+
+    // Dynamic QR Code Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Footer Corporate Website
+      new QRCode(document.getElementById("qr-website"), {
+        text: "https://mossaic.in",
+        width: 72,
+        height: 72,
+        colorDark : "#030712",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+
+      // 2. Footer WhatsApp Chat
+      new QRCode(document.getElementById("qr-whatsapp"), {
+        text: "https://wa.me/919746767146?text=Hi%20mossAIc%20Team,%20I'm%20interested%20in%20custom%20software/website%20development.",
+        width: 72,
+        height: 72,
+        colorDark : "#030712",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+
+      // 3. Carousel bookMySlot QR
+      new QRCode(document.getElementById("carousel-qr-bookmyslot"), {
+        text: "https://bookmyslot.dental.mossaic.in",
+        width: 52,
+        height: 52,
+        colorDark : "#030712",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+
+      // 4. Document bookMySlot QR
+      new QRCode(document.getElementById("doc-qr-bookmyslot"), {
+        text: "https://bookmyslot.dental.mossaic.in",
+        width: 64,
+        height: 64,
+        colorDark : "#030712",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+    });
+  </script>
+</body>
+</html>
