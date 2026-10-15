@@ -5,6 +5,12 @@
     "ogTitle": "Mossaic — Executive portfolio",
     "ogDescription": "Dental SaaS, logistics systems and custom enterprise engineering from Kerala, India."
   },
+  "intro": {
+    "eyebrow": "Modular SaaS · Enterprise platforms · Built in India",
+    "title": "The future,",
+    "highlight": "assembled.",
+    "description": "Mossaic builds focused software for Indian businesses: vertical SaaS for day-to-day operations and custom platforms for complex enterprise needs."
+  },
   "theme": {
     "background": "#030712",
     "surface": "#0f172a",

@@ -53,6 +53,12 @@ export type DeckContent = {
     ogTitle: string;
     ogDescription: string;
   };
+  intro: {
+    eyebrow: string;
+    title: string;
+    highlight: string;
+    description: string;
+  };
   theme: DeckTheme;
   ui: {
     documentLabel: string;

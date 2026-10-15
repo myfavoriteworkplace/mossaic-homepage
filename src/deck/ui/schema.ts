@@ -12,6 +12,12 @@ export const DeckPresentationSchema = z.object({
     ogTitle: z.string().min(1),
     ogDescription: z.string().min(1),
   }),
+  intro: z.object({
+    eyebrow: z.string().min(1),
+    title: z.string().min(1),
+    highlight: z.string().min(1),
+    description: z.string().min(1),
+  }),
   theme: z.object({
     background: z.string().regex(/^#[\da-f]{3,8}$/i),
     surface: z.string().regex(/^#[\da-f]{3,8}$/i),
