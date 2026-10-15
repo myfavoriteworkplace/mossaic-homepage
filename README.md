@@ -34,14 +34,19 @@ src/
 │  ├─ schemas.ts       Zod content schemas
 │  ├─ content.ts       Typed data exports
 │  └─ site.ts          Compatibility re-exports for components
+├─ deck/               Standalone executive brochure UI
 ├─ styles/globals.css  Tailwind layers + design tokens (CSS variables)
 ├─ App.tsx, main.tsx
 index.html
+deck/index.html        Separate HTML entry for the shareable /deck/ page
+public/deck.json       Editable brochure copy, metrics, links, UI labels, and theme
 tailwind.config.ts     Brand colours and typography tokens
 vite.config.ts
 ```
 
 Edit homepage copy and data in the matching JSON file under `src/data/`. Run `npm run validate:content` to check it; `npm run build` runs the same validation before TypeScript and Vite builds. Chatbot FAQ entries stay in `src/data/faqs.ts` because some answers include runtime behavior.
+
+The interactive executive brochure is available at `/deck/`. Its content and selected theme values are loaded from `public/deck.json`; update that file to change the brochure without editing its React components. It includes slide and full-document views, keyboard/touch navigation, and browser print/save-to-PDF support.
 
 ## Deploy anywhere
 

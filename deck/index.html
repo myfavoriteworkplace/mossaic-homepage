@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="alternate icon" type="image/png" href="%BASE_URL%favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0A1628" />
+    <meta
+      name="description"
+      content="Explore Mossaic's modular, India-first software products and custom enterprise platforms in this interactive executive deck."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mossaic" />
+    <meta property="og:title" content="Mossaic Executive Deck — The future, assembled" />
+    <meta
+      property="og:description"
+      content="A concise guide to Mossaic's software products, principles, and enterprise platforms."
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Mossaic Executive Deck | Digital Brochure" />
+    <meta
+      name="twitter:description"
+      content="Explore Mossaic's modular, India-first software products and custom enterprise platforms."
+    />
+    <meta name="deck-config-url" content="%BASE_URL%deck.json" />
+    <title>Mossaic Executive Deck | Digital Brochure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("mossaic-theme");
+          if (stored === "dark") stored = "aurora";
+          var valid = { aurora: 1, light: 1, moss: 1, mono: 1 };
+          document.documentElement.setAttribute("data-theme", stored && valid[stored] ? stored : "aurora");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "aurora");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/deck/main.tsx"></script>
+  </body>
+</html>

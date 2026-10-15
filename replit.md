@@ -62,17 +62,21 @@ src/
 │  ├─ content.ts                typed data exports
 │  ├─ site.ts                   compatibility re-exports
 │  └─ faqs.ts                   chatbot content with runtime reply behavior
+├─ deck/ui/                     shareable executive brochure UI
 ├─ styles/
 │  ├─ globals.css               Tailwind layers + theme CSS vars under [data-theme]
 │  └─ themes.ts                 THEMES registry, applyTheme, readTheme helpers
 ├─ App.tsx, main.tsx
 index.html                      meta, OG, fonts (Bricolage Grotesque, Inter, Geist Mono)
                                 + pre-paint script that applies stored theme
+deck/index.html                 independent /deck/ entry with deck-specific sharing metadata
+public/deck.json                brochure content, links, UI labels, and selected colors
 tailwind.config.ts              colors, fonts, keyframes
 vite.config.ts                  binds 0.0.0.0:5000, allows all hosts (proxy/iframe-friendly)
 ```
 
 To edit homepage copy, products, testimonials, contact-interest options, or roadmap items, edit the matching JSON file in **`src/data/`**. Run `npm run validate:content` for a clear schema check; `npm run build` runs it automatically before compiling the site. The JSON is imported at build time, not fetched from a network. Chatbot FAQ entries remain in `src/data/faqs.ts` because some entries contain runtime reply functions.
+To edit the brochure's slide order, copy, product details, metrics, links, labels, or selected theme colors, edit **`public/deck.json`**. The deck fetches this JSON at runtime and shows an explicit error if the file is missing or malformed.
 
 ## Local development
 
@@ -86,6 +90,7 @@ npm run preview      # serves the built ./dist on :5000
 ## Workflow
 
 A single workflow named **`Start application`** runs `npm run dev` on port 5000.
+The homepage includes a fixed deck link; the standalone brochure is available at **`/deck/`** and supports direct visits and refreshes.
 
 ## Portability — deploy anywhere
 

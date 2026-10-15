@@ -19,5 +19,11 @@ services:
         value: nosniff
     routes:
       - type: rewrite
+        source: /deck
+        destination: /deck/index.html
+      - type: rewrite
+        source: /deck/*
+        destination: /deck/index.html
+      - type: rewrite
         source: /*
         destination: /index.html

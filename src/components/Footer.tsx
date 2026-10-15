@@ -1,8 +1,9 @@
-import { Linkedin, Twitter, Github } from "lucide-react";
+import { Linkedin, Twitter, Github, ArrowUpRight } from "lucide-react";
 import Logo from "./Logo";
 import Wordmark from "./ui/Wordmark";
 import BookMySlotText from "./ui/BookMySlotText";
 import { TAGLINE } from "../data/site";
+import "./Footer.css";
 
 const COLS: {
   title: string;
@@ -103,7 +104,23 @@ export default function Footer() {
             © {new Date().getFullYear()} Mossaic Technologies. All rights reserved.
           </span>
         </div>
+        <div className="deck-launch-reserve" aria-hidden="true" />
       </div>
+      <a
+        className="deck-launch-pill"
+        href={`${import.meta.env.BASE_URL}deck/`}
+        aria-label="Open the Mossaic executive deck and digital brochure"
+        data-testid="link-open-executive-deck"
+      >
+        <span className="deck-launch-dot" aria-hidden="true" />
+        <span className="deck-launch-copy">
+          <strong>Mossaic Executive Deck</strong>
+          <span>Company profile · Digital brochure</span>
+        </span>
+        <span className="deck-launch-action">
+          Open deck <ArrowUpRight size={14} aria-hidden="true" />
+        </span>
+      </a>
     </footer>
   );
 }
