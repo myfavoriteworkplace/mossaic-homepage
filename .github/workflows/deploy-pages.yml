@@ -30,7 +30,11 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci || {
+            echo "::warning::npm ci failed on the first attempt; retrying once"
+            npm ci
+          }
 
       - name: Build
         run: npm run build
@@ -46,6 +50,15 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
+
+      - name: Upload npm debug logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-debug-logs
+          path: ~/.npm/_logs/*-debug-0.log
+          if-no-files-found: ignore
+          retention-days: 7
 
   deploy:
     needs: build
