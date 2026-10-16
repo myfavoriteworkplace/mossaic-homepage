@@ -22,11 +22,12 @@ A futuristic, performance-first homepage for **Mossaic** — the company behind 
 
 Runs on **Node.js 22.22.0** (the project’s pinned build version).
 
-## Dependency portability
+## Code and dependency portability
 
 - Use packages published on public registries; do not depend on Replit-only packages or package hosts.
 - Keep npm configured for `https://registry.npmjs.org/` and ensure `package-lock.json` contains no `*.replit.internal` resolved URLs.
 - Before finishing dependency changes, check both `package.json` and the lockfile so clean installs work outside Replit.
+- Keep shared source code and build/CI configuration portable across hosts: use public libraries and standard APIs; do not commit Replit-only imports, internal hostnames, or assumptions about the Replit runtime. Keep unavoidable host-specific settings in host-specific configuration.
 
 ## Project structure
 
