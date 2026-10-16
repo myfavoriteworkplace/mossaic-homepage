@@ -1,0 +1,1 @@
+- [Portable npm lockfiles](portable-npm-lockfiles.md) — keep committed tarball URLs on npmjs.org; Replit’s internal package mirror is not reachable from GitHub Actions.
