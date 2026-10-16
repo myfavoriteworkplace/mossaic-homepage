@@ -20,7 +20,7 @@ A futuristic, performance-first homepage for **Mossaic** — the company behind 
 - **Lucide React** — icons
 - A small **vanilla canvas** particle network for the hero (no Three.js — keeps the bundle small)
 
-Runs on **Node.js 20**.
+Runs on **Node.js 22.22.0** (the project’s pinned build version).
 
 ## Dependency portability
 

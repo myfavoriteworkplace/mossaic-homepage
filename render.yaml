@@ -4,8 +4,11 @@ services:
   - type: web
     name: mossaic-homepage
     runtime: static
-    buildCommand: npm ci && npm run build
+    buildCommand: node --version && npm --version && npm ci && npm run build
     staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 22.22.0
     pullRequestPreviewsEnabled: true
     headers:
       - path: /assets/*

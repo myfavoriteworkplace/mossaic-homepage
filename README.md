@@ -6,7 +6,7 @@ Built with **React 18 + TypeScript + Vite + Tailwind CSS + Framer Motion**, plus
 
 ## Develop locally
 
-Requires **Node.js 20+**.
+Requires **Node.js 22.22.0** (the project’s pinned build version).
 
 ```bash
 npm install
