@@ -13,6 +13,7 @@ type Props = {
   disabled?: boolean;
   onClick?: () => void;
   style?: CSSProperties;
+  "data-testid"?: string;
 };
 
 export default function MagneticButton({
@@ -27,6 +28,7 @@ export default function MagneticButton({
   disabled,
   onClick,
   style,
+  "data-testid": testId,
 }: Props) {
   const ref = useRef<HTMLElement>(null);
   const x = useMotionValue(0);
@@ -57,6 +59,7 @@ export default function MagneticButton({
         rel={rel}
         className={className}
         style={{ ...style, x: sx, y: sy }}
+        data-testid={testId}
         onMouseMove={handle}
         onMouseLeave={reset}
         onClick={onClick}
@@ -73,6 +76,7 @@ export default function MagneticButton({
       disabled={disabled}
       className={className}
       style={{ ...style, x: sx, y: sy }}
+      data-testid={testId}
       onMouseMove={handle}
       onMouseLeave={reset}
       onClick={onClick}

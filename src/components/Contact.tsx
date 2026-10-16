@@ -3,21 +3,69 @@ import { Mail, MapPin, Globe, Send } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import MagneticButton from "./ui/MagneticButton";
 import { SITE, CONTACT_INTERESTS } from "../data/site";
+import CONTACT_CONFIG from "../data/contact-config.json";
 
 type Props = { onSubmitted: (msg: string) => void };
 
 export default function Contact({ onSubmitted }: Props) {
   const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const payload = {
+      name: String(formData.get("name") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      interest: String(formData.get("interest") ?? ""),
+      message: String(formData.get("message") ?? ""),
+      gotcha: String(formData.get("gotcha") ?? ""),
+    };
+
+    setErrorMessage(null);
     setSubmitting(true);
-    window.setTimeout(() => {
-      const form = e.currentTarget;
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 12_000);
+
+    try {
+      const response = await fetch(CONTACT_CONFIG.workerUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      let result: unknown;
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error("The email service returned an invalid response.");
+      }
+
+      const accepted =
+        typeof result === "object" &&
+        result !== null &&
+        "success" in result &&
+        result.success === true;
+
+      if (!response.ok || !accepted) {
+        throw new Error("The email service did not accept the message.");
+      }
+
       form.reset();
+      onSubmitted("Thanks — your message was submitted. We'll get back within 24 hours.");
+    } catch {
+      setErrorMessage(
+        controller.signal.aborted
+          ? `The request timed out. Please try again or email ${SITE.email}.`
+          : `We couldn't send your message. Please try again or email ${SITE.email}.`,
+      );
+    } finally {
+      window.clearTimeout(timeoutId);
       setSubmitting(false);
-      onSubmitted("Thanks — your message has been queued. We'll get back within 24 hours.");
-    }, 600);
+    }
   };
 
   return (
@@ -59,7 +107,31 @@ export default function Contact({ onSubmitted }: Props) {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <form className="flex flex-col gap-3.5" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-3.5"
+            onSubmit={handleSubmit}
+            data-testid="form-contact"
+          >
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: "-10000px",
+                width: 1,
+                height: 1,
+                overflow: "hidden",
+              }}
+            >
+              <label htmlFor="contact-gotcha">Leave this field empty</label>
+              <input
+                id="contact-gotcha"
+                type="text"
+                name="gotcha"
+                tabIndex={-1}
+                autoComplete="off"
+                data-testid="input-contact-gotcha"
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Field label="Name">
                 <input
@@ -68,6 +140,7 @@ export default function Contact({ onSubmitted }: Props) {
                   required
                   placeholder="Your name"
                   className="form-input"
+                  data-testid="input-contact-name"
                 />
               </Field>
               <Field label="Email">
@@ -77,11 +150,16 @@ export default function Contact({ onSubmitted }: Props) {
                   required
                   placeholder="you@example.com"
                   className="form-input"
+                  data-testid="input-contact-email"
                 />
               </Field>
             </div>
             <Field label="I'm interested in">
-              <select name="interest" className="form-input cursor-pointer">
+              <select
+                name="interest"
+                className="form-input cursor-pointer"
+                data-testid="select-contact-interest"
+              >
                 {CONTACT_INTERESTS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -93,18 +171,31 @@ export default function Contact({ onSubmitted }: Props) {
               <textarea
                 name="message"
                 rows={4}
+                required
                 placeholder="Tell us what you're working on or what you need..."
                 className="form-input resize-none leading-relaxed"
+                data-testid="input-contact-message"
               />
             </Field>
             <MagneticButton
               type="submit"
               disabled={submitting}
               className="self-start inline-flex items-center gap-2 bg-moss hover:bg-moss-dark disabled:opacity-70 text-white rounded-[10px] px-6 py-3.5 text-sm font-semibold transition-colors"
+              data-testid="button-submit-contact"
             >
               {submitting ? "Sending…" : "Send message"}
               <Send size={13} />
             </MagneticButton>
+            {errorMessage && (
+              <p
+                className="text-sm text-ink-2"
+                role="alert"
+                aria-live="assertive"
+                data-testid="status-contact-error"
+              >
+                {errorMessage}
+              </p>
+            )}
           </form>
 
           <style>{`
