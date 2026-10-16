@@ -1,0 +1,21 @@
+The Worker URL and recipient are enough to define the integration target, but the app and Worker run separately, so a JSON file in the app cannot by itself change where the Worker sends mail. To make the settings authoritative and keep them out of the form component, I recommend tracking the Worker source/config alongside the app.
+Proposed implementation plan
+1. Keep configuration at the right boundary
+    * Add an app-side JSON config containing the public Worker URL (https://mossaic-contact-email-api.bookmyslot-1-2.workers.dev/) and client request settings.
+    * Track the contact Worker source and a separate server-side JSON config in the project. That config would set the recipient to mossaic@zohomail.in, allowed website origins, and request limits.
+    * Keep RESEND_API_KEY only as an encrypted Cloudflare Worker secret—never in either JSON file, the app bundle, or GitHub.
+    * The recipient address in a committed config may be visible if the repository is public. The browser will not send a recipient address; the Worker will use its fixed server-side setting.
+2. Connect the existing form
+    * Replace the simulated delay in src/components/Contact.tsx with a JSON POST to the configured Worker URL.
+    * Send the fields the form actually collects: name, email, interest, message, and a hidden honeypot value.
+    * Capture the form element before awaiting the request, avoiding the current delayed event.currentTarget issue.
+    * Show success only after the Worker confirms Resend accepted the message. On errors, keep the user’s entries and show a useful failure message; always restore the button state.
+3. Align the Worker contract and safeguards
+    * Include the interest category in the email and keep the recipient fixed in Worker config, not supplied by the browser.
+    * The current form allows an empty message, while the supplied Worker example rejects it. I recommend making the message required so the UI and Worker agree.
+    * Validate field types and lengths; escape submitted text before putting it in HTML email; use exact allowed origins rather than a wildcard; and add rate limiting alongside the honeypot. CORS alone is not spam protection.
+    * Confirm the sender address. The guide’s onboarding@resend.dev is for testing; branded production mail requires a sender on a verified domain.
+4. Verify without sending an email unexpectedly
+    * Run the app build and check the Worker’s preflight/validation behavior.
+    * Don’t send a live test message or deploy Worker changes without your approval. A real email test can follow once the sender is confirmed.
+One scope choice remains: tracking the Worker source in this repository makes the JSON settings usable as the source of truth; leaving the Worker managed only in Cloudflare means only the app URL can be configured here. Should I proceed with the recommended app-and-Worker configuration plan?
