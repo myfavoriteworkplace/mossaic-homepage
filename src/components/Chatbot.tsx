@@ -2242,69 +2242,82 @@ export default function Chatbot() {
             {/* Input row */}
             <form
               onSubmit={handleSubmit}
-              className="flex items-center gap-2 px-3 py-3"
+              className="flex flex-col gap-1 px-3 py-2"
               style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
             >
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={
-                  listening ? "Listening…" : "Ask about Mossaic or bookMySlot"
-                }
-                aria-label="Type your question"
-                className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-white/35 text-white px-2 py-2 rounded-md"
-                style={{
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(255,255,255,0.03)",
-                }}
-              />
+              <p
+                role="note"
+                className="px-1 text-[11px] leading-relaxed text-white/55"
+              >
+                FAQ answers stay in your browser. For Malayalam or questions
+                the FAQ can&apos;t answer, your message and up to six recent
+                chat messages are sent via our Cloudflare Worker to Groq. A
+                name you shared may be included. Please don&apos;t share
+                sensitive information.
+              </p>
 
-              {recognitionCtor && (
+              <div className="flex items-center gap-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    listening ? "Listening…" : "Ask about Mossaic or bookMySlot"
+                  }
+                  aria-label="Type your question"
+                  className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-white/35 text-white px-2 py-2 rounded-md"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.03)",
+                  }}
+                />
+
+                {recognitionCtor && (
+                  <button
+                    type="button"
+                    onClick={startListening}
+                    aria-label={listening ? "Stop listening" : "Speak your question"}
+                    aria-pressed={listening}
+                    className="flex items-center justify-center rounded-md transition-all"
+                    style={{
+                      width: 36,
+                      height: 36,
+                      background: listening
+                        ? "rgba(34,211,238,0.22)"
+                        : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${
+                        listening ? ACCENT : "rgba(255,255,255,0.08)"
+                      }`,
+                      color: listening ? "#22d3ee" : "rgba(255,255,255,0.75)",
+                      boxShadow: listening
+                        ? "0 0 18px -4px rgba(34,211,238,0.6)"
+                        : "none",
+                    }}
+                    title={listening ? "Stop listening" : "Speak your question"}
+                  >
+                    <Mic size={15} />
+                  </button>
+                )}
+
                 <button
-                  type="button"
-                  onClick={startListening}
-                  aria-label={listening ? "Stop listening" : "Speak your question"}
-                  aria-pressed={listening}
-                  className="flex items-center justify-center rounded-md transition-all"
+                  type="submit"
+                  aria-label="Send"
+                  disabled={!input.trim()}
+                  className="flex items-center justify-center rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{
                     width: 36,
                     height: 36,
-                    background: listening
-                      ? "rgba(34,211,238,0.22)"
-                      : "rgba(255,255,255,0.04)",
-                    border: `1px solid ${
-                      listening ? ACCENT : "rgba(255,255,255,0.08)"
-                    }`,
-                    color: listening ? "#22d3ee" : "rgba(255,255,255,0.75)",
-                    boxShadow: listening
-                      ? "0 0 18px -4px rgba(34,211,238,0.6)"
-                      : "none",
+                    background:
+                      "linear-gradient(135deg, rgba(34,211,238,0.85) 0%, rgba(34,211,238,0.65) 100%)",
+                    color: "#04141f",
+                    border: `1px solid ${ACCENT}`,
+                    boxShadow: "0 4px 14px -4px rgba(34,211,238,0.55)",
                   }}
-                  title={listening ? "Stop listening" : "Speak your question"}
                 >
-                  <Mic size={15} />
+                  <Send size={14} strokeWidth={2.4} />
                 </button>
-              )}
-
-              <button
-                type="submit"
-                aria-label="Send"
-                disabled={!input.trim()}
-                className="flex items-center justify-center rounded-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{
-                  width: 36,
-                  height: 36,
-                  background:
-                    "linear-gradient(135deg, rgba(34,211,238,0.85) 0%, rgba(34,211,238,0.65) 100%)",
-                  color: "#04141f",
-                  border: `1px solid ${ACCENT}`,
-                  boxShadow: "0 4px 14px -4px rgba(34,211,238,0.55)",
-                }}
-              >
-                <Send size={14} strokeWidth={2.4} />
-              </button>
+              </div>
             </form>
           </motion.div>
         )}
