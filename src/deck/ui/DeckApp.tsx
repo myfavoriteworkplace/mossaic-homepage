@@ -14,6 +14,7 @@ import {
   Layers3,
   Mail,
   MapPin,
+  MessageCircle,
   PackageCheck,
   Printer,
   RefreshCw,
@@ -38,6 +39,7 @@ type PatientStatus = "pending" | "confirmed";
 const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
 const emailHref = `mailto:${SITE_CONFIG.site.email}`;
+const whatsappHref = "https://wa.me/919746767146";
 const bookingProduct = PRODUCTS.find((product) => product.id === "bookmyslot");
 const studioService = PRODUCTS.find((product) => product.id === "mossaic-studio");
 const aeroPulse = STUDIO_PROJECTS.find((project) => project.id === "aeropulse-logistics");
@@ -372,17 +374,18 @@ function ProductPipeline({ content }: { content: DeckContent }) {
           <h2>{content.narrative.closingTitle}</h2>
           <p>{content.narrative.closingDescription}</p>
           <div className="deck-contact-details">
-            <a href={emailHref}><Mail aria-hidden="true" />{SITE_CONFIG.site.email}</a>
-            <a href={siteUrl} target="_blank" rel="noopener noreferrer"><Globe2 aria-hidden="true" />{siteUrl.replace(/^https?:\/\//, "")}</a>
+            <a href={emailHref} data-testid="deck-contact-email"><Mail aria-hidden="true" />{SITE_CONFIG.site.email}</a>
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-whatsapp"><MessageCircle aria-hidden="true" />WhatsApp · +91 97467 67146</a>
+            <a href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-site"><Globe2 aria-hidden="true" />{siteUrl.replace(/^https?:\/\//, "")}</a>
             <span className="deck-contact-location"><MapPin aria-hidden="true" />{SITE_CONFIG.site.location}</span>
           </div>
         </div>
         <div className="deck-contact-qrs" aria-label="Scan for Mossaic destinations">
-          <a className="deck-contact-qr" href={siteUrl} target="_blank" rel="noopener noreferrer">
+          <a className="deck-contact-qr" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-qr-site">
             <LocalQr value={siteUrl} label="Mossaic website" />Company site
           </a>
-          <a className="deck-contact-qr" href={emailHref}>
-            <LocalQr value={emailHref} label="Mossaic email" />Email Mossaic
+          <a className="deck-contact-qr" href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-qr-whatsapp">
+            <LocalQr value={whatsappHref} label="Mossaic WhatsApp chat" />WhatsApp chat
           </a>
         </div>
       </div>
@@ -396,7 +399,13 @@ function ProductPipeline({ content }: { content: DeckContent }) {
 function PipelineProduct({ product }: { product: Product }) {
   const href = resolveLink(product.cta.href);
   return (
-    <a className="deck-pipeline-item" href={href} target={isExternalLink(href) ? "_blank" : undefined} rel={isExternalLink(href) ? "noopener noreferrer" : undefined}>
+    <a
+      className="deck-pipeline-item"
+      href={href}
+      target={isExternalLink(href) ? "_blank" : undefined}
+      rel={isExternalLink(href) ? "noopener noreferrer" : undefined}
+      data-testid={`deck-pipeline-${product.id}`}
+    >
       <div>
         <h3>{product.name}</h3>
         <p>{product.description}</p>
@@ -406,19 +415,16 @@ function PipelineProduct({ product }: { product: Product }) {
   );
 }
 
-function ClosingShowcase({ slide, content }: { slide: DeckSlide; content: DeckContent }) {
+function ClosingShowcase({ slide }: { slide: DeckSlide }) {
   return (
-    <>
-      <article className="deck-slide deck-closing" data-slide="closing" aria-label={`${slide.eyebrow}: ${slide.title}`}>
-        <SlideHeader slide={slide} href={contactHref} linkLabel="Start a conversation" />
-        <div className="deck-closing-facts">
-          {SITE_CONFIG.complianceBadges.map((badge) => <span className="deck-tag" key={badge}><ShieldCheck aria-hidden="true" />{badge}</span>)}
-          <p className="deck-fact-note"><ClipboardList aria-hidden="true" />{SITE_CONFIG.company.focus}</p>
-        </div>
-        <SlideFoot slide={slide} />
-      </article>
-      <ProductPipeline content={content} />
-    </>
+    <article className="deck-slide deck-closing" data-slide="closing" aria-label={`${slide.eyebrow}: ${slide.title}`}>
+      <SlideHeader slide={slide} href={contactHref} linkLabel="Start a conversation" />
+      <div className="deck-closing-facts">
+        {SITE_CONFIG.complianceBadges.map((badge) => <span className="deck-tag" key={badge}><ShieldCheck aria-hidden="true" />{badge}</span>)}
+        <p className="deck-fact-note"><ClipboardList aria-hidden="true" />{SITE_CONFIG.company.focus}</p>
+      </div>
+      <SlideFoot slide={slide} />
+    </article>
   );
 }
 
@@ -439,7 +445,7 @@ function SlideContent({ slide, content, onDemoUpdate }: {
   if (slide.kind === "bookmyslot") return <BookingShowcase slide={slide} content={content} />;
   if (slide.kind === "aeropulse") return <AeroPulseShowcase slide={slide} content={content} onDemoUpdate={onDemoUpdate} />;
   if (slide.kind === "systems") return <SystemsShowcase slide={slide} content={content} />;
-  return <ClosingShowcase slide={slide} content={content} />;
+  return <ClosingShowcase slide={slide} />;
 }
 
 export function DeckApp({ config }: DeckAppProps) {
@@ -645,10 +651,7 @@ export function DeckApp({ config }: DeckAppProps) {
           <section className="deck-empty" role="status" data-testid="deck-empty">{config.ui.emptyMessage}</section>
         )}
 
-        <footer className="deck-bottom-meta">
-          <span>{SITE_CONFIG.site.tagline} · {SITE_CONFIG.site.location}</span>
-          <a className="deck-email-link" href={emailHref} data-testid="deck-contact">{SITE_CONFIG.site.email}</a>
-        </footer>
+        <ProductPipeline content={config} />
       </div>
       {notice ? <div className="deck-toast" role="status" data-testid="deck-notice"><Check className="deck-icon" aria-hidden="true" />{notice}</div> : null}
     </main>
