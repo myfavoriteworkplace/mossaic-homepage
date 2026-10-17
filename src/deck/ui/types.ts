@@ -34,6 +34,7 @@ export type DemoPatient = {
   name: string;
   id: string;
   age: string;
+  gender: string;
   scheduled: string;
   reason: string;
   status: "pending" | "confirmed";
@@ -89,7 +90,6 @@ export type DeckContent = {
     dashboardTitle: string;
     dashboardHint: string;
     demoDisclaimer: string;
-    demoMetricTitle: string;
     demoMetrics: { value: string; label: string }[];
     routeLabel: string;
     routeCities: string;
@@ -100,6 +100,7 @@ export type DeckContent = {
     routeFeatures: { title: string; description: string }[];
     systems: { title: string; description: string }[];
     pipelineTitle: string;
+    pipelineProducts: { productId: string; title: string; description: string }[];
     closingTitle: string;
     closingDescription: string;
   };

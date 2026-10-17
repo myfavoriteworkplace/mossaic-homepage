@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,19 +15,15 @@ import {
   Mail,
   MapPin,
   MessageCircle,
-  PackageCheck,
   Printer,
   RefreshCw,
   Share2,
   ShieldCheck,
-  Sparkles,
-  Stethoscope,
   Truck,
-  Wifi,
 } from "lucide-react";
 import Logo from "../../components/Logo";
 import Wordmark from "../../components/ui/Wordmark";
-import { HERO_STATS, PRODUCTS, SITE_CONFIG, STUDIO_PROJECTS } from "../../data/content";
+import { HERO_STATS, PRODUCTS, ROADMAP, SITE_CONFIG, STUDIO_PROJECTS } from "../../data/content";
 import type { Product } from "../../data/schemas";
 import type { DeckContent, DeckSlide } from "./types";
 import { LocalQr } from "./qr";
@@ -40,6 +36,7 @@ const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
 const emailHref = `mailto:${SITE_CONFIG.site.email}`;
 const whatsappHref = "https://wa.me/919746767146";
+const consultationHref = `${whatsappHref}?text=${encodeURIComponent("Hi Mossaic team, I'd like to discuss a custom web project.")}`;
 const bookingProduct = PRODUCTS.find((product) => product.id === "bookmyslot");
 const studioService = PRODUCTS.find((product) => product.id === "mossaic-studio");
 const aeroPulse = STUDIO_PROJECTS.find((project) => project.id === "aeropulse-logistics");
@@ -67,31 +64,49 @@ function SlideHeader({
   href,
   linkLabel,
   titleOverride,
+  highlightOverride,
   descriptionOverride,
   eyebrowOverride,
-  statusLabel,
+  titleHref,
 }: {
   slide: DeckSlide;
   href?: string;
   linkLabel?: string;
-  titleOverride?: string;
+  titleOverride?: ReactNode;
+  highlightOverride?: string;
   descriptionOverride?: string;
   eyebrowOverride?: string;
-  statusLabel?: string;
+  titleHref?: string;
 }) {
   const external = href ? isExternalLink(href) : false;
+  const externalTitle = titleHref ? isExternalLink(titleHref) : false;
+  const subtitle = descriptionOverride ?? slide.description;
+  const highlight = highlightOverride ?? slide.highlight;
+  const heading = (
+    <>
+      {titleOverride ?? slide.title}
+      {highlight ? <> <em>{highlight}</em></> : null}
+    </>
+  );
   return (
     <div className="deck-slide-head">
       <div className="deck-slide-head-main">
         <div className="deck-slide-labels">
           <span className="deck-slide-kicker">{eyebrowOverride ?? slide.eyebrow}</span>
-          {statusLabel ? <span className="deck-status-canonical">{statusLabel}</span> : null}
         </div>
         <h2 className="deck-slide-title">
-          {titleOverride ?? slide.title}
-          {slide.highlight ? <> <em>{slide.highlight}</em></> : null}
+          {titleHref ? (
+            <a
+              className="deck-slide-title-link"
+              href={titleHref}
+              target={externalTitle ? "_blank" : undefined}
+              rel={externalTitle ? "noopener noreferrer" : undefined}
+            >
+              {heading}<ArrowUpRight aria-hidden="true" />
+            </a>
+          ) : heading}
         </h2>
-        <p className="deck-slide-subtitle">{descriptionOverride ?? slide.description}</p>
+        {subtitle ? <p className="deck-slide-subtitle">{subtitle}</p> : null}
       </div>
       {href && linkLabel ? (
         <a
@@ -119,13 +134,13 @@ function PatientCard({
   onToggle: () => void;
 }) {
   return (
-    <article className="deck-patient">
+    <article className="deck-patient" data-status={status}>
       <div className="deck-patient-header">
         <div className="deck-patient-identity">
           <div className="deck-avatar" aria-hidden="true">{patient.initials}</div>
           <div>
             <div className="deck-patient-name">{patient.name}</div>
-            <div className="deck-patient-id">{patient.id} · {patient.age}y</div>
+            <div className="deck-patient-id">{patient.id} • {patient.age}y {patient.gender}</div>
           </div>
         </div>
         <button
@@ -136,13 +151,13 @@ function PatientCard({
           aria-label={`Demo appointment status for ${patient.name}: ${status}. Toggle status`}
           aria-pressed={status === "confirmed"}
         >
-          {status === "confirmed" ? "Confirmed" : "Pending"}
+          {status === "confirmed" ? "Confirmed ✓" : "Pending ⚡"}
         </button>
       </div>
       <div className="deck-patient-details">
-        <div className="deck-patient-detail"><CalendarDays aria-hidden="true" /> <span>{patient.scheduled}</span></div>
-        <div className="deck-patient-detail"><Stethoscope aria-hidden="true" /> <span>{patient.reason}</span></div>
-        <div className="deck-patient-detail"><Mail aria-hidden="true" /> <span>Reminder · enabled</span></div>
+        <div className="deck-patient-detail"><CalendarDays aria-hidden="true" /> <span>Scheduled: {patient.scheduled}</span></div>
+        <div className="deck-patient-detail"><MessageCircle aria-hidden="true" /> <span>Reason: {patient.reason}</span></div>
+        <div className="deck-patient-detail"><Mail aria-hidden="true" /> <span>Reminders: Email Active</span></div>
       </div>
     </article>
   );
@@ -171,15 +186,29 @@ function BookingShowcase({
     <article className="deck-slide" data-slide="bookmyslot" aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        titleOverride={bookingProduct?.name}
-        descriptionOverride={bookingProduct?.description}
-        statusLabel={bookingProduct?.statusLabel}
+        eyebrowOverride="LIVE SaaS PRODUCT"
+        titleOverride={(
+          <>
+            <span>book<span className="deck-book-brand-highlight">My</span>Slot</span>
+            <span className="deck-product-title-caption">— Dental Practice Management</span>
+          </>
+        )}
+        highlightOverride=""
+        descriptionOverride=""
+        titleHref={productHref}
         href={productHref}
-        linkLabel="Open product"
+        linkLabel="Active in 50+ Clinics"
       />
-      <div className="deck-metrics-grid deck-product-metrics" aria-label="Official bookMySlot product metrics">
-        {officialMetrics.map((metric) => (
-          <MetricCard key={`${metric.value}-${metric.label}`} value={metric.value} label={metric.label} />
+      <div className="deck-metrics-grid deck-product-metrics" aria-label="bookMySlot metrics and illustrative examples">
+        {officialMetrics[0] ? (
+          <MetricCard
+            key={`${officialMetrics[0].value}-${officialMetrics[0].label}`}
+            value={officialMetrics[0].value}
+            label={officialMetrics[0].label}
+          />
+        ) : null}
+        {content.narrative.demoMetrics.slice(0, 2).map((metric) => (
+          <MetricCard key={metric.label} value={metric.value} label={metric.label} demo />
         ))}
         <a
           className="deck-metric-card deck-qr-card"
@@ -192,13 +221,11 @@ function BookingShowcase({
           <span className="deck-qr-link">Scan to visit</span>
         </a>
       </div>
-      <div className="deck-product-tags" aria-label="Product capabilities">
-        {bookingProduct?.tags.map((tag) => <span className="deck-tag" key={tag}>{tag}</span>)}
-      </div>
+      <p className="deck-demo-note"><Info aria-hidden="true" />{content.narrative.demoDisclaimer}</p>
       <div>
         <div className="deck-dashboard-title">
-          <span>{content.narrative.dashboardTitle}</span>
-          <small>{content.narrative.dashboardHint}</small>
+          <span>{content.narrative.dashboardTitle} <small>{content.narrative.dashboardHint}</small></span>
+          <a href={productHref} target="_blank" rel="noopener noreferrer">bookmyslot.dental.mossaic.in <ArrowUpRight aria-hidden="true" /></a>
         </div>
         <div className="deck-patient-grid">
           {content.demoPatients.map((patient, index) => (
@@ -210,17 +237,7 @@ function BookingShowcase({
             />
           ))}
         </div>
-        <p className="deck-demo-note"><Info aria-hidden="true" />{content.narrative.demoDisclaimer}</p>
       </div>
-      <div className="deck-demo-snapshot">
-        <div className="deck-section-eyebrow">{content.narrative.demoMetricTitle}</div>
-        <div className="deck-metrics-grid deck-demo-metrics">
-          {content.narrative.demoMetrics.map((metric) => (
-            <MetricCard key={metric.label} value={metric.value} label={metric.label} demo />
-          ))}
-        </div>
-      </div>
-      <SlideFoot slide={slide} />
     </article>
   );
 }
@@ -261,28 +278,31 @@ function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
     <article className="deck-slide" data-slide="aeropulse" aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        titleOverride={aeroPulse?.name}
-        eyebrowOverride={aeroPulse ? `Studio project · ${aeroPulse.category}` : "Studio project"}
+        titleOverride="AeroPulse Logistics Platform"
+        highlightOverride=""
+        descriptionOverride=""
+        eyebrowOverride="CUSTOM SYSTEM DEPLOYMENT"
+        titleHref={projectHref}
         href={projectHref}
-        linkLabel="View Studio project"
+        linkLabel="View Live Operational App"
       />
       <section className="deck-route-card" aria-label="AeroPulse illustrative route simulator">
         <div className="deck-route-head">
-          <div className="deck-route-title"><Truck aria-hidden="true" />{content.narrative.routeLabel}</div>
+          <div className="deck-route-title"><span className="deck-route-pulse" aria-hidden="true" /><Truck aria-hidden="true" />{content.narrative.routeLabel}</div>
           <span className="deck-route-name">{content.narrative.routeCities}</span>
         </div>
         <RouteGraphic progress={snapshot.progress} origin={content.narrative.origin} destination={content.narrative.destination} />
         <div className="deck-route-stats">
           <div className="deck-route-stat">
-            <div className="deck-route-stat-label">Estimated delivery window</div>
+            <div className="deck-route-stat-label">Est. Delivery Window</div>
             <div className="deck-route-stat-value">{snapshot.eta}</div>
           </div>
           <div className="deck-route-stat">
-            <div className="deck-route-stat-label">Cargo payload</div>
+            <div className="deck-route-stat-label">Cargo Payload</div>
             <div className="deck-route-stat-value">{snapshot.cargo}</div>
           </div>
           <div className="deck-route-stat">
-            <div className="deck-route-stat-label">Telematics state</div>
+            <div className="deck-route-stat-label">Automated Telematics Sync</div>
             <div className="deck-route-stat-value">{snapshot.state}</div>
           </div>
         </div>
@@ -295,35 +315,29 @@ function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
         </div>
       </section>
       <div className="deck-route-feature-grid">
-        {content.narrative.routeFeatures.map((feature, index) => (
+        {content.narrative.routeFeatures.map((feature) => (
           <article className="deck-feature-card" key={feature.title}>
-            <span className="deck-feature-icon" aria-hidden="true">
-              {index === 0 ? <PackageCheck /> : null}
-              {index === 1 ? <Wifi /> : null}
-              {index === 2 ? <RefreshCw /> : null}
-            </span>
             <h4>{feature.title}</h4>
             <p>{feature.description}</p>
           </article>
         ))}
       </div>
-      <SlideFoot slide={slide} />
     </article>
   );
 }
 
 function SystemsShowcase({ slide, content }: { slide: DeckSlide; content: DeckContent }) {
-  const projectHref = aeroPulse?.href ?? siteUrl;
   const contactLink = studioService?.cta.href ? resolveLink(studioService.cta.href) : contactHref;
   return (
     <article className="deck-slide" data-slide="systems" aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        titleOverride={studioService?.name}
-        descriptionOverride={studioService?.description}
-        statusLabel={studioService?.statusLabel}
+        eyebrowOverride="HIGH-PERFORMANCE ARCHITECTURE"
+        titleOverride="Custom Websites & Enterprise Applications"
+        highlightOverride=""
+        descriptionOverride=""
         href={contactLink}
-        linkLabel="Discuss a system"
+        linkLabel="Available for Hire"
       />
       <div className="deck-systems-grid">
         {content.narrative.systems.map((system, index) => (
@@ -334,40 +348,38 @@ function SystemsShowcase({ slide, content }: { slide: DeckSlide; content: DeckCo
           </article>
         ))}
       </div>
-      {aeroPulse ? (
-        <div className="deck-project-strip">
-          <div className="deck-project-copy">
-            <div className="deck-project-label"><Sparkles aria-hidden="true" /> Featured custom system deployment</div>
-            <h3 className="deck-project-title">{aeroPulse.name}</h3>
-            <p className="deck-project-category">{aeroPulse.category} · Studio project</p>
-          </div>
-          <a className="deck-button" href={projectHref} target="_blank" rel="noopener noreferrer">
-            View project <ArrowUpRight className="deck-icon" aria-hidden="true" />
-          </a>
+      <aside className="deck-system-cta">
+        <div>
+          <h3>Have a custom business software requirement?</h3>
+          <p>Our engineering team designs custom enterprise web systems, SaaS platforms, and internal tools.</p>
         </div>
-      ) : null}
-      <ul className="deck-principles-list" aria-label="How Mossaic works">
-        {SITE_CONFIG.principles.slice(0, 4).map((principle) => (
-          <li className="deck-principle" key={principle.num}>
-            <span className="deck-principle-index">{principle.num}</span>
-            <div><strong>{principle.title}</strong><span>{principle.desc}</span></div>
-          </li>
-        ))}
-      </ul>
-      <SlideFoot slide={slide} />
+        <a className="deck-button deck-button-primary" href={consultationHref} target="_blank" rel="noopener noreferrer">
+          Schedule Tech Consultation <ArrowUpRight className="deck-icon" aria-hidden="true" />
+        </a>
+      </aside>
     </article>
   );
 }
 
 function ProductPipeline({ content }: { content: DeckContent }) {
-  const pipeline = PRODUCTS.filter((product) => product.id !== "bookmyslot" && product.status !== "live");
   return (
     <section className="deck-pipeline-contact" id="deck-contact-panel" aria-labelledby="deck-pipeline-title">
       <h2 className="deck-pipeline-title" id="deck-pipeline-title">{content.narrative.pipelineTitle}</h2>
       <div className="deck-pipeline-grid">
-        {pipeline.map((product) => (
-          <PipelineProduct key={product.id} product={product} />
-        ))}
+        {content.narrative.pipelineProducts.map((pipelineCopy) => {
+          const product = PRODUCTS.find((item) => item.id === pipelineCopy.productId);
+          if (!product) return null;
+          const year = ROADMAP.find((item) => item.name === product.name)?.year ?? product.statusLabel;
+          return (
+            <PipelineProduct
+              key={product.id}
+              product={product}
+              title={pipelineCopy.title}
+              description={pipelineCopy.description}
+              year={year}
+            />
+          );
+        })}
       </div>
       <div className="deck-contact-row">
         <div className="deck-contact-copy">
@@ -375,29 +387,35 @@ function ProductPipeline({ content }: { content: DeckContent }) {
           <p>{content.narrative.closingDescription}</p>
           <div className="deck-contact-details">
             <a href={emailHref} data-testid="deck-contact-email"><Mail aria-hidden="true" />{SITE_CONFIG.site.email}</a>
-            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-whatsapp"><MessageCircle aria-hidden="true" />WhatsApp · +91 97467 67146</a>
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-whatsapp"><MessageCircle aria-hidden="true" />Phone / WhatsApp · +91 97467 67146</a>
             <a href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-site"><Globe2 aria-hidden="true" />{siteUrl.replace(/^https?:\/\//, "")}</a>
             <span className="deck-contact-location"><MapPin aria-hidden="true" />{SITE_CONFIG.site.location}</span>
           </div>
         </div>
         <div className="deck-contact-qrs" aria-label="Scan for Mossaic destinations">
           <a className="deck-contact-qr" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-qr-site">
-            <LocalQr value={siteUrl} label="Mossaic website" />Company site
+            <LocalQr value={siteUrl} label="Mossaic website" />mossaic.in
           </a>
           <a className="deck-contact-qr" href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-qr-whatsapp">
-            <LocalQr value={whatsappHref} label="Mossaic WhatsApp chat" />WhatsApp chat
+            <LocalQr value={whatsappHref} label="Mossaic WhatsApp chat" />WhatsApp Chat
           </a>
         </div>
       </div>
       <div className="deck-copyright">
-        {SITE_CONFIG.site.name} · {SITE_CONFIG.company.hq} · {SITE_CONFIG.company.team}
+        © {new Date().getFullYear()} mossAIc Technologies · All rights reserved.
       </div>
     </section>
   );
 }
 
-function PipelineProduct({ product }: { product: Product }) {
+function PipelineProduct({ product, title, description, year }: {
+  product: Product;
+  title: string;
+  description: string;
+  year: string;
+}) {
   const href = resolveLink(product.cta.href);
+  const yearTone = product.status === "soon" ? "amber" : "purple";
   return (
     <a
       className="deck-pipeline-item"
@@ -407,10 +425,10 @@ function PipelineProduct({ product }: { product: Product }) {
       data-testid={`deck-pipeline-${product.id}`}
     >
       <div>
-        <h3>{product.name}</h3>
-        <p>{product.description}</p>
+          <h3>{title}</h3>
+          <p>{description}</p>
       </div>
-      <span className={`deck-pipeline-status deck-status-${product.status}`}>{product.statusLabel}</span>
+      <span className={`deck-pipeline-status deck-pipeline-status-${yearTone}`}>{year}</span>
     </a>
   );
 }
@@ -534,6 +552,21 @@ export function DeckApp({ config }: DeckAppProps) {
     if (event.pointerType === "mouse" || (event.target as HTMLElement).closest("button, a")) return;
     pointerStart.current = event.clientX;
   };
+  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const card = event.currentTarget.querySelector<HTMLElement>(".deck-slide");
+    if (!card) return;
+    const bounds = card.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+    card.style.setProperty("--tilt-x", `${-y * 8}deg`);
+    card.style.setProperty("--tilt-y", `${x * 8}deg`);
+  };
+  const resetCardTilt = () => {
+    const card = document.querySelector<HTMLElement>(".deck-mode-carousel .deck-slide");
+    card?.style.setProperty("--tilt-x", "0deg");
+    card?.style.setProperty("--tilt-y", "0deg");
+  };
   const handlePointerUp = (event: ReactPointerEvent<HTMLElement>) => {
     if (pointerStart.current === null) return;
     const delta = event.clientX - pointerStart.current;
@@ -629,7 +662,9 @@ export function DeckApp({ config }: DeckAppProps) {
               aria-roledescription="carousel"
               aria-label={config.ui.carouselAriaLabel}
               onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
+              onPointerLeave={resetCardTilt}
               data-testid="deck-carousel"
             >
               <SlideContent slide={activeSlide} content={config} onDemoUpdate={onDemoUpdate} />

@@ -80,41 +80,52 @@
     }
   ],
   "narrative": {
-    "dashboardTitle": "Clinical workspace · illustrative preview",
-    "dashboardHint": "Status buttons are local demo interactions",
-    "demoDisclaimer": "Illustrative demo data only. Synthetic patient names, ages, visit reasons, timings, weekly revenue and confirmation example are not customer records or product performance claims.",
-    "demoMetricTitle": "Example clinic snapshot · illustrative demo data",
+    "dashboardTitle": "Clinical Dashboard Preview",
+    "dashboardHint": "(Click status badge to simulate live update)",
+    "demoDisclaimer": "Synthetic patient details and the 2 mins / ₹38k examples are illustrative, not product-performance claims. The current published average confirmation time is 12s.",
     "demoMetrics": [
-      { "value": "2 min", "label": "Example confirmation" },
-      { "value": "₹38k", "label": "Example weekly revenue" }
+      { "value": "2 mins", "label": "Avg Confirm Time" },
+      { "value": "₹38k", "label": "Weekly Revenue" }
     ],
-    "routeLabel": "Illustrative route simulator",
-    "routeCities": "Kochi → Mumbai",
+    "routeLabel": "Illustrative telematics simulator · Route #AP-8842",
+    "routeCities": "Kochi → Mumbai (Transit)",
     "origin": "Kochi Port",
     "destination": "Mumbai Hub",
     "routeSnapshots": [
-      { "eta": "18h 24m", "cargo": "14.2 t · chilled", "state": "Operational", "progress": 49 },
+      { "eta": "18 Hours 24 Mins", "cargo": "14.2 Tons (Temperature Controlled)", "state": "100% Operational", "progress": 49 },
       { "eta": "16h 50m", "cargo": "12.8 t · dry goods", "state": "At transit hub", "progress": 68 },
       { "eta": "21h 10m", "cargo": "9.4 t · priority", "state": "Route recalculated", "progress": 35 }
     ],
     "routeDisclaimer": "Illustrative route, ETA, cargo and operating states for interface demonstration only; not connected to a live vehicle, customer shipment or telematics feed.",
     "routeFeatures": [
-      { "title": "Route-aware operations", "description": "A focused view for dispatchers to scan a journey, its progress and the next decision point." },
-      { "title": "Operational clarity", "description": "Bring shipment context, status and exceptions into one shared working surface." },
-      { "title": "Systems that connect", "description": "Shape integrations around the ERP, warehouse and communication tools already in use." }
+      { "title": "Real-Time Rate Engine", "description": "Instant dynamic pricing based on distance, cargo density, and fuel surcharges." },
+      { "title": "Multi-Modal Dispatch", "description": "Seamless tracking for road freight, air cargo, and maritime container shipments." },
+      { "title": "Custom API Integrations", "description": "Direct ERP and warehouse management integration with automated WhatsApp updates." }
     ],
     "systems": [
-      { "title": "Fast, focused experiences", "description": "Purpose-built interfaces that keep the core task clear across desktop and mobile." },
-      { "title": "Maintainable foundations", "description": "Modular architecture and clear ownership make change safer after launch." },
-      { "title": "Workflows with context", "description": "Dashboards and automation mapped to the handoffs and decisions your team actually makes." }
+      { "title": "Lightning-Fast Speed", "description": "Fast, focused web experiences designed for responsive use across desktop and mobile." },
+      { "title": "Safe & Easy Maintenance", "description": "Clean static-first, modular architecture makes updates easier to manage and supports secure-by-design practices." },
+      { "title": "Interactive Custom Workflows", "description": "Tailored dashboards, live tracking overlays, and automated booking workflows shaped around each operation." }
     ],
-    "pipelineTitle": "Product pipeline",
+    "pipelineTitle": "Upcoming Product Pipeline",
+    "pipelineProducts": [
+      {
+        "productId": "retail-crm",
+        "title": "Retail CRM Platform",
+        "description": "WhatsApp-native customer interaction, real-time inventory sync, loyalty points, and GST-ready billing."
+      },
+      {
+        "productId": "ai-imaging",
+        "title": "AI Dental Imaging Diagnostics",
+        "description": "Explainable AI-assisted radiology tools featuring Grad-CAM overlays to assist practitioners in flagging dental anomalies."
+      }
+    ],
     "closingTitle": "Let's build something that matters.",
-    "closingDescription": "Bring a clinic workflow, an operational bottleneck or an ambitious product idea. We will start by understanding the work."
+    "closingDescription": "Ready to engineer your custom web platform or explore our specialized vertical SaaS tools? Get in touch with our team today."
   },
   "demoPatients": [
-    { "initials": "NR", "name": "Nila R.", "id": "DEMO-014", "age": "29", "scheduled": "Today · 10:30 AM", "reason": "Routine check-up", "status": "pending" },
-    { "initials": "AD", "name": "Arun D.", "id": "DEMO-021", "age": "41", "scheduled": "Today · 12:15 PM", "reason": "Consultation", "status": "confirmed" },
-    { "initials": "SK", "name": "Sana K.", "id": "DEMO-028", "age": "35", "scheduled": "Tomorrow · 9:00 AM", "reason": "Cleaning visit", "status": "confirmed" }
+    { "initials": "AK", "name": "Anand K.", "id": "PAT-0033", "age": "28", "gender": "Male", "scheduled": "Today, 8:00 AM", "reason": "Tooth Pain / Checkup", "status": "pending" },
+    { "initials": "MS", "name": "Meera S.", "id": "PAT-0031", "age": "32", "gender": "Female", "scheduled": "Mon, 2:00 PM", "reason": "Consultation", "status": "confirmed" },
+    { "initials": "VR", "name": "Vikram R.", "id": "PAT-0030", "age": "45", "gender": "Male", "scheduled": "Mon, 5:00 PM", "reason": "Teeth Cleaning", "status": "confirmed" }
   ]
 }
