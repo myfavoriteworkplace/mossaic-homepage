@@ -80,6 +80,8 @@ export type DeckContent = {
     shareErrorNotice: string;
     demoUpdateNotice: string;
     liveLabel: string;
+    brandTagline: string;
+    whatsappLabel: string;
     tabTitle: string;
     tabBadge: string;
     tabHint: string;

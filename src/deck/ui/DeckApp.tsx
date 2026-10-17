@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import {
   ArrowLeft,
@@ -21,9 +21,8 @@ import {
   ShieldCheck,
   Truck,
 } from "lucide-react";
-import Logo from "../../components/Logo";
 import Wordmark from "../../components/ui/Wordmark";
-import { HERO_STATS, PRODUCTS, ROADMAP, SITE_CONFIG, STUDIO_PROJECTS } from "../../data/content";
+import { PRODUCTS, ROADMAP, SITE_CONFIG, STUDIO_PROJECTS } from "../../data/content";
 import type { Product } from "../../data/schemas";
 import type { DeckContent, DeckSlide } from "./types";
 import { LocalQr } from "./qr";
@@ -36,6 +35,7 @@ const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
 const emailHref = `mailto:${SITE_CONFIG.site.email}`;
 const whatsappHref = "https://wa.me/919746767146";
+const deckWhatsappHref = `${whatsappHref}?text=${encodeURIComponent("Hi mossAIc Team, I saw your interactive deck and would like to discuss a project.")}`;
 const consultationHref = `${whatsappHref}?text=${encodeURIComponent("Hi Mossaic team, I'd like to discuss a custom web project.")}`;
 const bookingProduct = PRODUCTS.find((product) => product.id === "bookmyslot");
 const studioService = PRODUCTS.find((product) => product.id === "mossaic-studio");
@@ -56,6 +56,21 @@ function MetricCard({ value, label, demo = false }: { value: string; label: stri
       <span className="deck-metric-label">{label}</span>
       {demo ? <span className="deck-demo-label">Illustrative demo</span> : null}
     </div>
+  );
+}
+
+function ShareAction({ label, onShare }: { label: string; onShare: () => void | Promise<void> }) {
+  return (
+    <button
+      type="button"
+      className="deck-button deck-share-action"
+      onClick={() => void onShare()}
+      aria-label={label}
+      title={label}
+      data-testid="deck-share"
+    >
+      <Share2 className="deck-icon" aria-hidden="true" />
+    </button>
   );
 }
 
@@ -487,11 +502,6 @@ export function DeckApp({ config }: DeckAppProps) {
     "--deck-blue": config.theme.accentBlue,
     "--deck-green": config.theme.accentGreen,
   } as CSSProperties;
-  const introStats = useMemo(() => HERO_STATS.map((stat) => ({
-    ...stat,
-    value: `${stat.value}${stat.suffix}`,
-  })), []);
-
   const announce = useCallback((message: string) => {
     setNotice(message);
     window.clearTimeout(noticeTimer.current);
@@ -581,11 +591,11 @@ export function DeckApp({ config }: DeckAppProps) {
           className="deck-tab"
           key={slide.id}
           aria-current={activeIndex === index ? "step" : undefined}
-          aria-label={`${config.ui.goToSectionLabel} ${index + 1}: ${slide.title}`}
+          aria-label={`${config.ui.goToSectionLabel} ${index + 1}: ${slide.navigationLabel ?? slide.title}`}
           onClick={() => goTo(index)}
           data-testid={`deck-tab-${slide.id}`}
         >
-          <span>{String(index + 1).padStart(2, "0")}.</span>{slide.title}
+          <span>{String(index + 1).padStart(2, "0")}.</span>{slide.navigationLabel ?? slide.title}
         </button>
       ))}
     </nav>
@@ -601,10 +611,12 @@ export function DeckApp({ config }: DeckAppProps) {
       <div className="deck-shell">
         <header className="deck-topbar">
           <a className="deck-brand" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-brand-link">
-            <Logo size={36} variant="mark" compact />
             <span className="deck-brand-copy">
-              <Wordmark variant="nav" textColor="#f1f5f9" />
-              <span>EXECUTIVE PORTFOLIO · SOFTWARE &amp; SYSTEMS</span>
+              <span className="deck-brand-title-row">
+                <Wordmark variant="nav" textColor="#f1f5f9" />
+                <span className="deck-live-badge">{config.ui.liveLabel}</span>
+              </span>
+              <span className="deck-brand-tagline">{config.ui.brandTagline}</span>
             </span>
           </a>
           <div className="deck-header-actions">
@@ -618,29 +630,18 @@ export function DeckApp({ config }: DeckAppProps) {
             <button type="button" className="deck-button deck-button-primary" onClick={printDeck} data-testid="deck-print">
               <Printer className="deck-icon" aria-hidden="true" /><span>{config.ui.printLabel}</span>
             </button>
+            <a className="deck-button deck-button-whatsapp" href={deckWhatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-whatsapp">
+              <MessageCircle className="deck-icon" aria-hidden="true" /><span>{config.ui.whatsappLabel}</span>
+            </a>
           </div>
         </header>
-
-        <section className="deck-intro" aria-labelledby="deck-title">
-          <div className="deck-intro-copy">
-            <div className="deck-overline">{config.intro.eyebrow}</div>
-            <h1 id="deck-title">{config.intro.title} <span>{config.intro.highlight}</span></h1>
-            <p>{config.intro.description}</p>
-          </div>
-          <div className="deck-intro-index">
-            {SITE_CONFIG.company.hq}
-          </div>
-        </section>
-        <div className="deck-intro-stats" aria-label="Company facts">
-          {introStats.map((stat) => (
-            <span key={stat.label}><strong>{stat.value}</strong>{stat.label}</span>
-          ))}
-        </div>
 
         {documentMode ? (
           <section className="deck-document" aria-label={config.ui.documentAriaLabel} data-testid="deck-document">
             <div className="deck-document-heading">
-              <span>{SITE_CONFIG.site.tagline}</span><span>{total} {config.ui.sectionCountLabel}</span>
+              <span>{SITE_CONFIG.site.tagline}</span>
+              <span>{total} {config.ui.sectionCountLabel}</span>
+              <ShareAction label={config.ui.shareLabel} onShare={shareDeck} />
             </div>
             {slides.map((slide) => (
               <div className="deck-showcase" key={slide.id}>
@@ -652,8 +653,11 @@ export function DeckApp({ config }: DeckAppProps) {
           <>
             <div className="deck-tabs-wrap">
               <div className="deck-tabs-copy">
-                <h2 className="deck-tabs-title">Interactive portfolio</h2>
-                <p className="deck-tabs-hint">Choose a system or use the arrow keys to move through the work.</p>
+                <h2 className="deck-tabs-title">
+                  <span>{config.ui.tabTitle}</span>
+                  <span className="deck-tabs-badge">{config.ui.tabBadge}</span>
+                </h2>
+                <p className="deck-tabs-hint">{config.ui.tabHint}</p>
               </div>
               {slideNav()}
             </div>
@@ -677,6 +681,7 @@ export function DeckApp({ config }: DeckAppProps) {
                 <span><strong>{String(activeIndex + 1).padStart(2, "0")}</strong> / {String(total).padStart(2, "0")}</span>
                 <span className="deck-progress-track" aria-hidden="true"><span style={{ transform: `scaleX(${total ? (activeIndex + 1) / total : 0})` }} /></span>
               </div>
+              <ShareAction label={config.ui.shareLabel} onShare={shareDeck} />
               <button type="button" className="deck-button deck-nav-arrow" onClick={next} aria-label={config.ui.nextSectionLabel} data-testid="deck-next">
                 <span>{config.ui.nextLabel}</span><ArrowRight className="deck-icon" aria-hidden="true" />
               </button>

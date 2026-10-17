@@ -49,6 +49,8 @@ export const DeckPresentationSchema = z.object({
     shareErrorNotice: z.string().min(1),
     demoUpdateNotice: z.string().min(1),
     liveLabel: z.string().min(1),
+    brandTagline: z.string().min(1),
+    whatsappLabel: z.string().min(1),
     tabTitle: z.string().min(1),
     tabBadge: z.string().min(1),
     tabHint: z.string().min(1),

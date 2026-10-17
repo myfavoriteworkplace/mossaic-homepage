@@ -24,10 +24,10 @@
     "accentGreen": "#10b981"
   },
   "ui": {
-    "documentLabel": "Full document",
-    "carouselLabel": "Carousel view",
+    "documentLabel": "Switch to Full Document Sheet",
+    "carouselLabel": "Switch to 3D Card Carousel",
     "shareLabel": "Share",
-    "printLabel": "Print / save PDF",
+    "printLabel": "Print / Save A4 PDF",
     "chooseSectionLabel": "Choose a portfolio section",
     "goToSectionLabel": "Go to section",
     "previousLabel": "Previous system",
@@ -41,10 +41,12 @@
     "copyFallbackNotice": "Copy this page URL to share the portfolio",
     "shareErrorNotice": "Unable to share right now",
     "demoUpdateNotice": "Illustrative demo updated",
-    "liveLabel": "Live interactive deck",
-    "tabTitle": "Interactive portfolio flipbook",
-    "tabBadge": "Live showcase",
-    "tabHint": "Hover cards to tilt. Use the section buttons or arrow keys to move through the portfolio.",
+    "liveLabel": "LIVE INTERACTIVE DECK",
+    "brandTagline": "Smart, Reliable Software & Custom Web Development Company",
+    "whatsappLabel": "WhatsApp Us",
+    "tabTitle": "✨ Interactive Portfolio Flipbook",
+    "tabBadge": "Option 7 Showcase",
+    "tabHint": "Hover over cards to tilt in 3D. Click indicators or use arrows to slide through systems.",
     "emptyMessage": "No portfolio sections are available."
   },
   "slides": [
