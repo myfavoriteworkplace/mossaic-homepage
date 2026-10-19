@@ -13,6 +13,7 @@ export type DeckSlide = {
   title: string;
   highlight?: string;
   description: string;
+  linkLabel?: string;
   footer: string;
 };
 
@@ -79,12 +80,21 @@ export type DeckContent = {
     copyFallbackNotice: string;
     shareErrorNotice: string;
     demoUpdateNotice: string;
-    liveLabel: string;
+    portfolioLabel: string;
+    liveProductLabel: string;
+    liveProjectLabel: string;
+    availableServicesLabel: string;
+    illustrativeLabel: string;
     brandTagline: string;
+    brandAcronym: string;
     whatsappLabel: string;
     tabTitle: string;
     tabBadge: string;
     tabHint: string;
+    pauseLabel: string;
+    resumeLabel: string;
+    reducedMotionLabel: string;
+    reducedMotionNotice: string;
     emptyMessage: string;
   };
   slides: DeckSlide[];
@@ -97,12 +107,23 @@ export type DeckContent = {
     routeCities: string;
     origin: string;
     destination: string;
+    routeStatLabels: {
+      deliveryWindow: string;
+      cargoPayload: string;
+      telematicsSync: string;
+    };
+    routeSnapshotLabel: string;
+    simulatedLocallyLabel: string;
+    refreshRouteLabel: string;
     routeSnapshots: RouteSnapshot[];
     routeDisclaimer: string;
     routeFeatures: { title: string; description: string }[];
     systems: { title: string; description: string }[];
     pipelineTitle: string;
     pipelineProducts: { productId: string; title: string; description: string }[];
+    customServiceTitle: string;
+    customServiceDescription: string;
+    customServiceActionLabel: string;
     closingTitle: string;
     closingDescription: string;
   };

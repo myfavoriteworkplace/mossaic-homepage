@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import { useReducedMotion } from "framer-motion";
+import type {
+  CSSProperties,
+  FocusEvent as ReactFocusEvent,
+  PointerEvent as ReactPointerEvent,
+  ReactNode,
+} from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,6 +21,8 @@ import {
   Mail,
   MapPin,
   MessageCircle,
+  Pause,
+  Play,
   Printer,
   RefreshCw,
   Share2,
@@ -30,6 +38,7 @@ import "./deck.css";
 
 type DeckAppProps = { config: DeckContent };
 type PatientStatus = "pending" | "confirmed";
+const AUTO_ADVANCE_DELAY_MS = 12_000;
 
 const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
@@ -49,12 +58,22 @@ function resolveLink(href: string) {
   return href.startsWith("#") ? `${siteUrl}/${href}` : href;
 }
 
-function MetricCard({ value, label, demo = false }: { value: string; label: string; demo?: boolean }) {
+function MetricCard({
+  value,
+  label,
+  demo = false,
+  demoLabel,
+}: {
+  value: string;
+  label: string;
+  demo?: boolean;
+  demoLabel?: string;
+}) {
   return (
     <div className={`deck-metric-card ${demo ? "deck-demo-metric" : ""}`}>
       <strong className="deck-metric-value">{value}</strong>
       <span className="deck-metric-label">{label}</span>
-      {demo ? <span className="deck-demo-label">Illustrative demo</span> : null}
+      {demo && demoLabel ? <span className="deck-demo-label">{demoLabel}</span> : null}
     </div>
   );
 }
@@ -78,6 +97,7 @@ function SlideHeader({
   slide,
   href,
   linkLabel,
+  statusLabel,
   titleOverride,
   highlightOverride,
   descriptionOverride,
@@ -87,6 +107,7 @@ function SlideHeader({
   slide: DeckSlide;
   href?: string;
   linkLabel?: string;
+  statusLabel?: string;
   titleOverride?: ReactNode;
   highlightOverride?: string;
   descriptionOverride?: string;
@@ -108,6 +129,7 @@ function SlideHeader({
       <div className="deck-slide-head-main">
         <div className="deck-slide-labels">
           <span className="deck-slide-kicker">{eyebrowOverride ?? slide.eyebrow}</span>
+          {statusLabel ? <span className="deck-slide-status">{statusLabel}</span> : null}
         </div>
         <h2 className="deck-slide-title">
           {titleHref ? (
@@ -190,6 +212,9 @@ function BookingShowcase({
   );
   const officialMetrics = bookingProduct?.metrics ?? [];
   const productHref = bookingProduct?.cta.href ?? `${siteUrl}/#products`;
+  const productStatusLabel = bookingProduct?.status === "live"
+    ? content.ui.liveProductLabel
+    : bookingProduct?.statusLabel;
 
   const togglePatient = (index: number) => {
     setPatientStatuses((current) => current.map((status, statusIndex) =>
@@ -201,29 +226,32 @@ function BookingShowcase({
     <article className="deck-slide" data-slide="bookmyslot" aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        eyebrowOverride="LIVE SaaS PRODUCT"
-        titleOverride={(
-          <>
-            <span>book<span className="deck-book-brand-highlight">My</span>Slot</span>
-            <span className="deck-product-title-caption">— Dental Practice Management</span>
-          </>
-        )}
+        titleOverride={bookingProduct?.name ?? slide.title}
         highlightOverride=""
-        descriptionOverride=""
+        statusLabel={productStatusLabel}
         titleHref={productHref}
         href={productHref}
-        linkLabel="Active in 50+ Clinics"
+        linkLabel={bookingProduct?.proofLabel}
       />
-      <div className="deck-metrics-grid deck-product-metrics" aria-label="bookMySlot metrics and illustrative examples">
-        {officialMetrics[0] ? (
+      <div
+        className="deck-metrics-grid deck-product-metrics"
+        aria-label={`${bookingProduct?.name ?? "Product"} metrics and illustrative examples`}
+      >
+        {officialMetrics.slice(0, 2).map((metric) => (
           <MetricCard
-            key={`${officialMetrics[0].value}-${officialMetrics[0].label}`}
-            value={officialMetrics[0].value}
-            label={officialMetrics[0].label}
+            key={`${metric.value}-${metric.label}`}
+            value={metric.value}
+            label={metric.label}
           />
-        ) : null}
-        {content.narrative.demoMetrics.slice(0, 2).map((metric) => (
-          <MetricCard key={metric.label} value={metric.value} label={metric.label} demo />
+        ))}
+        {content.narrative.demoMetrics.map((metric) => (
+          <MetricCard
+            key={metric.label}
+            value={metric.value}
+            label={metric.label}
+            demo
+            demoLabel={content.ui.illustrativeLabel}
+          />
         ))}
         <a
           className="deck-metric-card deck-qr-card"
@@ -232,7 +260,11 @@ function BookingShowcase({
           rel="noopener noreferrer"
           aria-label="Open bookMySlot website"
         >
-          <LocalQr value={productHref} label="bookMySlot" />
+          <LocalQr
+            value={productHref}
+            label={bookingProduct?.name ?? "BookMySlot"}
+            size={96}
+          />
           <span className="deck-qr-link">Scan to visit</span>
         </a>
       </div>
@@ -284,6 +316,9 @@ function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
   const [snapshotIndex, setSnapshotIndex] = useState(0);
   const snapshot = content.narrative.routeSnapshots[snapshotIndex];
   const projectHref = aeroPulse?.href ?? siteUrl;
+  const projectStatusLabel = aeroPulse?.status === "live"
+    ? content.ui.liveProjectLabel
+    : undefined;
   const nextSnapshot = () => {
     setSnapshotIndex((index) => (index + 1) % content.narrative.routeSnapshots.length);
     onDemoUpdate();
@@ -293,13 +328,11 @@ function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
     <article className="deck-slide" data-slide="aeropulse" aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        titleOverride="AeroPulse Logistics Platform"
         highlightOverride=""
-        descriptionOverride=""
-        eyebrowOverride="CUSTOM SYSTEM DEPLOYMENT"
+        statusLabel={projectStatusLabel}
         titleHref={projectHref}
         href={projectHref}
-        linkLabel="View Live Operational App"
+        linkLabel={slide.linkLabel}
       />
       <section className="deck-route-card" aria-label="AeroPulse illustrative route simulator">
         <div className="deck-route-head">
@@ -309,23 +342,26 @@ function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
         <RouteGraphic progress={snapshot.progress} origin={content.narrative.origin} destination={content.narrative.destination} />
         <div className="deck-route-stats">
           <div className="deck-route-stat">
-            <div className="deck-route-stat-label">Est. Delivery Window</div>
+            <div className="deck-route-stat-label">{content.narrative.routeStatLabels.deliveryWindow}</div>
             <div className="deck-route-stat-value">{snapshot.eta}</div>
           </div>
           <div className="deck-route-stat">
-            <div className="deck-route-stat-label">Cargo Payload</div>
+            <div className="deck-route-stat-label">{content.narrative.routeStatLabels.cargoPayload}</div>
             <div className="deck-route-stat-value">{snapshot.cargo}</div>
           </div>
           <div className="deck-route-stat">
-            <div className="deck-route-stat-label">Automated Telematics Sync</div>
+            <div className="deck-route-stat-label">{content.narrative.routeStatLabels.telematicsSync}</div>
             <div className="deck-route-stat-value">{snapshot.state}</div>
           </div>
         </div>
         <p className="deck-demo-note"><Info aria-hidden="true" />{content.narrative.routeDisclaimer}</p>
         <div className="deck-sim-controls">
-          <p>Snapshot {snapshotIndex + 1} of {content.narrative.routeSnapshots.length} · simulated locally</p>
+          <p>
+            {content.narrative.routeSnapshotLabel} {snapshotIndex + 1} of {content.narrative.routeSnapshots.length}
+            {" · "}{content.narrative.simulatedLocallyLabel}
+          </p>
           <button type="button" className="deck-button" onClick={nextSnapshot}>
-            <RefreshCw className="deck-icon" aria-hidden="true" /> Refresh route demo
+            <RefreshCw className="deck-icon" aria-hidden="true" /> {content.narrative.refreshRouteLabel}
           </button>
         </div>
       </section>
@@ -343,16 +379,16 @@ function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
 
 function SystemsShowcase({ slide, content }: { slide: DeckSlide; content: DeckContent }) {
   const contactLink = studioService?.cta.href ? resolveLink(studioService.cta.href) : contactHref;
+  const serviceStatusLabel = studioService?.status === "live"
+    ? content.ui.availableServicesLabel
+    : studioService?.statusLabel;
   return (
     <article className="deck-slide" data-slide="systems" aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        eyebrowOverride="HIGH-PERFORMANCE ARCHITECTURE"
-        titleOverride="Custom Websites & Enterprise Applications"
-        highlightOverride=""
-        descriptionOverride=""
+        statusLabel={serviceStatusLabel}
         href={contactLink}
-        linkLabel="Available for Hire"
+        linkLabel={slide.linkLabel}
       />
       <div className="deck-systems-grid">
         {content.narrative.systems.map((system, index) => (
@@ -365,11 +401,11 @@ function SystemsShowcase({ slide, content }: { slide: DeckSlide; content: DeckCo
       </div>
       <aside className="deck-system-cta">
         <div>
-          <h3>Have a custom business software requirement?</h3>
-          <p>Our engineering team designs custom enterprise web systems, SaaS platforms, and internal tools.</p>
+          <h3>{content.narrative.customServiceTitle}</h3>
+          <p>{content.narrative.customServiceDescription}</p>
         </div>
         <a className="deck-button deck-button-primary" href={consultationHref} target="_blank" rel="noopener noreferrer">
-          Schedule Tech Consultation <ArrowUpRight className="deck-icon" aria-hidden="true" />
+          {content.narrative.customServiceActionLabel} <ArrowUpRight className="deck-icon" aria-hidden="true" />
         </a>
       </aside>
     </article>
@@ -409,10 +445,10 @@ function ProductPipeline({ content }: { content: DeckContent }) {
         </div>
         <div className="deck-contact-qrs" aria-label="Scan for Mossaic destinations">
           <a className="deck-contact-qr" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-qr-site">
-            <LocalQr value={siteUrl} label="Mossaic website" />mossaic.in
+            <LocalQr value={siteUrl} label="Mossaic website" size={128} />mossaic.in
           </a>
           <a className="deck-contact-qr" href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-qr-whatsapp">
-            <LocalQr value={whatsappHref} label="Mossaic WhatsApp chat" />WhatsApp Chat
+            <LocalQr value={whatsappHref} label="Mossaic WhatsApp chat" size={128} />WhatsApp Chat
           </a>
         </div>
       </div>
@@ -484,12 +520,28 @@ function SlideContent({ slide, content, onDemoUpdate }: {
 export function DeckApp({ config }: DeckAppProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [documentMode, setDocumentMode] = useState(false);
+  const [autoplayPaused, setAutoplayPaused] = useState(false);
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  const [isDeckFocused, setIsDeckFocused] = useState(false);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(
+    () => document.visibilityState === "visible",
+  );
   const [notice, setNotice] = useState("");
   const noticeTimer = useRef<number | undefined>(undefined);
   const pointerStart = useRef<number | null>(null);
+  const prefersReducedMotion = useReducedMotion();
   const slides = config.slides;
   const total = slides.length;
   const activeSlide = slides[activeIndex];
+  const autoAdvanceActive = (
+    !documentMode
+    && !autoplayPaused
+    && !isCarouselHovered
+    && !isDeckFocused
+    && isDocumentVisible
+    && prefersReducedMotion !== true
+    && total > 1
+  );
   const themeStyle = {
     "--deck-bg": config.theme.background,
     "--deck-surface": config.theme.surface,
@@ -511,10 +563,46 @@ export function DeckApp({ config }: DeckAppProps) {
     if (!total) return;
     setActiveIndex((index + total) % total);
   }, [total]);
-  const previous = useCallback(() => goTo(activeIndex - 1), [activeIndex, goTo]);
-  const next = useCallback(() => goTo(activeIndex + 1), [activeIndex, goTo]);
+  const manualGoTo = useCallback((index: number) => {
+    setAutoplayPaused(true);
+    goTo(index);
+  }, [goTo]);
+  const previous = useCallback(() => manualGoTo(activeIndex - 1), [activeIndex, manualGoTo]);
+  const next = useCallback(() => manualGoTo(activeIndex + 1), [activeIndex, manualGoTo]);
 
   useEffect(() => () => window.clearTimeout(noticeTimer.current), []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsDocumentVisible(document.visibilityState === "visible");
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  useEffect(() => {
+    if (!autoAdvanceActive) return;
+    const timer = window.setTimeout(() => {
+      setActiveIndex((currentIndex) => (currentIndex + 1) % total);
+    }, AUTO_ADVANCE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, autoAdvanceActive, total]);
+
+  useEffect(() => {
+    const pauseForUserActivity = () => setAutoplayPaused(true);
+    window.addEventListener("wheel", pauseForUserActivity, { passive: true });
+    window.addEventListener("touchstart", pauseForUserActivity, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", pauseForUserActivity);
+      window.removeEventListener("touchstart", pauseForUserActivity);
+    };
+  }, []);
+
+  const handleDeckBlur = (event: ReactFocusEvent<HTMLElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsDeckFocused(false);
+    }
+  };
 
   useEffect(() => {
     if (documentMode || total < 2) return;
@@ -529,15 +617,15 @@ export function DeckApp({ config }: DeckAppProps) {
         next();
       } else if (event.key === "Home") {
         event.preventDefault();
-        goTo(0);
+        manualGoTo(0);
       } else if (event.key === "End") {
         event.preventDefault();
-        goTo(total - 1);
+        manualGoTo(total - 1);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [documentMode, goTo, next, previous, total]);
+  }, [documentMode, manualGoTo, next, previous, total]);
 
   const shareDeck = async () => {
     const shareData = { title: config.meta.title, text: SITE_CONFIG.site.tagline, url: window.location.href };
@@ -592,7 +680,7 @@ export function DeckApp({ config }: DeckAppProps) {
           key={slide.id}
           aria-current={activeIndex === index ? "step" : undefined}
           aria-label={`${config.ui.goToSectionLabel} ${index + 1}: ${slide.navigationLabel ?? slide.title}`}
-          onClick={() => goTo(index)}
+          onClick={() => manualGoTo(index)}
           data-testid={`deck-tab-${slide.id}`}
         >
           <span>{String(index + 1).padStart(2, "0")}.</span>{slide.navigationLabel ?? slide.title}
@@ -607,16 +695,27 @@ export function DeckApp({ config }: DeckAppProps) {
       className={`mossaic-deck ${documentMode ? "deck-mode-document" : "deck-mode-carousel"}`}
       style={themeStyle}
       data-testid="mossaic-deck"
+      onFocusCapture={() => setIsDeckFocused(true)}
+      onBlurCapture={handleDeckBlur}
     >
       <div className="deck-shell">
         <header className="deck-topbar">
           <a className="deck-brand" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-brand-link">
+            <img
+              className="deck-brand-mark"
+              src="/brand/mossaic-faithful.svg"
+              alt=""
+              aria-hidden="true"
+              width="36"
+              height="32"
+            />
             <span className="deck-brand-copy">
               <span className="deck-brand-title-row">
                 <Wordmark variant="nav" textColor="#f1f5f9" />
-                <span className="deck-live-badge">{config.ui.liveLabel}</span>
+                <span className="deck-live-badge">{config.ui.portfolioLabel}</span>
               </span>
               <span className="deck-brand-tagline">{config.ui.brandTagline}</span>
+              <span className="deck-brand-acronym">{config.ui.brandAcronym}</span>
             </span>
           </a>
           <div className="deck-header-actions">
@@ -668,7 +767,13 @@ export function DeckApp({ config }: DeckAppProps) {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              onPointerLeave={resetCardTilt}
+              onPointerEnter={() => setIsCarouselHovered(true)}
+              onPointerLeave={() => {
+                setIsCarouselHovered(false);
+                resetCardTilt();
+              }}
+              onWheel={() => setAutoplayPaused(true)}
+              onFocusCapture={() => setIsDeckFocused(true)}
               data-testid="deck-carousel"
             >
               <SlideContent slide={activeSlide} content={config} onDemoUpdate={onDemoUpdate} />
@@ -677,11 +782,37 @@ export function DeckApp({ config }: DeckAppProps) {
               <button type="button" className="deck-button deck-nav-arrow" onClick={previous} aria-label={config.ui.previousSectionLabel} data-testid="deck-previous">
                 <ArrowLeft className="deck-icon" aria-hidden="true" /><span>{config.ui.previousLabel}</span>
               </button>
-              <div className="deck-progress" aria-live="polite" data-testid="deck-progress">
+              <div
+                className="deck-progress"
+                aria-live={autoAdvanceActive ? "off" : "polite"}
+                data-testid="deck-progress"
+              >
                 <span><strong>{String(activeIndex + 1).padStart(2, "0")}</strong> / {String(total).padStart(2, "0")}</span>
                 <span className="deck-progress-track" aria-hidden="true"><span style={{ transform: `scaleX(${total ? (activeIndex + 1) / total : 0})` }} /></span>
               </div>
-              <ShareAction label={config.ui.shareLabel} onShare={shareDeck} />
+              <button
+                type="button"
+                className="deck-button deck-autoplay-control"
+                onClick={() => setAutoplayPaused((paused) => !paused)}
+                aria-label={prefersReducedMotion
+                  ? config.ui.reducedMotionNotice
+                  : autoplayPaused ? config.ui.resumeLabel : config.ui.pauseLabel}
+                aria-pressed={autoplayPaused || prefersReducedMotion === true}
+                title={prefersReducedMotion ? config.ui.reducedMotionNotice : undefined}
+                disabled={prefersReducedMotion === true}
+                data-testid="deck-autoplay"
+              >
+                {prefersReducedMotion || !autoplayPaused
+                  ? <Pause className="deck-icon" aria-hidden="true" />
+                  : autoplayPaused
+                  ? <Play className="deck-icon" aria-hidden="true" />
+                  : null}
+                <span>
+                  {prefersReducedMotion
+                    ? config.ui.pauseLabel
+                    : autoplayPaused ? config.ui.resumeLabel : config.ui.pauseLabel}
+                </span>
+              </button>
               <button type="button" className="deck-button deck-nav-arrow" onClick={next} aria-label={config.ui.nextSectionLabel} data-testid="deck-next">
                 <span>{config.ui.nextLabel}</span><ArrowRight className="deck-icon" aria-hidden="true" />
               </button>

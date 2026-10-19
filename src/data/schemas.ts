@@ -20,6 +20,7 @@ export const ProductSchema = z.object({
   description: NonEmptyText,
   status: z.enum(["live", "soon", "future"]),
   statusLabel: NonEmptyText,
+  proofLabel: NonEmptyText.optional(),
   tags: z.array(NonEmptyText).min(1),
   metrics: z
     .array(

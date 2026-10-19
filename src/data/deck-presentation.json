@@ -1,9 +1,9 @@
 {
   "meta": {
-    "title": "Mossaic — Executive portfolio",
-    "description": "An interactive look at Mossaic's India-first software products and custom enterprise systems.",
-    "ogTitle": "Mossaic — Executive portfolio",
-    "ogDescription": "Dental SaaS, logistics systems and custom enterprise engineering from Kerala, India."
+    "title": "Mossaic — Products & Services",
+    "description": "Explore Mossaic's live software products, logistics platform, and custom web services.",
+    "ogTitle": "Mossaic — Products & Services",
+    "ogDescription": "Live SaaS and logistics products, plus custom enterprise web engineering."
   },
   "intro": {
     "eyebrow": "Modular SaaS · Enterprise platforms · Built in India",
@@ -24,14 +24,14 @@
     "accentGreen": "#10b981"
   },
   "ui": {
-    "documentLabel": "Switch to Full Document Sheet",
-    "carouselLabel": "Switch to 3D Card Carousel",
+    "documentLabel": "Document",
+    "carouselLabel": "Carousel",
     "shareLabel": "Share",
-    "printLabel": "Print / Save A4 PDF",
+    "printLabel": "Save PDF",
     "chooseSectionLabel": "Choose a portfolio section",
     "goToSectionLabel": "Go to section",
-    "previousLabel": "Previous system",
-    "nextLabel": "Next system",
+    "previousLabel": "Previous",
+    "nextLabel": "Next",
     "previousSectionLabel": "Previous portfolio section",
     "nextSectionLabel": "Next portfolio section",
     "documentAriaLabel": "Full Mossaic portfolio document",
@@ -41,12 +41,21 @@
     "copyFallbackNotice": "Copy this page URL to share the portfolio",
     "shareErrorNotice": "Unable to share right now",
     "demoUpdateNotice": "Illustrative demo updated",
-    "liveLabel": "LIVE INTERACTIVE DECK",
-    "brandTagline": "Smart, Reliable Software & Custom Web Development Company",
-    "whatsappLabel": "WhatsApp Us",
-    "tabTitle": "✨ Interactive Portfolio Flipbook",
-    "tabBadge": "Option 7 Showcase",
-    "tabHint": "Hover over cards to tilt in 3D. Click indicators or use arrows to slide through systems.",
+    "portfolioLabel": "Interactive Portfolio",
+    "liveProductLabel": "Live Product",
+    "liveProjectLabel": "Live Operational App",
+    "availableServicesLabel": "Available for Projects",
+    "illustrativeLabel": "Illustrative",
+    "brandTagline": "Software & Custom Web Development Company",
+    "brandAcronym": "Modular · Optimized · Scalable Systems · Artificial Intelligence · Computing",
+    "whatsappLabel": "WhatsApp",
+    "tabTitle": "Our Products & Services",
+    "tabBadge": "Featured",
+    "tabHint": "Choose an offer or use the arrows to explore.",
+    "pauseLabel": "Pause",
+    "resumeLabel": "Resume",
+    "reducedMotionLabel": "Auto off",
+    "reducedMotionNotice": "Auto-advance is disabled because reduced motion is enabled.",
     "emptyMessage": "No portfolio sections are available."
   },
   "slides": [
@@ -57,48 +66,56 @@
       "eyebrow": "Product · dental practice management",
       "title": "Flagship product",
       "highlight": "— a calmer clinic day",
-      "description": "A more considered way to shape the clinic day, from the first appointment on the calendar through the work that follows.",
+      "description": "Dental practice management for clinics, from booking through follow-up.",
       "footer": "DENTAL PRACTICE MANAGEMENT · PRODUCT FACTS FROM MOSSAIC"
     },
     {
       "id": "aeropulse",
       "kind": "aeropulse",
       "navigationLabel": "AeroPulse (Logistics)",
-      "eyebrow": "Featured Studio project",
-      "title": "Operations in motion",
+      "eyebrow": "Logistics platform",
+      "title": "AeroPulse Logistics Platform",
       "highlight": "— operations, in motion",
-      "description": "A custom logistics platform concept from Mossaic Studio. The route and operational readouts shown here are a local, illustrative interface demo—not live tracking data.",
-      "footer": "MOSSAIC STUDIO PROJECT · SIMULATED ROUTE DATA"
+      "description": "An operational logistics platform from Mossaic Studio. The route panel below is simulated and does not show live shipment tracking.",
+      "footer": "LIVE LOGISTICS PLATFORM · SIMULATED ROUTE PREVIEW",
+      "linkLabel": "Open Live App"
     },
     {
       "id": "systems",
       "kind": "systems",
       "navigationLabel": "Custom Web Systems",
-      "eyebrow": "Custom enterprise engineering",
-      "title": "Custom Web Systems",
-      "highlight": "— built around your operation.",
-      "description": "When standard software stops short, Mossaic Studio works from the shape of the business: its users, data, handoffs and moments where a system needs to be dependable.",
+      "eyebrow": "Custom web development",
+      "title": "Custom Websites & Enterprise Applications",
+      "description": "Custom websites, enterprise platforms, and internal tools built around your operation.",
+      "linkLabel": "Discuss a Project",
       "footer": "CUSTOM ENGINEERING · ENTERPRISE WEB SYSTEMS"
     }
   ],
   "narrative": {
     "dashboardTitle": "Clinical Dashboard Preview",
     "dashboardHint": "(Click status badge to simulate live update)",
-    "demoDisclaimer": "Synthetic patient details and the 2 mins / ₹38k examples are illustrative, not product-performance claims. The current published average confirmation time is 12s.",
+    "demoDisclaimer": "Patient details are synthetic. The ₹38k weekly revenue example is illustrative; the 2-minute average confirmation time is the product metric shown above.",
     "demoMetrics": [
-      { "value": "2 mins", "label": "Avg Confirm Time" },
       { "value": "₹38k", "label": "Weekly Revenue" }
     ],
-    "routeLabel": "Illustrative telematics simulator · Route #AP-8842",
+    "routeLabel": "Sample route preview · AP-8842",
     "routeCities": "Kochi → Mumbai (Transit)",
     "origin": "Kochi Port",
     "destination": "Mumbai Hub",
+    "routeStatLabels": {
+      "deliveryWindow": "Est. Delivery Window",
+      "cargoPayload": "Cargo Payload",
+      "telematicsSync": "Telematics Status"
+    },
+    "routeSnapshotLabel": "Snapshot",
+    "simulatedLocallyLabel": "simulated locally",
+    "refreshRouteLabel": "Refresh preview",
     "routeSnapshots": [
       { "eta": "18 Hours 24 Mins", "cargo": "14.2 Tons (Temperature Controlled)", "state": "100% Operational", "progress": 49 },
       { "eta": "16h 50m", "cargo": "12.8 t · dry goods", "state": "At transit hub", "progress": 68 },
       { "eta": "21h 10m", "cargo": "9.4 t · priority", "state": "Route recalculated", "progress": 35 }
     ],
-    "routeDisclaimer": "Illustrative route, ETA, cargo and operating states for interface demonstration only; not connected to a live vehicle, customer shipment or telematics feed.",
+    "routeDisclaimer": "Route, ETA, cargo, and status are simulated preview data, not a live vehicle or shipment feed.",
     "routeFeatures": [
       { "title": "Real-Time Rate Engine", "description": "Instant dynamic pricing based on distance, cargo density, and fuel surcharges." },
       { "title": "Multi-Modal Dispatch", "description": "Seamless tracking for road freight, air cargo, and maritime container shipments." },
@@ -122,6 +139,9 @@
         "description": "Explainable AI-assisted radiology tools featuring Grad-CAM overlays to assist practitioners in flagging dental anomalies."
       }
     ],
+    "customServiceTitle": "Have a custom software project?",
+    "customServiceDescription": "We build custom web platforms, SaaS products, and internal tools.",
+    "customServiceActionLabel": "Discuss a Project",
     "closingTitle": "Let's build something that matters.",
     "closingDescription": "Ready to engineer your custom web platform or explore our specialized vertical SaaS tools? Get in touch with our team today."
   },

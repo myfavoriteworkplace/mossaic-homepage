@@ -6,10 +6,11 @@
     "description": "Complete dental practice management — slot booking, clinical records, doctor assignments, patient reminders, inventory tracking, and Smile Deals. Built for Indian dental clinics.",
     "status": "live",
     "statusLabel": "● Live",
+    "proofLabel": "Active in 50+ Clinics",
     "tags": ["Slot booking", "Clinical records", "Smile Deals", "DISHA compliant"],
     "metrics": [
       { "value": "850+", "label": "Slots booked", "green": true },
-      { "value": "12s", "label": "Avg confirm time" }
+      { "value": "2 mins", "label": "Avg confirm time" }
     ],
     "cta": { "label": "Visit bookMySlot", "href": "https://bookmyslot.dental.mossaic.in" },
     "accent": "moss"
