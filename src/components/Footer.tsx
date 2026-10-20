@@ -1,4 +1,5 @@
 import { Linkedin, Twitter, Github, ArrowUpRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import Logo from "./Logo";
 import Wordmark from "./ui/Wordmark";
 import BookMySlotText from "./ui/BookMySlotText";
@@ -36,7 +37,9 @@ const COLS: {
   },
 ];
 
-export default function Footer() {
+export default function Footer({ showDeckBanner }: { showDeckBanner: boolean }) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <footer
       style={{
@@ -106,13 +109,30 @@ export default function Footer() {
         </div>
         <div className="deck-launch-reserve" aria-hidden="true" />
       </div>
-      <a
+      <motion.a
         className="deck-launch-pill"
         href={`${import.meta.env.BASE_URL}deck/`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Open the Mossaic executive deck and digital brochure"
         data-testid="link-open-executive-deck"
+        aria-hidden={!showDeckBanner}
+        tabIndex={showDeckBanner ? 0 : -1}
+        initial={{
+          opacity: 0,
+          clipPath: "inset(0 50% 0 50% round 16px)",
+        }}
+        animate={{
+          opacity: showDeckBanner ? 1 : 0,
+          clipPath: showDeckBanner
+            ? "inset(0 0% 0 0% round 16px)"
+            : "inset(0 50% 0 50% round 16px)",
+        }}
+        transition={{
+          duration: reduceMotion ? 0 : 0.65,
+          ease: "easeOut",
+        }}
+        style={{ pointerEvents: showDeckBanner ? "auto" : "none" }}
       >
         <span className="deck-launch-dot" aria-hidden="true" />
         <span className="deck-launch-copy">
@@ -122,7 +142,7 @@ export default function Footer() {
         <span className="deck-launch-action">
           Open deck <ArrowUpRight size={14} aria-hidden="true" />
         </span>
-      </a>
+      </motion.a>
     </footer>
   );
 }

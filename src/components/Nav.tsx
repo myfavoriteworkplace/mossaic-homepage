@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import Logo from "./Logo";
 import Wordmark from "./ui/Wordmark";
 import ThemeSwitcher from "./ui/ThemeSwitcher";
@@ -70,6 +70,16 @@ export default function Nav() {
           <div className="flex items-center gap-2 ml-auto md:ml-0">
             <ThemeSwitcher surface="dark" />
             <a
+              href={`${import.meta.env.BASE_URL}deck/`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open the Mossaic executive deck in a new tab"
+              data-testid="link-open-deck-header"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-[rgba(34,211,238,0.22)] bg-[rgba(34,211,238,0.06)] px-3 py-2 text-[12px] font-semibold text-[#9ceaf2] no-underline transition-colors hover:border-[rgba(34,211,238,0.45)] hover:bg-[rgba(34,211,238,0.12)]"
+            >
+              Open deck <ArrowUpRight size={13} aria-hidden="true" />
+            </a>
+            <a
               href="#contact"
               className="hidden sm:inline-block bg-moss hover:bg-moss-dark transition-colors text-white rounded-lg px-[16px] py-2 text-[13px] font-semibold no-underline"
               onClick={() => setMenuOpen(false)}
@@ -134,6 +144,17 @@ export default function Nav() {
                     {l.label}
                   </a>
                 ))}
+                <a
+                  href={`${import.meta.env.BASE_URL}deck/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open the Mossaic executive deck in a new tab"
+                  data-testid="link-open-deck-mobile"
+                  onClick={() => setMenuOpen(false)}
+                  className="sm:hidden mt-4 inline-flex items-center justify-center gap-1.5 self-start rounded-lg border border-[rgba(34,211,238,0.25)] bg-[rgba(34,211,238,0.08)] px-4 py-3 text-[14px] font-semibold text-[#9ceaf2] no-underline transition-colors hover:bg-[rgba(34,211,238,0.14)]"
+                >
+                  Open deck <ArrowUpRight size={14} aria-hidden="true" />
+                </a>
                 <a
                   href="#contact"
                   onClick={() => setMenuOpen(false)}

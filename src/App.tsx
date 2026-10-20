@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { AnimatePresence } from "framer-motion";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { AnimatePresence, useInView } from "framer-motion";
 import Nav from "./components/Nav";
 import AssemblyBackdrop from "./components/AssemblyBackdrop";
 import Hero from "./components/Hero";
@@ -17,6 +17,8 @@ import Toast from "./components/ui/Toast";
 
 export default function App() {
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
+  const pageEndRef = useRef<HTMLDivElement | null>(null);
+  const showDeckBanner = useInView(pageEndRef, { amount: "some" });
 
   const showToast = useCallback((message: string) => {
     setToast({ id: Date.now(), message });
@@ -43,7 +45,12 @@ export default function App() {
         <Testimonials />
         <Contact onSubmitted={showToast} />
       </main>
-      <Footer />
+      <Footer showDeckBanner={showDeckBanner} />
+      <div
+        ref={pageEndRef}
+        aria-hidden="true"
+        style={{ height: 1, pointerEvents: "none" }}
+      />
 
       <Chatbot />
 
