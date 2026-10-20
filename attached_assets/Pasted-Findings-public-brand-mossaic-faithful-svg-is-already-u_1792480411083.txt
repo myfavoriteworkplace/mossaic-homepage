@@ -1,0 +1,15 @@
+Findings
+* public/brand/mossaic-faithful.svg is already used by the main Logo component in the navigation and footer, and directly in the deck header. It contains the mark only, not the “Mossaic” text.
+* The “mossAIc” text beside the mark is separately typeset by Wordmark.tsx. That’s compatible with the SVG being the standard mark; it should remain separate unless you want to remove the written company name.
+* There’s a second, hand-drawn vector mark in Logo.tsx. I found no current use of its mark variant, but it is an alternate implementation that could diverge later.
+* The favicon set is inconsistent: favicon.svg is another hand-drawn mark, while favicon.png and apple-touch-icon.png show a different, glowy raster treatment. Both the homepage and deck use these icon files.
+* AssemblyBackdrop.tsx uses mossaic-mark-512.png, a different, detailed hex-grid image, as the source for its animated background. Its clipping and motion are designed around that composition, so swapping in the faithful SVG directly would likely break or visibly alter the animation. The other mark PNGs appear to be retained backups rather than active app references.
+* docs/design-and-coding-standards.md incorrectly describes the image variant as raster. replit.md correctly identifies the faithful SVG as the component’s image source, but still describes the separate vector mark and favicon as equivalent artwork.
+Recommended plan
+1. Keep the faithful SVG as the canonical mark, and keep the separate text wordmark wherever the company name is needed.
+2. Make favicon and touch-icon files derived from that mark, with suitable small-icon padding/background so they remain readable.
+3. Adapt the animated backdrop from the canonical artwork, but keep its current PNG until the animation has been rebuilt and checked.
+4. Remove or align the unused alternate vector mark, then correct the documentation.
+5. Verify the homepage, deck, browser icon, touch icon, and animation after changes.
+Separate security notice: My initial repository search also surfaced an embedded GitHub access credential in the workspace’s local Git configuration. I won’t repeat it here, and I haven’t changed the configuration. Treat it as exposed: revoke or rotate it, then replace the remote URL with a credential-free URL.
+Should I proceed with the plan, keeping the separate “mossAIc” text wordmark beside the canonical SVG m
