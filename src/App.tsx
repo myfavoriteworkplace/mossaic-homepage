@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import { AnimatePresence, useInView } from "framer-motion";
+import { useRef } from "react";
+import { useInView } from "framer-motion";
 import Nav from "./components/Nav";
 import AssemblyBackdrop from "./components/AssemblyBackdrop";
 import Hero from "./components/Hero";
@@ -13,22 +13,10 @@ import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import Chatbot from "./components/Chatbot";
-import Toast from "./components/ui/Toast";
 
 export default function App() {
-  const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
   const pageEndRef = useRef<HTMLDivElement | null>(null);
   const showDeckBanner = useInView(pageEndRef, { amount: "some" });
-
-  const showToast = useCallback((message: string) => {
-    setToast({ id: Date.now(), message });
-  }, []);
-
-  useEffect(() => {
-    if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 4200);
-    return () => window.clearTimeout(t);
-  }, [toast]);
 
   return (
     <>
@@ -43,7 +31,7 @@ export default function App() {
         <About />
         <Roadmap />
         <Testimonials />
-        <Contact onSubmitted={showToast} />
+        <Contact />
       </main>
       <Footer showDeckBanner={showDeckBanner} />
       <div
@@ -53,10 +41,6 @@ export default function App() {
       />
 
       <Chatbot />
-
-      <AnimatePresence>
-        {toast && <Toast key={toast.id} message={toast.message} onClose={() => setToast(null)} />}
-      </AnimatePresence>
     </>
   );
 }
