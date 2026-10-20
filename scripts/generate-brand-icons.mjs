@@ -36,9 +36,9 @@ const y = (canvasSize - sourceHeight) / 2;
 
 // Keep the favicon standalone: browsers commonly block nested external images
 // when an SVG is loaded as an icon, so embed the canonical SVG's contents.
+// Leave the square canvas transparent so browser chrome shows through its padding.
 const faviconSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${canvasSize} ${canvasSize}" width="${canvasSize}" height="${canvasSize}">
-  <rect width="${canvasSize}" height="${canvasSize}" fill="#0A1628"/>
   <svg x="${x}" y="${y}" width="${sourceWidth}" height="${sourceHeight}" viewBox="${minX} ${minY} ${sourceWidth} ${sourceHeight}" preserveAspectRatio="xMidYMid meet">
 ${rootMatch[2]}
   </svg>
@@ -51,6 +51,8 @@ function renderPng(size, outputPath) {
   execFileSync(
     "magick",
     [
+      "-background",
+      "none",
       svgOutputPath,
       "-resize",
       `${size}x${size}`,
@@ -59,7 +61,7 @@ function renderPng(size, outputPath) {
       "png:compression-level=9",
       "-depth",
       "8",
-      `PNG24:${outputPath}`,
+      `PNG32:${outputPath}`,
     ],
     { stdio: "inherit" },
   );
@@ -68,4 +70,4 @@ function renderPng(size, outputPath) {
 renderPng(256, faviconPngPath);
 renderPng(180, touchIconPath);
 
-console.log("Generated favicon.svg, favicon.png, and apple-touch-icon.png from mossaic-faithful.svg.");
+console.log("Generated transparent favicon exports from mossaic-faithful.svg.");

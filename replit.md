@@ -7,7 +7,7 @@ A futuristic, performance-first homepage for **Mossaic** — the company behind 
   - `variant="image"` (default) — full-detail SVG brand mark. Asset: `public/brand/mossaic-faithful.svg`.
   - `variant="mark"` — separately drawn compact vector mark. It is not the canonical faithful SVG.
 - **Wordmark:** `moss[AI]c` — the **AI** letters render in a glowing cyan→blue gradient — `src/components/ui/Wordmark.tsx`
-- **Browser and touch icons:** `public/favicon.svg`, `public/favicon.png`, and `public/apple-touch-icon.png` are padded exports derived from `public/brand/mossaic-faithful.svg`. Regenerate them with `node scripts/generate-brand-icons.mjs` (requires ImageMagick's `magick` command); do not hand-edit the generated files.
+- **Browser and touch icons:** `public/favicon.svg`, `public/favicon.png`, and `public/apple-touch-icon.png` are transparently padded exports derived from `public/brand/mossaic-faithful.svg`. Regenerate them with `node scripts/generate-brand-icons.mjs` (requires ImageMagick's `magick` command); do not hand-edit the generated files.
 - **Animated backdrop:** `public/brand/mossaic-mark-512.png` is the source artwork for `AssemblyBackdrop.tsx`. Keep it unchanged unless the animation is rebuilt and visually checked.
 - **Tagline:** "The future, assembled."
 - **Type:** Bricolage Grotesque (display) + Inter (body) + Geist Mono (code)
