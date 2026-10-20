@@ -76,6 +76,12 @@ tailwind.config.ts              colors, fonts, keyframes
 vite.config.ts                  binds 0.0.0.0:5000, allows all hosts (proxy/iframe-friendly)
 ```
 
+## Asset and upload hygiene
+
+- Keep runtime assets in descriptive `public/` folders such as `public/brand/` and `public/products/`; reference them from the app rather than copying them into `attached_assets/`.
+- Add files to `attached_assets/` only when they are needed as input for the current task or are intentionally retained source material. Do not add unnecessary screenshots, logs, exports, generated intermediates, duplicate uploads, or unrelated reference files.
+- Before finishing a task that adds files to `attached_assets/`, verify that each file is still needed and remove temporary or redundant additions. Preserve unique source files unless the user approves their removal.
+
 To edit homepage copy, products, testimonials, contact-interest options, or roadmap items, edit the matching JSON file in **`src/data/`**. Run `npm run validate:content` for a clear schema check; `npm run build` runs it automatically before compiling the site. The JSON is imported at build time, not fetched from a network. Chatbot FAQ entries remain in `src/data/faqs.ts` because some entries contain runtime reply functions.
 To edit the brochure's slide order, copy, product details, metrics, links, labels, or selected theme colors, edit **`public/deck.json`**. The deck fetches this JSON at runtime and shows an explicit error if the file is missing or malformed.
 
