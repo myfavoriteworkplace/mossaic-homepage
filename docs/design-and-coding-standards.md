@@ -109,7 +109,9 @@ The production target is **≤ 100 KB gzipped JS**. Before adding any new depend
 `src/components/Logo.tsx` and `src/components/ui/Wordmark.tsx` are **brand-critical files**.
 
 - Do not modify their visual output, props, or SVG geometry without explicit written sign-off from the brand owner.
-- The `variant="image"` (raster) and `variant="mark"` (SVG) modes in `Logo.tsx` must continue to work correctly after any unrelated refactor.
+- The `variant="image"` mode loads the full-detail SVG at `public/brand/mossaic-faithful.svg`; it is not a raster image.
+- The `variant="mark"` mode is a separately drawn compact vector mark, not the canonical faithful SVG.
+- `public/favicon.svg`, `public/favicon.png`, and `public/apple-touch-icon.png` are derived icon exports. Regenerate them from the canonical SVG with `node scripts/generate-brand-icons.mjs`; do not edit the generated files by hand. The script uses the ImageMagick `magick` command to render the PNGs.
 - The `AssemblyBackdrop.tsx` references brand assets from `public/brand/` — do not rename or move those files.
 
 ### 3.6 Theme System
