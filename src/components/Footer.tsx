@@ -109,6 +109,8 @@ export default function Footer() {
       <a
         className="deck-launch-pill"
         href={`${import.meta.env.BASE_URL}deck/`}
+        target="_blank"
+        rel="noopener noreferrer"
         aria-label="Open the Mossaic executive deck and digital brochure"
         data-testid="link-open-executive-deck"
       >

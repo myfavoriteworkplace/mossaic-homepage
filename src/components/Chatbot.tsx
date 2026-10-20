@@ -651,12 +651,12 @@ export default function Chatbot() {
   const [listening, setListening] = useState(false);
 
   // Walk-in state — Mossie enters from the far-left, strolls to her home spot
-  // in the bottom-right, pauses mid-screen to wave at the user, and "settles"
+  // in the bottom-right, pauses mid-screen to greet the user, and "settles"
   // when the user comes near, taps, opens the chat, or the walk timer ends.
   const [walkDistance] = useState<number>(() => computeWalkDistance());
   const [settled, setSettled] = useState<boolean>(() => computeWalkDistance() === 0);
-  // Mid-walk wave state. While `waving` is true, body x is held still and the
-  // face switches to a happy expression with a small waving "hand".
+  // Mid-walk greeting state. While `waving` is true, body x is held still and
+  // the face switches to a happy expression.
   const [waving, setWaving] = useState(false);
   // Brief surprise reaction the moment the cursor enters the spook radius —
   // mouth becomes a small "o" and eyes widen for a beat before settling.
@@ -1647,7 +1647,7 @@ export default function Chatbot() {
        *               anchored to bottom-centre so her feet stay planted on
        *               the same baseline whether small or full size.
        *    3. Inner  — the actual interactive button: squash/stretch breath,
-       *               hover/tap pop, and all the face/feet/hand children.
+        *               hover/tap pop, and the face/feet elements.
        */}
       <motion.div
         className="fixed bottom-6 right-6 z-[900]"
@@ -1912,42 +1912,6 @@ export default function Chatbot() {
             boxShadow: "0 0 6px rgba(34,211,238,0.6)",
           }}
         />
-
-        {/* Mossie's waving hand — only present during the mid-walk wave. A
-            small cyan capsule that sprouts from the upper-right of the body
-            and rocks back and forth three times. Pivots from the wrist. */}
-        <AnimatePresence>
-          {waving && (
-            <motion.span
-              key="wave-hand"
-              aria-hidden
-              className="absolute pointer-events-none"
-              initial={{ opacity: 0, scaleY: 0.4, rotate: -20 }}
-              animate={{
-                opacity: 1,
-                scaleY: 1,
-                rotate: [-20, 28, -20, 28, -20, 28, -20],
-              }}
-              exit={{ opacity: 0, scaleY: 0.4, rotate: -10 }}
-              transition={{
-                opacity: { duration: 0.18 },
-                scaleY: { duration: 0.18 },
-                rotate: { duration: WAVE_DURATION_S, ease: "easeInOut" },
-              }}
-              style={{
-                width: 7,
-                height: 12,
-                top: 4,
-                right: -4,
-                borderRadius: 4,
-                background:
-                  "linear-gradient(180deg, rgba(34,211,238,0.95) 0%, rgba(34,211,238,0.7) 100%)",
-                boxShadow: "0 0 6px rgba(34,211,238,0.55)",
-                transformOrigin: "50% 100%",
-              }}
-            />
-          )}
-        </AnimatePresence>
 
         {/* Soft pulsing halo — only after Mossie has settled in her home spot
             and only while the panel is closed. Suppressed during the walk so
