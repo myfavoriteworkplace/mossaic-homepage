@@ -2,6 +2,8 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Check, CircleDot, Clock, Plus } from "lucide-react";
 import Reveal from "./ui/Reveal";
+import BookMySlotText from "./ui/BookMySlotText";
+import Wordmark from "./ui/Wordmark";
 import { ROADMAP } from "../data/site";
 
 const ICONS = {
@@ -116,7 +118,20 @@ export default function Roadmap() {
                   item.status === "future" ? "text-white/40" : "text-white"
                 }`}
               >
-                {item.name}
+                {item.name === "bookMySlot" ? (
+                  <BookMySlotText className="text-[15px]" />
+                ) : item.name === "mossaic Studio" ? (
+                  <span className="inline-flex items-baseline gap-1">
+                    <Wordmark
+                      variant="nav"
+                      textColor="#fff"
+                      className="!text-[15px]"
+                    />
+                    <span>Studio</span>
+                  </span>
+                ) : (
+                  item.name
+                )}
               </div>
               <div
                 className={`text-xs leading-snug ${
