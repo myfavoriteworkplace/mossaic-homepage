@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { createPortal } from "react-dom";
-import { CheckCircle2, Globe, LoaderCircle, Mail, MapPin, Send } from "lucide-react";
+import { CheckCircle2, Globe, Mail, MapPin, Send } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import MagneticButton from "./ui/MagneticButton";
 import { SITE, CONTACT_INTERESTS } from "../data/site";
@@ -101,7 +101,7 @@ export default function Contact() {
         );
 
         setEnvelopeFlight({
-          left: startX + window.scrollX - 14,
+          left: startX + window.scrollX - 20,
           top: startY + window.scrollY - 14,
           xOffsets,
           yOffsets,
@@ -157,7 +157,11 @@ export default function Contact() {
             >
               <motion.span
                 ref={emailIconRef}
-                className="inline-flex origin-center"
+                className={`relative inline-flex h-5 w-5 origin-center items-center justify-center rounded-full ${
+                  flightPhase === "impact" && !reduceMotion
+                    ? "contact-email-icon-impact"
+                    : ""
+                }`}
                 initial={false}
                 animate={
                   flightPhase === "impact"
@@ -184,7 +188,15 @@ export default function Contact() {
               >
                 <Mail size={16} className="text-moss" strokeWidth={1.7} />
               </motion.span>
-              {SITE.email}
+              <motion.span
+                className={`inline-block ${
+                  flightPhase === "impact" && !reduceMotion
+                    ? "contact-email-address-impact"
+                    : ""
+                }`}
+              >
+                {SITE.email}
+              </motion.span>
             </a>
             <div className="flex items-center gap-2.5 text-sm text-ink-2">
               <MapPin size={16} className="text-moss" strokeWidth={1.7} />
@@ -225,33 +237,64 @@ export default function Contact() {
                   role="status"
                   aria-live="polite"
                   data-testid="status-contact-success"
-                  className="rounded-2xl border p-7 text-center sm:p-9"
+                  className="relative overflow-hidden rounded-2xl border p-7 text-center sm:p-9"
                   style={{
-                    background: "var(--bg-elevated)",
-                    borderColor: "rgb(var(--accent-rgb) / 0.26)",
-                    boxShadow: "0 18px 48px rgb(var(--accent-rgb) / 0.10)",
+                    background:
+                      "linear-gradient(155deg, #ffffff 0%, #f2fbff 54%, #e8f6fc 100%)",
+                    borderColor: "rgba(88, 174, 205, 0.42)",
+                    boxShadow:
+                      "0 18px 48px rgba(14, 165, 233, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+                    color: "#102a43",
                   }}
                 >
                   <div
-                    className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full"
-                    style={{
-                      color: "var(--accent)",
-                      background: "rgb(var(--accent-rgb) / 0.12)",
-                      boxShadow: "0 0 28px rgb(var(--accent-rgb) / 0.22)",
-                    }}
+                    className="relative mx-auto mb-5 h-[60px] w-[76px]"
                     aria-hidden="true"
                   >
-                    <CheckCircle2 size={29} strokeWidth={1.8} />
+                    <svg
+                      viewBox="0 0 76 56"
+                      className="h-full w-full"
+                      fill="none"
+                    >
+                      <rect
+                        x="2"
+                        y="5"
+                        width="72"
+                        height="48"
+                        rx="8"
+                        fill="#ffffff"
+                        stroke="#9bd3e7"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M4 9 38 34 72 9"
+                        stroke="#69b6d3"
+                        strokeWidth="2"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="m4 50 24-21M72 50 48 29"
+                        stroke="#a8dbea"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-sky-500 text-white shadow-md shadow-sky-500/25">
+                      <CheckCircle2 size={16} strokeWidth={2.2} />
+                    </span>
                   </div>
                   <h3
                     className="mb-2 text-2xl font-semibold tracking-tight"
-                    style={{ color: "var(--text)" }}
+                    style={{ color: "#102a43" }}
                   >
                     Message Received!
                   </h3>
-                  <p className="mx-auto mb-6 max-w-sm text-sm leading-relaxed text-ink-3">
+                  <p
+                    className="mx-auto mb-6 max-w-sm text-sm leading-relaxed"
+                    style={{ color: "#52697b" }}
+                  >
                     Thanks — your message was submitted. We&apos;ll get back
-                    within 24 hours.
+                    to you soon.
                   </p>
                   <MagneticButton
                     type="button"
@@ -402,15 +445,30 @@ export default function Contact() {
                         data-testid="button-submit-contact"
                       >
                         {submitting ? "Sending…" : "Send message"}
-                        {submitting ? (
-                          <LoaderCircle
-                            size={14}
-                            className="animate-spin"
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <Send size={13} aria-hidden="true" />
-                        )}
+                        <motion.span
+                          aria-hidden="true"
+                          className="inline-flex"
+                          animate={
+                            submitting && !reduceMotion
+                              ? {
+                                  x: [0, 3, 0],
+                                  y: [0, -2, 0],
+                                  rotate: [0, -12, 0],
+                                }
+                              : { x: 0, y: 0, rotate: 0 }
+                          }
+                          transition={
+                            submitting && !reduceMotion
+                              ? {
+                                  duration: 0.72,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }
+                              : { duration: 0.12 }
+                          }
+                        >
+                          <Send size={13} />
+                        </motion.span>
                       </MagneticButton>
                     </motion.div>
                     {errorMessage && (
@@ -465,6 +523,32 @@ export default function Contact() {
               box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.12);
             }
             .form-input::placeholder { color: rgb(var(--text-4-rgb)); }
+            @keyframes contact-email-icon-glow {
+              0%, 100% {
+                box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0);
+              }
+              42%, 68% {
+                box-shadow:
+                  0 0 0 5px rgb(var(--accent-rgb) / 0.13),
+                  0 0 18px rgb(var(--accent-rgb) / 0.5);
+              }
+            }
+            @keyframes contact-email-address-glow {
+              0%, 100% {
+                color: rgb(var(--text-2-rgb));
+                text-shadow: 0 0 0 rgb(var(--accent-rgb) / 0);
+              }
+              38%, 70% {
+                color: var(--accent);
+                text-shadow: 0 0 14px rgb(var(--accent-rgb) / 0.62);
+              }
+            }
+            .contact-email-icon-impact {
+              animation: contact-email-icon-glow 720ms ease-out both;
+            }
+            .contact-email-address-impact {
+              animation: contact-email-address-glow 720ms ease-out both;
+            }
           `}</style>
         </Reveal>
       </div>
@@ -473,7 +557,7 @@ export default function Contact() {
         createPortal(
           <motion.div
             aria-hidden="true"
-            className="pointer-events-none absolute z-[1200] flex h-7 w-7 items-center justify-center rounded-full"
+            className="pointer-events-none absolute z-[1200] flex h-7 w-10 items-center justify-center"
             initial={{
               x: 0,
               y: 0,
@@ -515,13 +599,38 @@ export default function Contact() {
               position: "absolute",
               left: envelopeFlight.left,
               top: envelopeFlight.top,
-              color: "var(--accent)",
-              background: "var(--bg-elevated)",
-              border: "1px solid rgb(var(--accent-rgb) / 0.45)",
-              boxShadow: "0 4px 20px rgb(var(--accent-rgb) / 0.28)",
+              filter: "drop-shadow(0 4px 8px rgb(var(--accent-rgb) / 0.28))",
             }}
           >
-            <Mail size={15} strokeWidth={1.9} />
+            <svg
+              viewBox="0 0 40 28"
+              width="40"
+              height="28"
+              fill="none"
+            >
+              <rect
+                x="1.25"
+                y="1.25"
+                width="37.5"
+                height="25.5"
+                rx="4.5"
+                fill="#f8fcff"
+                stroke="#55b6d7"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M2.5 4.5 20 17 37.5 4.5"
+                stroke="#328eaf"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M2.5 25 14 14.8M37.5 25 26 14.8"
+                stroke="#8ac9dc"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            </svg>
           </motion.div>,
           document.body,
         )}
