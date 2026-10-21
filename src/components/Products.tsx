@@ -4,6 +4,7 @@ import { ArrowRight, ExternalLink, Store, Brain, Zap } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
 import BookMySlotText from "./ui/BookMySlotText";
+import Wordmark from "./ui/Wordmark";
 import {
   PRODUCTS,
   PRODUCTS_COPY,
@@ -189,7 +190,16 @@ function ProductCard({
       </div>
 
       <h3 className="text-xl font-bold text-ink mb-1.5 display tracking-tight">
-        {p.id === "bookmyslot" ? <BookMySlotText /> : p.name}
+        {p.id === "bookmyslot" ? (
+          <BookMySlotText />
+        ) : p.id === "mossaic-studio" ? (
+          <span className="inline-flex items-baseline gap-1.5">
+            <Wordmark variant="nav" textColor="var(--text)" />
+            <span className="display font-bold tracking-tight">Studio</span>
+          </span>
+        ) : (
+          p.name
+        )}
       </h3>
       <p className="text-xs text-moss font-semibold mb-2.5 tracking-wide">
         {p.category}

@@ -1,5 +1,6 @@
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
+import BookMySlotText from "./ui/BookMySlotText";
 import { TESTIMONIALS, TESTIMONIALS_COPY } from "../data/site";
 
 export default function Testimonials() {
@@ -32,8 +33,18 @@ export default function Testimonials() {
                         </span>
                       ))}
                     </div>
-                    <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-md bg-moss-light text-moss-dark">
-                      {t.product}
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-md bg-moss-light text-moss-dark ${
+                        t.product === "bookMySlot"
+                          ? ""
+                          : "tracking-wider uppercase"
+                      }`}
+                    >
+                      {t.product === "bookMySlot" ? (
+                        <BookMySlotText className="text-[10px]" />
+                      ) : (
+                        t.product
+                      )}
                     </span>
                   </div>
                   <p className="text-[15px] text-ink leading-relaxed mb-5 font-medium">
