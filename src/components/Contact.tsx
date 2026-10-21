@@ -20,17 +20,20 @@ type ContactPayload = {
 type EnvelopeFlight = {
   left: number;
   top: number;
-  travelX: number;
-  travelY: number;
+  xOffsets: number[];
+  yOffsets: number[];
 };
+
+type FlightPhase = "travel" | "impact" | null;
 
 export default function Contact() {
   const [view, setView] = useState<ContactView>("form");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [envelopeFlight, setEnvelopeFlight] = useState<EnvelopeFlight | null>(null);
+  const [flightPhase, setFlightPhase] = useState<FlightPhase>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
-  const emailRef = useRef<HTMLAnchorElement | null>(null);
+  const emailIconRef = useRef<HTMLSpanElement | null>(null);
   const reduceMotion = useReducedMotion() ?? false;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -83,24 +86,30 @@ export default function Contact() {
         form.querySelector<HTMLButtonElement>(
           '[data-testid="button-submit-contact"]',
         );
-      const emailLink = emailRef.current;
+      const emailIcon = emailIconRef.current;
 
-      if (submitButton && emailLink && !reduceMotion) {
+      if (submitButton && emailIcon && !reduceMotion) {
         const buttonRect = submitButton.getBoundingClientRect();
-        const emailRect = emailLink.getBoundingClientRect();
+        const emailRect = emailIcon.getBoundingClientRect();
         const startX = buttonRect.left + buttonRect.width / 2;
         const startY = buttonRect.top + buttonRect.height / 2;
         const targetX = emailRect.left + emailRect.width / 2;
         const targetY = emailRect.top + emailRect.height / 2;
+        const { xOffsets, yOffsets } = createCurvedFlightOffsets(
+          targetX - startX,
+          targetY - startY,
+        );
 
         setEnvelopeFlight({
           left: startX + window.scrollX - 14,
           top: startY + window.scrollY - 14,
-          travelX: targetX - startX,
-          travelY: targetY - startY,
+          xOffsets,
+          yOffsets,
         });
+        setFlightPhase("travel");
         setView("flight");
       } else {
+        setFlightPhase(null);
         setView("success");
       }
     } catch {
@@ -118,6 +127,7 @@ export default function Contact() {
   const handleSendAnother = () => {
     setErrorMessage(null);
     setEnvelopeFlight(null);
+    setFlightPhase(null);
     setView("form");
   };
 
@@ -142,11 +152,38 @@ export default function Contact() {
           </p>
           <div className="flex flex-col gap-3">
             <a
-              ref={emailRef}
               href={`mailto:${SITE.email}`}
               className="flex items-center gap-2.5 text-sm text-ink-2 hover:text-moss transition-colors no-underline"
             >
-              <Mail size={16} className="text-moss" strokeWidth={1.7} />
+              <motion.span
+                ref={emailIconRef}
+                className="inline-flex origin-center"
+                initial={false}
+                animate={
+                  flightPhase === "impact"
+                    ? {
+                        scale: [1, 1.32, 0.9, 1.1, 1],
+                        rotate: [0, -16, 9, -3, 0],
+                      }
+                    : { scale: 1, rotate: 0 }
+                }
+                transition={{
+                  duration: flightPhase === "impact" ? 0.72 : 0,
+                  times:
+                    flightPhase === "impact"
+                      ? [0, 0.22, 0.48, 0.72, 1]
+                      : undefined,
+                  ease: "easeOut",
+                }}
+                onAnimationComplete={() => {
+                  if (flightPhase === "impact") {
+                    setFlightPhase(null);
+                    setView("success");
+                  }
+                }}
+              >
+                <Mail size={16} className="text-moss" strokeWidth={1.7} />
+              </motion.span>
               {SITE.email}
             </a>
             <div className="flex items-center gap-2.5 text-sm text-ink-2">
@@ -445,30 +482,34 @@ export default function Contact() {
               rotate: 0,
             }}
             animate={{
-              x: [
-                0,
-                envelopeFlight.travelX * 0.32,
-                envelopeFlight.travelX * 0.72,
-                envelopeFlight.travelX,
-              ],
-              y: [
-                0,
-                envelopeFlight.travelY * 0.32 - 32,
-                envelopeFlight.travelY * 0.72 - 18,
-                envelopeFlight.travelY,
-              ],
-              opacity: [0, 1, 1, 0],
-              scale: [0.72, 1.08, 0.92, 0.62],
-              rotate: [0, -8, 4, 0],
+              x: envelopeFlight.xOffsets,
+              y: envelopeFlight.yOffsets,
+              opacity: [0, 1, 1, 1, 0],
+              scale: [0.72, 1.04, 0.94, 1.04, 0.82],
+              rotate: [0, -9, 7, -3, 0],
             }}
             transition={{
-              duration: 0.92,
-              times: [0, 0.18, 0.78, 1],
-              ease: "easeInOut",
+              x: { duration: 1.08, ease: "linear" },
+              y: { duration: 1.08, ease: "linear" },
+              opacity: {
+                duration: 1.08,
+                times: [0, 0.08, 0.72, 0.92, 1],
+                ease: "easeInOut",
+              },
+              scale: {
+                duration: 1.08,
+                times: [0, 0.18, 0.62, 0.88, 1],
+                ease: "easeOut",
+              },
+              rotate: {
+                duration: 1.08,
+                times: [0, 0.2, 0.58, 0.86, 1],
+                ease: "easeOut",
+              },
             }}
             onAnimationComplete={() => {
               setEnvelopeFlight(null);
-              setView("success");
+              setFlightPhase("impact");
             }}
             style={{
               position: "absolute",
@@ -495,4 +536,58 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </label>
   );
+}
+
+function createCurvedFlightOffsets(
+  deltaX: number,
+  deltaY: number,
+): { xOffsets: number[]; yOffsets: number[] } {
+  const distance = Math.hypot(deltaX, deltaY);
+  if (distance === 0) return { xOffsets: [0], yOffsets: [0] };
+
+  const normalX = -deltaY / distance;
+  const normalY = deltaX / distance;
+  const amplitude = Math.min(96, Math.max(18, distance * 0.2));
+  const direction = Math.random() < 0.5 ? -1 : 1;
+  const firstBend = direction * amplitude * (0.7 + Math.random() * 0.3);
+  const secondBend = -direction * amplitude * (0.5 + Math.random() * 0.35);
+
+  const controlOne = {
+    x: deltaX * 0.28 + normalX * firstBend,
+    y: deltaY * 0.28 + normalY * firstBend,
+  };
+  const controlTwo = {
+    x: deltaX * 0.72 + normalX * secondBend,
+    y: deltaY * 0.72 + normalY * secondBend,
+  };
+
+  const xOffsets: number[] = [];
+  const yOffsets: number[] = [];
+  const steps = 40;
+
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
+    const inverseT = 1 - t;
+    const tCubed = t * t * t;
+    xOffsets.push(
+      3 * inverseT * inverseT * t * controlOne.x +
+        3 * inverseT * t * t * controlTwo.x +
+        tCubed * deltaX,
+    );
+    yOffsets.push(
+      3 * inverseT * inverseT * t * controlOne.y +
+        3 * inverseT * t * t * controlTwo.y +
+        tCubed * deltaY,
+    );
+
+    if (step === 0) {
+      xOffsets[0] = 0;
+      yOffsets[0] = 0;
+    } else if (step === steps) {
+      xOffsets[step] = deltaX;
+      yOffsets[step] = deltaY;
+    }
+  }
+
+  return { xOffsets, yOffsets };
 }
