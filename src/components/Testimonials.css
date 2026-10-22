@@ -160,18 +160,21 @@
 }
 
 .testimonial-controls {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   max-width: 700px;
   margin: 22px auto 0;
 }
 
 .testimonial-nav-group,
-.testimonial-pagination,
-.testimonial-playback {
+.testimonial-pagination {
   display: flex;
   align-items: center;
+}
+
+.testimonial-controls-spacer {
+  min-width: 0;
 }
 
 .testimonial-nav-group {
@@ -183,8 +186,7 @@
 }
 
 .testimonial-control,
-.testimonial-dot,
-.testimonial-autoplay {
+.testimonial-dot {
   appearance: none;
   border: 0;
   font: inherit;
@@ -240,13 +242,10 @@
   background: var(--carousel-accent);
 }
 
-.testimonial-playback {
-  gap: 17px;
-}
-
 .testimonial-counter {
   display: inline-flex;
   align-items: center;
+  justify-self: end;
   gap: 8px;
   color: rgb(var(--text-3-rgb));
   font-family: var(--mono);
@@ -265,40 +264,8 @@
   background: rgb(var(--border-rgb));
 }
 
-.testimonial-autoplay {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-width: 84px;
-  min-height: 40px;
-  padding: 0 11px;
-  border: 1px solid rgb(var(--border-rgb));
-  border-radius: 999px;
-  background: transparent;
-  color: rgb(var(--text-2-rgb));
-  font-size: 11px;
-  font-weight: 600;
-  transition:
-    color 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
-}
-
-.testimonial-autoplay:hover:not(:disabled) {
-  border-color: rgb(var(--accent-rgb) / 0.5);
-  background: rgb(var(--accent-rgb) / 0.08);
-  color: var(--carousel-accent);
-}
-
-.testimonial-autoplay:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
 .testimonial-control:focus-visible,
-.testimonial-dot:focus-visible,
-.testimonial-autoplay:focus-visible {
+.testimonial-dot:focus-visible {
   outline: 2px solid var(--carousel-accent-mid);
   outline-offset: 3px;
 }
@@ -354,10 +321,6 @@
     margin-top: 14px;
   }
 
-  .testimonial-playback {
-    gap: 10px;
-  }
-
   .testimonial-counter {
     gap: 6px;
     font-size: 10px;
@@ -367,23 +330,6 @@
     width: 10px;
   }
 
-  .testimonial-autoplay {
-    min-width: 42px;
-    width: 42px;
-    height: 42px;
-    min-height: 42px;
-    padding: 0;
-    border-radius: 50%;
-  }
-
-  .testimonial-autoplay span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
 }
 
 @media (max-width: 420px) {
@@ -396,7 +342,7 @@
   }
 
   .testimonial-controls {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .testimonial-nav-group {
@@ -417,8 +363,7 @@
 @media (prefers-reduced-motion: reduce) {
   .testimonial-slide,
   .testimonial-control,
-  .testimonial-dot span,
-  .testimonial-autoplay {
+  .testimonial-dot span {
     transition-duration: 0.001ms;
     will-change: auto;
   }

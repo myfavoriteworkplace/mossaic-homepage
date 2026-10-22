@@ -7,22 +7,18 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
-import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import Reveal from "./ui/Reveal";
 import BookMySlotText from "./ui/BookMySlotText";
 import { TESTIMONIALS, TESTIMONIALS_COPY } from "../data/site";
 import "./Testimonials.css";
 
-const AUTOPLAY_DELAY = 6200;
+const AUTOPLAY_DELAY = 4000;
 
 export default function Testimonials() {
   const reducedMotion = useReducedMotion() ?? false;
   const [activeIndex, setActiveIndex] = useState(0);
-  const [autoplayEnabled, setAutoplayEnabled] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  });
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [documentVisible, setDocumentVisible] = useState(true);
@@ -32,10 +28,6 @@ export default function Testimonials() {
 
   const count = TESTIMONIALS.length;
   const activeTestimonial = TESTIMONIALS[activeIndex];
-
-  useEffect(() => {
-    if (reducedMotion) setAutoplayEnabled(false);
-  }, [reducedMotion]);
 
   useEffect(() => {
     const updateVisibility = () => setDocumentVisible(!document.hidden);
@@ -62,7 +54,6 @@ export default function Testimonials() {
   useEffect(() => {
     if (
       count < 2 ||
-      !autoplayEnabled ||
       reducedMotion ||
       hovered ||
       focused ||
@@ -71,15 +62,13 @@ export default function Testimonials() {
     ) {
       return;
     }
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       setActiveIndex((index) => (index + 1) % count);
     }, AUTOPLAY_DELAY);
-    return () => window.clearInterval(timer);
-  }, [autoplayEnabled, count, documentVisible, focused, hovered, isInView, reducedMotion]);
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, count, documentVisible, focused, hovered, isInView, reducedMotion]);
 
-  const pauseForInteraction = () => setAutoplayEnabled(false);
   const goTo = (index: number) => {
-    pauseForInteraction();
     setActiveIndex((index + count) % count);
   };
   const goPrevious = () => goTo(activeIndex - 1);
@@ -98,6 +87,12 @@ export default function Testimonials() {
   const handleBlur = (event: FocusEvent<HTMLElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
       setFocused(false);
+    }
+  };
+
+  const handleFocus = (event: FocusEvent<HTMLElement>) => {
+    if ((event.target as HTMLElement).matches(":focus-visible")) {
+      setFocused(true);
     }
   };
 
@@ -149,7 +144,7 @@ export default function Testimonials() {
               data-testid="region-testimonial-carousel"
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
-              onFocus={() => setFocused(true)}
+              onFocus={handleFocus}
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
             >
@@ -224,6 +219,7 @@ export default function Testimonials() {
               </div>
 
               <div className="testimonial-controls">
+                <span className="testimonial-controls-spacer" aria-hidden="true" />
                 <div className="testimonial-nav-group">
                   <button
                     type="button"
@@ -260,45 +256,15 @@ export default function Testimonials() {
                   </button>
                 </div>
 
-                <div className="testimonial-playback">
-                  <span className="testimonial-counter" aria-hidden="true">
-                    <span>{String(activeIndex + 1).padStart(2, "0")}</span>
-                    <i />
-                    {String(count).padStart(2, "0")}
-                  </span>
-                  <button
-                    type="button"
-                    className="testimonial-autoplay"
-                    onClick={() => setAutoplayEnabled((enabled) => !enabled)}
-                    disabled={reducedMotion || count < 2}
-                    aria-label={
-                      reducedMotion
-                        ? "Autoplay unavailable because reduced motion is enabled"
-                        : autoplayEnabled
-                          ? "Pause automatic review rotation"
-                          : "Resume automatic review rotation"
-                    }
-                    title={
-                      reducedMotion
-                        ? "Reduced motion is enabled"
-                        : autoplayEnabled
-                          ? "Pause rotation"
-                          : "Resume rotation"
-                    }
-                    data-testid="button-testimonial-autoplay"
-                  >
-                    {autoplayEnabled ? (
-                      <Pause aria-hidden="true" size={15} fill="currentColor" />
-                    ) : (
-                      <Play aria-hidden="true" size={15} fill="currentColor" />
-                    )}
-                    <span>{autoplayEnabled ? "Pause" : "Play"}</span>
-                  </button>
-                </div>
+                <span className="testimonial-counter" aria-hidden="true">
+                  <span>{String(activeIndex + 1).padStart(2, "0")}</span>
+                  <i />
+                  {String(count).padStart(2, "0")}
+                </span>
               </div>
               <p
                 className="testimonial-sr-only"
-                aria-live={autoplayEnabled && !reducedMotion ? "off" : "polite"}
+                aria-live={reducedMotion ? "polite" : "off"}
                 aria-atomic="true"
               >
                 Showing review {activeIndex + 1} of {count} by {activeTestimonial.name}.
