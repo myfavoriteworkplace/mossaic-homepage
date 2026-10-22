@@ -217,7 +217,7 @@ export default function About() {
               </div>
               <div className="flex justify-center gap-2.5">
                 <a
-                  href="https://linkedin.com/in/"
+                  href="https://linkedin.com"
                   target="_blank"
                   rel="noreferrer noopener"
                   className="about-social-link flex items-center gap-1.5 text-xs text-ink-3 no-underline px-3 py-1.5 rounded-md border border-border1 bg-page hover:border-moss hover:text-moss transition-colors"
