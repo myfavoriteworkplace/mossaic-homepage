@@ -1,9 +1,127 @@
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FocusEvent,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
+import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
 import Reveal from "./ui/Reveal";
-import TiltCard from "./ui/TiltCard";
 import BookMySlotText from "./ui/BookMySlotText";
 import { TESTIMONIALS, TESTIMONIALS_COPY } from "../data/site";
+import "./Testimonials.css";
+
+const AUTOPLAY_DELAY = 6200;
 
 export default function Testimonials() {
+  const reducedMotion = useReducedMotion() ?? false;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [autoplayEnabled, setAutoplayEnabled] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [documentVisible, setDocumentVisible] = useState(true);
+  const [isInView, setIsInView] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const pointerStart = useRef<{ x: number; pointerType: string } | null>(null);
+
+  const count = TESTIMONIALS.length;
+  const activeTestimonial = TESTIMONIALS[activeIndex];
+
+  useEffect(() => {
+    if (reducedMotion) setAutoplayEnabled(false);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    const updateVisibility = () => setDocumentVisible(!document.hidden);
+    document.addEventListener("visibilitychange", updateVisibility);
+    updateVisibility();
+    return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel || typeof IntersectionObserver === "undefined") {
+      setIsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.15 },
+    );
+    observer.observe(carousel);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (
+      count < 2 ||
+      !autoplayEnabled ||
+      reducedMotion ||
+      hovered ||
+      focused ||
+      !documentVisible ||
+      !isInView
+    ) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setActiveIndex((index) => (index + 1) % count);
+    }, AUTOPLAY_DELAY);
+    return () => window.clearInterval(timer);
+  }, [autoplayEnabled, count, documentVisible, focused, hovered, isInView, reducedMotion]);
+
+  const pauseForInteraction = () => setAutoplayEnabled(false);
+  const goTo = (index: number) => {
+    pauseForInteraction();
+    setActiveIndex((index + count) % count);
+  };
+  const goPrevious = () => goTo(activeIndex - 1);
+  const goNext = () => goTo(activeIndex + 1);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      goPrevious();
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      goNext();
+    }
+  };
+
+  const handleBlur = (event: FocusEvent<HTMLElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setFocused(false);
+    }
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (
+      event.pointerType === "mouse" ||
+      (event.target as HTMLElement).closest("button")
+    ) {
+      pointerStart.current = null;
+      return;
+    }
+    pointerStart.current = { x: event.clientX, pointerType: event.pointerType };
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if (!start || start.pointerType === "mouse") return;
+    const distance = event.clientX - start.x;
+    if (Math.abs(distance) < 48) return;
+    if (distance > 0) goPrevious();
+    else goNext();
+  };
+
   return (
     <section
       id="testimonials"
@@ -13,59 +131,181 @@ export default function Testimonials() {
       <div className="container-x">
         <Reveal className="text-center mb-12">
           <div className="tag tag-green mb-4">{TESTIMONIALS_COPY.tag}</div>
-          <h2 className="section-title">
+          <h2 className="section-title" id="testimonials-heading">
             {TESTIMONIALS_COPY.titleLead}{" "}
             <em className="underline-mark">{TESTIMONIALS_COPY.titleAccent}</em>
           </h2>
           <p className="section-sub mt-3.5">{TESTIMONIALS_COPY.description}</p>
         </Reveal>
 
-        <div className="max-w-container mx-auto grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.id} delay={i * 0.08}>
-              <TiltCard className="group h-full rounded-2xl" max={4} scale={1.012}>
-                <div className="bg-page border border-border1 rounded-2xl p-7 transition-all hover:border-moss/40 h-full">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: t.rating }).map((_, k) => (
-                        <span key={k} className="text-[15px] text-amber-400">
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-md bg-moss-light text-moss-dark ${
-                        t.product === "bookMySlot"
-                          ? ""
-                          : "tracking-wider uppercase"
-                      }`}
+        {count > 0 && activeTestimonial && (
+          <Reveal>
+            <div
+              ref={carouselRef}
+              className="testimonial-carousel"
+              role="region"
+              aria-roledescription="carousel"
+              aria-labelledby="testimonials-heading"
+              data-testid="region-testimonial-carousel"
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+              onFocus={() => setFocused(true)}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+            >
+              <div
+                className="testimonial-stage"
+                role="group"
+                aria-label="Customer reviews"
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={() => {
+                  pointerStart.current = null;
+                }}
+              >
+                {TESTIMONIALS.map((testimonial, index) => {
+                  const offset = (index - activeIndex + count) % count;
+                  const position = offset > count / 2 ? offset - count : offset;
+                  const isActive = position === 0;
+
+                  return (
+                    <article
+                      key={testimonial.id}
+                      className={`testimonial-slide${isActive ? " is-active" : ""}`}
+                      style={
+                        {
+                          "--slide-position": position,
+                          "--slide-depth": isActive ? "0px" : "-110px",
+                        } as CSSProperties
+                      }
+                      role="group"
+                      aria-roledescription="slide"
+                      aria-label={`${index + 1} of ${count}`}
+                      data-testid={`slide-testimonial-${testimonial.id}`}
+                      aria-hidden={!isActive}
                     >
-                      {t.product === "bookMySlot" ? (
-                        <BookMySlotText className="text-[10px]" />
-                      ) : (
-                        t.product
-                      )}
-                    </span>
-                  </div>
-                  <p className="text-[15px] text-ink leading-relaxed mb-5 font-medium">
-                    "{t.quote}"
-                  </p>
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full bg-moss-light flex items-center justify-center text-xs font-semibold text-moss-dark flex-shrink-0">
-                      {t.initials}
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-semibold text-ink">
-                        {t.name}
+                      <div className="testimonial-card">
+                        <div className="testimonial-card-top">
+                          <div
+                            className="testimonial-stars"
+                            role="img"
+                            aria-label={`${testimonial.rating} out of 5 stars`}
+                          >
+                            {Array.from({ length: testimonial.rating }).map((_, starIndex) => (
+                              <span key={starIndex} aria-hidden="true">★</span>
+                            ))}
+                          </div>
+                          <span
+                            className={`testimonial-product${
+                              testimonial.product === "bookMySlot" ? "" : " is-uppercase"
+                            }`}
+                          >
+                            {testimonial.product === "bookMySlot" ? (
+                              <BookMySlotText className="text-[10px]" />
+                            ) : (
+                              testimonial.product
+                            )}
+                          </span>
+                        </div>
+                        <p className="testimonial-quote">"{testimonial.quote}"</p>
+                        <div className="testimonial-author">
+                          <div className="testimonial-initials" aria-hidden="true">
+                            {testimonial.initials}
+                          </div>
+                          <div>
+                            <div className="testimonial-name">{testimonial.name}</div>
+                            <div className="testimonial-role">{testimonial.role}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-ink-3 mt-0.5">{t.role}</div>
-                    </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <div className="testimonial-controls">
+                <div className="testimonial-nav-group">
+                  <button
+                    type="button"
+                    className="testimonial-control"
+                    onClick={goPrevious}
+                    aria-label="Previous review"
+                    data-testid="button-previous-testimonial"
+                  >
+                    <ArrowLeft aria-hidden="true" size={18} strokeWidth={1.8} />
+                  </button>
+                  <div className="testimonial-pagination" aria-label="Choose a review">
+                    {TESTIMONIALS.map((testimonial, index) => (
+                      <button
+                        type="button"
+                        key={testimonial.id}
+                        className={`testimonial-dot${index === activeIndex ? " is-current" : ""}`}
+                        aria-label={`Show review ${index + 1}`}
+                        aria-current={index === activeIndex ? "true" : undefined}
+                        data-testid={`button-testimonial-${index + 1}`}
+                        onClick={() => goTo(index)}
+                      >
+                        <span />
+                      </button>
+                    ))}
                   </div>
+                  <button
+                    type="button"
+                    className="testimonial-control"
+                    onClick={goNext}
+                    aria-label="Next review"
+                    data-testid="button-next-testimonial"
+                  >
+                    <ArrowRight aria-hidden="true" size={18} strokeWidth={1.8} />
+                  </button>
                 </div>
-              </TiltCard>
+
+                <div className="testimonial-playback">
+                  <span className="testimonial-counter" aria-hidden="true">
+                    <span>{String(activeIndex + 1).padStart(2, "0")}</span>
+                    <i />
+                    {String(count).padStart(2, "0")}
+                  </span>
+                  <button
+                    type="button"
+                    className="testimonial-autoplay"
+                    onClick={() => setAutoplayEnabled((enabled) => !enabled)}
+                    disabled={reducedMotion || count < 2}
+                    aria-label={
+                      reducedMotion
+                        ? "Autoplay unavailable because reduced motion is enabled"
+                        : autoplayEnabled
+                          ? "Pause automatic review rotation"
+                          : "Resume automatic review rotation"
+                    }
+                    title={
+                      reducedMotion
+                        ? "Reduced motion is enabled"
+                        : autoplayEnabled
+                          ? "Pause rotation"
+                          : "Resume rotation"
+                    }
+                    data-testid="button-testimonial-autoplay"
+                  >
+                    {autoplayEnabled ? (
+                      <Pause aria-hidden="true" size={15} fill="currentColor" />
+                    ) : (
+                      <Play aria-hidden="true" size={15} fill="currentColor" />
+                    )}
+                    <span>{autoplayEnabled ? "Pause" : "Play"}</span>
+                  </button>
+                </div>
+              </div>
+              <p
+                className="testimonial-sr-only"
+                aria-live={autoplayEnabled && !reducedMotion ? "off" : "polite"}
+                aria-atomic="true"
+              >
+                Showing review {activeIndex + 1} of {count} by {activeTestimonial.name}.
+              </p>
+            </div>
           </Reveal>
-        ))}
-        </div>
+        )}
       </div>
     </section>
   );
