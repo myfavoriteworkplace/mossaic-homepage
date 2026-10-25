@@ -43,24 +43,6 @@ const BOOKMYSLOT_SCREENS: Screen[] = [
   },
 ];
 
-function LabsMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 32 32"
-      className="h-6 w-6 text-white"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m10.5 8.5-7 7.5 7 7.5M21.5 8.5l7 7.5-7 7.5M18.5 7.5l-5 17" />
-      <path d="M11.5 16h3" />
-    </svg>
-  );
-}
-
 const ICONS: Record<string, React.ReactNode> = {
   bookmyslot: (
     <img
@@ -88,7 +70,7 @@ const ICONS: Record<string, React.ReactNode> = {
     />
   ),
   "mossaic-studio": <Logo size={38} />,
-  "mossaic-labs": <LabsMark />,
+  "mossaic-labs": <Logo size={38} />,
 };
 
 const ACCENT_BG: Record<Product["accent"], string> = {
@@ -98,7 +80,7 @@ const ACCENT_BG: Record<Product["accent"], string> = {
   purple: "bg-[var(--purple)]",
 };
 
-const ICON_FULL_TILE = new Set(["bookmyslot", "mossaic-studio"]);
+const ICON_FULL_TILE = new Set(["bookmyslot", "mossaic-studio", "mossaic-labs"]);
 
 export default function Products() {
   return (
@@ -235,9 +217,11 @@ function ProductCard({
             ) : p.id === "mossaic-studio" ? (
               <Wordmark variant="nav" textColor="var(--text)" className="!text-xl" />
             ) : p.id === "mossaic-labs" ? (
-              <span className="inline-flex items-baseline gap-1">
+              <span className="inline-flex flex-col items-start gap-0.5">
                 <Wordmark variant="nav" textColor="var(--text)" className="!text-xl" />
-                <span>Labs</span>
+                <span className="text-xs font-semibold leading-tight tracking-wide text-sky-400">
+                  Labs
+                </span>
               </span>
             ) : (
               p.name
