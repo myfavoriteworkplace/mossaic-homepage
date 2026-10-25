@@ -703,7 +703,7 @@ export function DeckApp({ config }: DeckAppProps) {
           <a className="deck-brand" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-brand-link">
             <img
               className="deck-brand-mark"
-              src="/brand/mossaic-faithful.svg"
+              src={`${import.meta.env.BASE_URL}icons/brand/mossaic-faithful.svg`}
               alt=""
               aria-hidden="true"
               width="36"

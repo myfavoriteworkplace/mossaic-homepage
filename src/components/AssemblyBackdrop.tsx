@@ -12,7 +12,7 @@ import {
  *
  * A fixed, full-viewport SVG that renders the Mossaic mosaic-M logo as an
  * ambient watermark by slicing the production master image
- * (/brand/mossaic-mark-512.png) into hexagonal regions. Each hex is a
+ * (/images/brand/mossaic-mark-512.png) into hexagonal regions. Each hex is a
  * separate <image> element clipped to its own hex slot, so the full image
  * acts as the source artwork — every flying piece is the *real* logo art,
  * not an approximation.
@@ -32,7 +32,7 @@ import {
  *   - prefers-reduced-motion: shows the mark fully assembled, no flight.
  * ────────────────────────────────────────────────────────────────────────── */
 
-const MASTER_SRC = "/brand/mossaic-mark-512.png";
+const MASTER_SRC = `${import.meta.env.BASE_URL}images/brand/mossaic-mark-512.png`;
 const VB_W = 1115;
 const VB_H = 944;
 

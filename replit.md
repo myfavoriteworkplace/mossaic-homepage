@@ -4,11 +4,11 @@ A futuristic, performance-first homepage for **Mossaic** — the company behind 
 
 **Brand identity:**
 - **Mosaic-M** mark — capital "M" assembled from glowing tiles with a luminous AI-core and break-away shards. `Logo.tsx` exposes two optical-size variants:
-  - `variant="image"` (default) — full-detail SVG brand mark. Asset: `public/brand/mossaic-faithful.svg`.
+  - `variant="image"` (default) — full-detail SVG brand mark. Asset: `public/icons/brand/mossaic-faithful.svg`.
   - `variant="mark"` — separately drawn compact vector mark. It is not the canonical faithful SVG.
 - **Wordmark:** `moss[AI]c` — the **AI** letters render in a glowing cyan→blue gradient — `src/components/ui/Wordmark.tsx`
-- **Browser and touch icons:** `public/favicon.svg`, `public/favicon.png`, and `public/apple-touch-icon.png` are transparently padded exports derived from `public/brand/mossaic-faithful.svg`. Regenerate them with `node scripts/generate-brand-icons.mjs` (requires ImageMagick's `magick` command); do not hand-edit the generated files.
-- **Animated backdrop:** `public/brand/mossaic-mark-512.png` is the source artwork for `AssemblyBackdrop.tsx`. Keep it unchanged unless the animation is rebuilt and visually checked.
+- **Browser and touch icons:** `public/icons/site/favicon.svg`, `public/icons/site/favicon.png`, and `public/icons/site/apple-touch-icon.png` are transparently padded exports derived from `public/icons/brand/mossaic-faithful.svg`. Regenerate them with `node scripts/generate-brand-icons.mjs` (requires ImageMagick's `magick` command); do not hand-edit the generated files.
+- **Animated backdrop:** `public/images/brand/mossaic-mark-512.png` is the source artwork for `AssemblyBackdrop.tsx`. Keep it unchanged unless the animation is rebuilt and visually checked.
 - **Tagline:** "The future, assembled."
 - **Type:** Bricolage Grotesque (display) + Inter (body) + Geist Mono (code)
 - **Default theme:** Aurora (deep navy + cyan AI glow). Alternates: Light, Moss (the original green), Mono.
@@ -80,7 +80,7 @@ vite.config.ts                  binds 0.0.0.0:5000, allows all hosts (proxy/ifra
 
 ## Asset and upload hygiene
 
-- Keep runtime assets in descriptive `public/` folders such as `public/brand/` and `public/products/`; reference them from the app rather than copying them into `attached_assets/`.
+- Keep runtime image assets under `public/images/` and icon assets under `public/icons/`, with descriptive subfolders for brand and products. Reference them from the app rather than copying them into `attached_assets/`. Keep root-level site files such as `CNAME`, `robots.txt`, and `sitemap.xml` at the public root.
 - Add files to `attached_assets/` only when they are needed as input for the current task or are intentionally retained source material. Do not add unnecessary screenshots, logs, exports, generated intermediates, duplicate uploads, or unrelated reference files.
 - Before finishing a task that adds files to `attached_assets/`, verify that each file is still needed and remove temporary or redundant additions. Preserve unique source files unless the user approves their removal.
 

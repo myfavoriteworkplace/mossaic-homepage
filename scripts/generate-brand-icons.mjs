@@ -1,13 +1,15 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const projectRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-const sourcePath = join(projectRoot, "public/brand/mossaic-faithful.svg");
-const svgOutputPath = join(projectRoot, "public/favicon.svg");
-const faviconPngPath = join(projectRoot, "public/favicon.png");
-const touchIconPath = join(projectRoot, "public/apple-touch-icon.png");
+const sourcePath = join(projectRoot, "public/icons/brand/mossaic-faithful.svg");
+const siteIconsDir = join(projectRoot, "public/icons/site");
+const svgOutputPath = join(siteIconsDir, "favicon.svg");
+const faviconPngPath = join(siteIconsDir, "favicon.png");
+const touchIconPath = join(siteIconsDir, "apple-touch-icon.png");
+mkdirSync(siteIconsDir, { recursive: true });
 const sourceSvg = readFileSync(sourcePath, "utf8");
 const rootMatch = sourceSvg.match(/^<svg\b([^>]*)>([\s\S]*)<\/svg>\s*$/i);
 

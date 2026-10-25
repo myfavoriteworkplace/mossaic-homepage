@@ -109,10 +109,10 @@ The production target is **≤ 100 KB gzipped JS**. Before adding any new depend
 `src/components/Logo.tsx` and `src/components/ui/Wordmark.tsx` are **brand-critical files**.
 
 - Do not modify their visual output, props, or SVG geometry without explicit written sign-off from the brand owner.
-- The `variant="image"` mode loads the full-detail SVG at `public/brand/mossaic-faithful.svg`; it is not a raster image.
+- The `variant="image"` mode loads the full-detail SVG at `public/icons/brand/mossaic-faithful.svg`; it is not a raster image.
 - The `variant="mark"` mode is a separately drawn compact vector mark, not the canonical faithful SVG.
-- `public/favicon.svg`, `public/favicon.png`, and `public/apple-touch-icon.png` are transparently padded icon exports. Regenerate them from the canonical SVG with `node scripts/generate-brand-icons.mjs`; do not edit the generated files by hand. The script uses the ImageMagick `magick` command to render the PNGs with alpha.
-- The `AssemblyBackdrop.tsx` references brand assets from `public/brand/` — do not rename or move those files.
+- `public/icons/site/favicon.svg`, `public/icons/site/favicon.png`, and `public/icons/site/apple-touch-icon.png` are transparently padded icon exports. Regenerate them from the canonical SVG with `node scripts/generate-brand-icons.mjs`; do not edit the generated files by hand. The script uses the ImageMagick `magick` command to render the PNGs with alpha.
+- Keep image files under `public/images/` and icon files under `public/icons/`. When moving an asset, update all app, HTML, and generation-script references in the same change. The `AssemblyBackdrop.tsx` uses `public/images/brand/mossaic-mark-512.png`.
 
 ### 3.6 Theme System
 Four themes are supported: **Aurora** (default), Light, Moss, Mono. Themes are applied via `data-theme` attribute on `<html>`.

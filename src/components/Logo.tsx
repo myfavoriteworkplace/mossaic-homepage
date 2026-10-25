@@ -17,7 +17,7 @@ type Props = {
   className?: string;
 };
 
-const MARK_IMAGE = "/brand/mossaic-faithful.svg";
+const MARK_IMAGE = `${import.meta.env.BASE_URL}icons/brand/mossaic-faithful.svg`;
 const MARK_IMAGE_AR = 600 / 520;
 
 // ──────────────────────────────────────────────────────────────────────────────
