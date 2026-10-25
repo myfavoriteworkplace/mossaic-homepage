@@ -162,11 +162,13 @@ export default function Testimonials() {
                   const offset = (index - activeIndex + count) % count;
                   const position = offset > count / 2 ? offset - count : offset;
                   const isActive = position === 0;
+                  const sideClass =
+                    position === -1 ? " is-previous" : position === 1 ? " is-next" : "";
 
                   return (
                     <article
                       key={testimonial.id}
-                      className={`testimonial-slide${isActive ? " is-active" : ""}`}
+                      className={`testimonial-slide${isActive ? " is-active" : ""}${sideClass}`}
                       style={
                         {
                           "--slide-position": position,
