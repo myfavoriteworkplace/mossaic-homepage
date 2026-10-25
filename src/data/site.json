@@ -102,7 +102,8 @@
     { "value": "bookmyslot", "label": "bookMySlot — dental clinic" },
     { "value": "retail-crm", "label": "Retail CRM — early access" },
     { "value": "ai-imaging", "label": "AI Imaging — diagnostic assist" },
-    { "value": "mossaic-studio", "label": "mossaic Studio — custom enterprise platforms" },
+    { "value": "mossaic-studio", "label": "mossaic Studio — enterprise web & SEO" },
+    { "value": "mossaic-labs", "label": "mossAIc Labs — custom software & SaaS engineering" },
     { "value": "partnership", "label": "Partnership / investment" },
     { "value": "general", "label": "General enquiry" },
     { "value": "careers", "label": "Careers at Mossaic" }

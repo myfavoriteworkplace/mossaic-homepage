@@ -109,9 +109,17 @@ export const FAQS: Faq[] = [
       "what do you build",
       "lineup",
       "portfolio",
+      "mossaic labs",
+      "mossAIc labs",
+      "labs",
+      "custom software",
+      "saas engineering",
+      "full-stack apps",
+      "cloud architecture",
+      "backend development",
     ],
     answer:
-      "Our SaaS products are bookMySlot (live — dental practice management), Retail CRM (coming soon — for Indian retail), and AI Imaging (planned for 2027 — explainable AI diagnostic assist for dental radiology). We also offer mossaic Studio for custom enterprise web platforms and engineering.",
+      "Our SaaS products are bookMySlot (live — dental practice management), Retail CRM (coming soon — for Indian retail), and AI Imaging (planned for 2027 — explainable AI diagnostic assist for dental radiology). mossAIc Labs builds custom software, SaaS platforms, full-stack apps, and cloud backends. mossaic Studio focuses on enterprise web experiences and SEO.",
   },
   {
     id: "mossaic-studio",
@@ -120,13 +128,14 @@ export const FAQS: Faq[] = [
     keywords: [
       "mossaic studio",
       "studio",
-      "custom engineering",
-      "enterprise platform",
-      "custom web development",
-      "bespoke software",
+      "enterprise website",
+      "enterprise web",
+      "seo services",
+      "technical seo",
+      "digital experience",
     ],
     answer:
-      "mossaic Studio builds custom, high-density web platforms and digital systems for logistics, healthcare, and retail enterprises. If you have a project in mind, use the contact form or write to connect@mossaic.in.",
+      "mossaic Studio focuses on high-density enterprise websites, digital experiences, and technical SEO for logistics, healthcare, and retail organizations. For full-stack applications, SaaS platforms, cloud architecture, and APIs, contact mossAIc Labs. If you have a project in mind, use the contact form or write to connect@mossaic.in.",
   },
   {
     id: "bookmyslot",

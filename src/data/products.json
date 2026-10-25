@@ -44,11 +44,23 @@
     "id": "mossaic-studio",
     "name": "mossaic Studio",
     "subLabel": "Studio",
-    "category": "Enterprise Web · Custom Engineering",
-    "description": "Custom, high-density web platforms and digital systems, plus SEO services, engineered for logistics, healthcare, and retail enterprises. Built on modern static-first architectures.",
+    "category": "Enterprise Web · Digital Experience & SEO",
+    "description": "High-density enterprise websites and digital experiences, supported by technical SEO services, for logistics, healthcare, and retail organizations.",
     "status": "live",
     "statusLabel": "Available",
-    "tags": ["Enterprise platforms", "Custom engineering", "Static-first"],
+    "tags": ["Enterprise web", "Digital experiences", "Technical SEO"],
+    "cta": { "label": "Talk to our team", "href": "#contact" },
+    "accent": "blue"
+  },
+  {
+    "id": "mossaic-labs",
+    "name": "mossAIc Labs",
+    "subLabel": "Custom Software · SaaS Engineering",
+    "category": "SaaS Products · Full-Stack Apps · Cloud Architecture",
+    "description": "Scalable full-stack software and application development. From robust SaaS platforms and backend architecture to custom web apps engineered for high performance, security, and growth.",
+    "status": "live",
+    "statusLabel": "Available",
+    "tags": ["Full-stack", "SaaS Dev", "Cloud Architecture", "APIs & Backends"],
     "cta": { "label": "Talk to our team", "href": "#contact" },
     "accent": "blue"
   }

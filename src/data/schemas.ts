@@ -14,7 +14,7 @@ const SafeHref = NonEmptyText.refine(
 );
 
 export const ProductSchema = z.object({
-  id: z.enum(["bookmyslot", "retail-crm", "ai-imaging", "mossaic-studio"]),
+  id: z.enum(["bookmyslot", "retail-crm", "ai-imaging", "mossaic-studio", "mossaic-labs"]),
   name: NonEmptyText,
   subLabel: NonEmptyText,
   category: NonEmptyText,

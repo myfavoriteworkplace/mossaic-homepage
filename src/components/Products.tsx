@@ -43,6 +43,24 @@ const BOOKMYSLOT_SCREENS: Screen[] = [
   },
 ];
 
+function LabsMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 32 32"
+      className="h-6 w-6 text-white"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m10.5 8.5-7 7.5 7 7.5M21.5 8.5l7 7.5-7 7.5M18.5 7.5l-5 17" />
+      <path d="M11.5 16h3" />
+    </svg>
+  );
+}
+
 const ICONS: Record<string, React.ReactNode> = {
   bookmyslot: (
     <img
@@ -59,6 +77,7 @@ const ICONS: Record<string, React.ReactNode> = {
   "retail-crm": <Store size={24} className="text-white" strokeWidth={1.6} />,
   "ai-imaging": <Brain size={24} className="text-white" strokeWidth={1.6} />,
   "mossaic-studio": <Logo size={38} />,
+  "mossaic-labs": <LabsMark />,
 };
 
 const ACCENT_BG: Record<Product["accent"], string> = {
@@ -196,11 +215,19 @@ function ProductCard({
         </div>
 
         <div className="col-start-2 row-start-1 flex min-w-0 flex-wrap items-start gap-x-0 gap-y-1">
-          <h3 className="m-0 max-w-full flex-none break-words display text-xl font-bold tracking-tight leading-tight text-ink">
+          <h3
+            aria-label={p.id === "mossaic-labs" ? p.name : undefined}
+            className="m-0 max-w-full flex-none break-words display text-xl font-bold tracking-tight leading-tight text-ink"
+          >
             {p.id === "bookmyslot" ? (
               <BookMySlotText className="text-xl" />
             ) : p.id === "mossaic-studio" ? (
               <Wordmark variant="nav" textColor="var(--text)" className="!text-xl" />
+            ) : p.id === "mossaic-labs" ? (
+              <span className="inline-flex items-baseline gap-1">
+                <Wordmark variant="nav" textColor="var(--text)" className="!text-xl" />
+                <span>Labs</span>
+              </span>
             ) : (
               p.name
             )}
