@@ -22,11 +22,11 @@
   width: min(72%, 700px);
   height: 100%;
   margin: auto;
+  z-index: 1;
   opacity: 0.55;
   transform:
-    translateX(calc(var(--slide-position) * 61%))
+    translateX(calc(var(--slide-position) * 72%))
     translateZ(var(--slide-depth))
-    rotateY(calc(var(--slide-position) * -27deg))
     scale(0.84);
   transform-style: preserve-3d;
   transition:
@@ -291,9 +291,8 @@
     width: 86%;
     opacity: 0.2;
     transform:
-      translateX(calc(var(--slide-position) * 94%))
+      translateX(calc(var(--slide-position) * 78%))
       translateZ(var(--slide-depth))
-      rotateY(calc(var(--slide-position) * -18deg))
       scale(0.86);
   }
 
