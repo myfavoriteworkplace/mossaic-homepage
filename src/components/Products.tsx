@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ExternalLink, Store, Brain } from "lucide-react";
+import { ArrowRight, ExternalLink, Store } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
 import BookMySlotText from "./ui/BookMySlotText";
@@ -75,7 +75,18 @@ const ICONS: Record<string, React.ReactNode> = {
     />
   ),
   "retail-crm": <Store size={24} className="text-white" strokeWidth={1.6} />,
-  "ai-imaging": <Brain size={24} className="text-white" strokeWidth={1.6} />,
+  "ai-imaging": (
+    <img
+      src="/products/ai-imaging-thumbnail.webp"
+      alt=""
+      width={48}
+      height={48}
+      decoding="async"
+      loading="lazy"
+      draggable={false}
+      style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
+    />
+  ),
   "mossaic-studio": <Logo size={38} />,
   "mossaic-labs": <LabsMark />,
 };
