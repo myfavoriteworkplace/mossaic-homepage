@@ -47,7 +47,7 @@ const BOOKMYSLOT_SCREENS: Screen[] = [
 const ICONS: Record<string, React.ReactNode> = {
   bookmyslot: (
     <img
-      src={`${import.meta.env.BASE_URL}icons/products/bookmyslot-icon.webp`}
+      src={`${import.meta.env.BASE_URL}icons/products/bookmyslot-icon.svg`}
       alt=""
       width={48}
       height={48}
