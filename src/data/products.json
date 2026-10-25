@@ -17,18 +17,6 @@
     "accent": "moss"
   },
   {
-    "id": "retail-crm",
-    "name": "Retail CRM",
-    "subLabel": "Retail & Commerce",
-    "category": "CRM · Inventory · Loyalty",
-    "description": "Customer relationship management built for Indian retail — inventory sync, loyalty programs, WhatsApp-native communication, and GST-ready billing.",
-    "status": "soon",
-    "statusLabel": "Coming soon",
-    "tags": ["Inventory", "Loyalty", "GST billing"],
-    "cta": { "label": "Express interest", "href": "#contact" },
-    "accent": "amber"
-  },
-  {
     "id": "ai-imaging",
     "name": "AI Imaging",
     "subLabel": "Dental AI",

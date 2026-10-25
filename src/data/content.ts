@@ -1,11 +1,13 @@
 import siteJson from "./site.json";
 import productsJson from "./products.json";
 import studioProjectsJson from "./studio-projects.json";
+import labsFeaturesJson from "./labs-features.json";
 import testimonialsJson from "./testimonials.json";
 import roadmapJson from "./roadmap.json";
 import type {
   Product,
   ProductStatus,
+  LabsFeature,
   RoadmapItem,
   SiteConfig,
   StudioProject,
@@ -16,6 +18,7 @@ import type {
 export const SITE_CONFIG = siteJson as unknown as SiteConfig;
 export const PRODUCTS = productsJson as unknown as Product[];
 export const STUDIO_PROJECTS = studioProjectsJson as unknown as StudioProject[];
+export const LABS_FEATURES = labsFeaturesJson as unknown as LabsFeature[];
 export const TESTIMONIALS = testimonialsJson as unknown as Testimonial[];
 export const ROADMAP = roadmapJson as unknown as RoadmapItem[];
 
@@ -34,4 +37,4 @@ export const CONTACT_INTERESTS = SITE_CONFIG.contactInterests;
 export const SITE = SITE_CONFIG.site;
 export const TAGLINE = SITE.tagline;
 
-export type { Product, ProductStatus, StudioProject, Testimonial };
+export type { Product, ProductStatus, LabsFeature, StudioProject, Testimonial };

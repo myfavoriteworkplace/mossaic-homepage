@@ -14,7 +14,7 @@ const SafeHref = NonEmptyText.refine(
 );
 
 export const ProductSchema = z.object({
-  id: z.enum(["bookmyslot", "retail-crm", "ai-imaging", "mossaic-studio", "mossaic-labs"]),
+  id: z.enum(["bookmyslot", "ai-imaging", "mossaic-studio", "mossaic-labs"]),
   name: NonEmptyText,
   subLabel: NonEmptyText,
   category: NonEmptyText,
@@ -77,6 +77,32 @@ export const StudioProjectsSchema = z
         });
       }
       ids.add(project.id);
+    }
+  });
+
+export const LabsFeatureSchema = z.object({
+  id: z.enum(["bookmyslot", "retail-crm"]),
+  name: NonEmptyText,
+  category: NonEmptyText,
+  status: z.enum(["available", "soon"]),
+  statusLabel: NonEmptyText,
+  href: SafeHref,
+});
+
+export const LabsFeaturesSchema = z
+  .array(LabsFeatureSchema)
+  .min(1)
+  .superRefine((features, ctx) => {
+    const ids = new Set<string>();
+    for (const [index, feature] of features.entries()) {
+      if (ids.has(feature.id)) {
+        ctx.addIssue({
+          code: "custom",
+          path: [index, "id"],
+          message: `Duplicate Labs feature id: ${feature.id}`,
+        });
+      }
+      ids.add(feature.id);
     }
   });
 
@@ -228,6 +254,7 @@ export const SiteConfigSchema = z.object({
 export type Product = z.infer<typeof ProductSchema>;
 export type ProductStatus = Product["status"];
 export type StudioProject = z.infer<typeof StudioProjectSchema>;
+export type LabsFeature = z.infer<typeof LabsFeatureSchema>;
 export type Testimonial = z.infer<typeof TestimonialSchema>;
 export type RoadmapItem = z.infer<typeof RoadmapSchema>[number];
 export type SiteConfig = z.infer<typeof SiteConfigSchema>;

@@ -55,9 +55,9 @@ export default function Roadmap() {
           </p>
         </Reveal>
 
-        <div className="relative grid md:grid-cols-2 lg:grid-cols-5 gap-y-8" ref={lineRef}>
+        <div className="relative grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-y-8" ref={lineRef}>
           {/* connecting line */}
-          <div className="hidden lg:block absolute top-7 left-[10%] right-[10%] h-px overflow-hidden">
+          <div className="hidden xl:block absolute top-7 left-[10%] right-[10%] h-px overflow-hidden">
             <motion.div
               initial={{ scaleX: 0 }}
               animate={inView ? { scaleX: 1 } : {}}
@@ -72,7 +72,7 @@ export default function Roadmap() {
 
           {ROADMAP.map((item, i) => (
             <motion.div
-              key={item.year}
+              key={`${item.year}-${item.name}`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
@@ -128,6 +128,15 @@ export default function Roadmap() {
                       className="!text-[15px]"
                     />
                     <span>Studio</span>
+                  </span>
+                ) : item.name === "mossAIc Labs" ? (
+                  <span className="inline-flex items-baseline gap-1">
+                    <Wordmark
+                      variant="nav"
+                      textColor="#fff"
+                      className="!text-[15px]"
+                    />
+                    <span>Labs</span>
                   </span>
                 ) : (
                   item.name

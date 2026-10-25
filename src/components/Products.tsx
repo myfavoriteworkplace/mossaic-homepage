@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ExternalLink, Store } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import TiltCard from "./ui/TiltCard";
 import BookMySlotText from "./ui/BookMySlotText";
@@ -9,6 +9,7 @@ import Wordmark from "./ui/Wordmark";
 import {
   PRODUCTS,
   PRODUCTS_COPY,
+  LABS_FEATURES,
   STUDIO_PROJECTS,
   type Product,
 } from "../data/site";
@@ -56,7 +57,6 @@ const ICONS: Record<string, React.ReactNode> = {
       style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
     />
   ),
-  "retail-crm": <Store size={24} className="text-white" strokeWidth={1.6} />,
   "ai-imaging": (
     <img
       src="/products/ai-imaging-thumbnail.webp"
@@ -345,6 +345,59 @@ function ProductCard({
                     aria-hidden="true"
                     className="text-moss transition-transform group-hover/project:-translate-y-0.5 group-hover/project:translate-x-0.5"
                   />
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {p.id === "mossaic-labs" && (
+        <div className="mt-6 border-t border-border1 pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-ink-3">
+              Feature development
+            </span>
+            <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-[11px] font-semibold text-sky-400">
+              <span className="h-2 w-2 rounded-full bg-sky-400" aria-hidden="true" />
+              {LABS_FEATURES.filter((feature) => feature.status === "available").length} Available
+            </span>
+          </div>
+
+          <div className="mt-3 grid gap-2">
+            {LABS_FEATURES.map((feature) => (
+              <a
+                key={feature.id}
+                href={feature.href}
+                target={feature.href.startsWith("http") ? "_blank" : undefined}
+                rel={feature.href.startsWith("http") ? "noreferrer noopener" : undefined}
+                aria-label={
+                  feature.href.startsWith("http")
+                    ? `Visit ${feature.name} (opens in a new tab)`
+                    : `${feature.name} — ${feature.statusLabel}`
+                }
+                className="group/labs-feature flex min-w-0 items-center justify-between gap-3 rounded-xl border border-border1 bg-surface px-3.5 py-3 no-underline transition-colors hover:border-sky-400/40 hover:bg-surface/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+              >
+                <span className="min-w-0">
+                  <span className="block break-words text-sm font-semibold leading-snug text-ink">
+                    {feature.id === "bookmyslot" ? (
+                      <BookMySlotText />
+                    ) : (
+                      feature.name
+                    )}
+                  </span>
+                  <span className="mt-0.5 block break-words text-xs leading-snug text-ink-3">
+                    {feature.category}
+                  </span>
+                </span>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                    feature.status === "available"
+                      ? "bg-moss-light text-moss-dark"
+                      : "bg-page text-ink-3"
+                  }`}
+                >
+                  {feature.statusLabel}
                 </span>
               </a>
             ))}

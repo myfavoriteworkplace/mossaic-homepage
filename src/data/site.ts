@@ -4,6 +4,7 @@ export {
   CONTACT_INTERESTS,
   HERO_COPY,
   HERO_STATS,
+  LABS_FEATURES,
   MISSION,
   NAV_LINKS,
   PRINCIPLES,
@@ -19,4 +20,10 @@ export {
   VISION,
 } from "./content";
 
-export type { Product, ProductStatus, StudioProject, Testimonial } from "./content";
+export type {
+  LabsFeature,
+  Product,
+  ProductStatus,
+  StudioProject,
+  Testimonial,
+} from "./content";

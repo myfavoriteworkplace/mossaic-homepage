@@ -1,0 +1,18 @@
+[
+  {
+    "id": "bookmyslot",
+    "name": "bookMySlot",
+    "category": "Dental practice management",
+    "status": "available",
+    "statusLabel": "Available",
+    "href": "https://bookmyslot.dental.mossaic.in"
+  },
+  {
+    "id": "retail-crm",
+    "name": "Retail CRM",
+    "category": "Customer, inventory, and loyalty management",
+    "status": "soon",
+    "statusLabel": "Coming soon",
+    "href": "#contact"
+  }
+]
