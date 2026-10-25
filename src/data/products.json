@@ -2,6 +2,7 @@
   {
     "id": "bookmyslot",
     "name": "bookMySlot",
+    "subLabel": "Dental",
     "category": "Dental SaaS · Practice Management",
     "description": "Complete dental practice management — slot booking, clinical records, doctor assignments, patient reminders, inventory tracking, and Smile Deals. Built for Indian dental clinics.",
     "status": "live",
@@ -18,7 +19,8 @@
   {
     "id": "retail-crm",
     "name": "Retail CRM",
-    "category": "Retail & Commerce",
+    "subLabel": "Retail & Commerce",
+    "category": "CRM · Inventory · Loyalty",
     "description": "Customer relationship management built for Indian retail — inventory sync, loyalty programs, WhatsApp-native communication, and GST-ready billing.",
     "status": "soon",
     "statusLabel": "Coming soon",
@@ -29,7 +31,8 @@
   {
     "id": "ai-imaging",
     "name": "AI Imaging",
-    "category": "Dental AI · Diagnostic Assist",
+    "subLabel": "Dental AI",
+    "category": "Diagnostic Assist",
     "description": "Explainable AI-assisted dental imaging with Grad-CAM overlays — helping radiologists and dentists flag anomalies faster with full audit trails.",
     "status": "future",
     "statusLabel": "2027",
@@ -40,8 +43,9 @@
   {
     "id": "mossaic-studio",
     "name": "mossaic Studio",
+    "subLabel": "Studio",
     "category": "Enterprise Web · Custom Engineering",
-    "description": "Custom, high-density web platforms and digital systems engineered for logistics, healthcare, and retail enterprises. Built on modern static-first architectures.",
+    "description": "Custom, high-density web platforms and digital systems, plus SEO services, engineered for logistics, healthcare, and retail enterprises. Built on modern static-first architectures.",
     "status": "live",
     "statusLabel": "Available",
     "tags": ["Enterprise platforms", "Custom engineering", "Static-first"],

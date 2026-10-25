@@ -95,9 +95,6 @@ export default function Products() {
                 className="group h-full rounded-2xl"
                 max={5}
                 scale={1.015}
-                style={{
-                  background: "rgb(var(--bg-rgb))",
-                }}
               >
                 <ProductCard
                   p={p}
@@ -129,7 +126,6 @@ function ProductCard({
   screens?: Screen[];
 }) {
   const isLive = p.status === "live";
-  const hasBrandLockup = p.id === "bookmyslot" || p.id === "mossaic-studio";
   const [hovered, setHovered] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
 
@@ -142,10 +138,10 @@ function ProductCard({
     return () => mq.removeEventListener?.("change", update);
   }, []);
 
-  const carouselActive = !!screens && (hovered || isTouch);
+  const carouselActive = !!screens && !isTouch && hovered;
   const statusBadge = (
     <span
-      className={`shrink-0 text-[10px] font-semibold tracking-wider px-2.5 py-1 rounded-[10px] ${
+      className={`ml-auto shrink-0 text-[10px] font-semibold tracking-wider px-2.5 py-1 rounded-[10px] ${
         isLive
           ? "bg-moss-light text-moss-dark"
           : "bg-surface text-ink-4 border border-border1"
@@ -156,8 +152,9 @@ function ProductCard({
   );
 
   return (
-    <div
-      className={`relative h-full rounded-2xl border border-border1 group-hover:border-moss/40 transition-all p-7 overflow-hidden ${
+    <article
+      data-testid={`card-product-${p.id}`}
+      className={`relative h-full rounded-2xl border border-white/10 bg-[#0e1e38]/90 backdrop-blur-xl group-hover:border-sky-400/40 transition-all p-7 overflow-hidden ${
         isLive ? "" : "opacity-90 group-hover:opacity-100"
       }`}
       style={{
@@ -178,82 +175,50 @@ function ProductCard({
         }}
       />
 
-      {hasBrandLockup ? (
-        <div className="flex items-start gap-3 mb-5">
-          <div
-            className={`relative h-12 w-12 shrink-0 rounded-xl flex items-center justify-center overflow-hidden ${
-              iconFullTile ? "" : accentClass
-            }`}
+      <div className="mb-3 grid grid-cols-[3rem_minmax(0,1fr)] grid-rows-[auto_auto] items-start gap-x-3 gap-y-1">
+        <div
+          className={`relative row-span-2 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl ${
+            iconFullTile ? "" : accentClass
+          }`}
+        >
+          {!iconFullTile && (
+            <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+          )}
+          <span
+            className={
+              iconFullTile
+                ? "flex h-full w-full items-center justify-center"
+                : "relative z-10"
+            }
           >
-            {!iconFullTile && (
-              <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-            )}
-            <span
-              className={
-                iconFullTile
-                  ? "flex h-full w-full items-center justify-center"
-                  : "relative z-10"
-              }
-            >
-              {icon}
-            </span>
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                {p.id === "bookmyslot" ? (
-                  <h3 className="m-0 display text-xl font-bold tracking-tight leading-tight">
-                    <BookMySlotText className="text-[18px] sm:text-xl" />
-                  </h3>
-                ) : (
-                  <div>
-                    <h3 className="m-0 display text-xl font-bold tracking-tight leading-tight">
-                      <Wordmark
-                        variant="nav"
-                        textColor="var(--text)"
-                        className="!text-[18px] sm:!text-xl"
-                      />
-                    </h3>
-                    <span className="mt-0.5 block display text-sm font-bold leading-tight text-ink">
-                      Studio
-                    </span>
-                  </div>
-                )}
-              </div>
-              {statusBadge}
-            </div>
-            <p className="mt-1 text-xs leading-snug text-moss font-semibold tracking-wide break-words">
-              {p.category}
-            </p>
-          </div>
+            {icon}
+          </span>
         </div>
-      ) : (
-        <>
-          <div className="flex items-start justify-between mb-5">
-            <div
-              className={`relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${
-                iconFullTile ? "" : accentClass
-              }`}
-            >
-              {!iconFullTile && (
-                <span className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-              )}
-              <span className={iconFullTile ? "block w-full h-full" : "relative z-10"}>
-                {icon}
-              </span>
-            </div>
-            {statusBadge}
-          </div>
 
-          <h3 className="text-xl font-bold text-ink mb-1.5 display tracking-tight">
-            {p.name}
+        <div className="col-start-2 row-start-1 flex min-w-0 flex-wrap items-start gap-x-0 gap-y-1">
+          <h3 className="m-0 max-w-full flex-none break-words display text-xl font-bold tracking-tight leading-tight text-ink">
+            {p.id === "bookmyslot" ? (
+              <BookMySlotText className="text-xl" />
+            ) : p.id === "mossaic-studio" ? (
+              <Wordmark variant="nav" textColor="var(--text)" className="!text-xl" />
+            ) : (
+              p.name
+            )}
           </h3>
-          <p className="text-xs text-moss font-semibold mb-2.5 tracking-wide">
-            {p.category}
-          </p>
-        </>
-      )}
+          {statusBadge}
+        </div>
+
+        <p
+          data-testid={`text-product-sub-label-${p.id}`}
+          className="col-start-2 row-start-2 min-w-0 break-words text-xs font-semibold leading-snug tracking-wide text-sky-400"
+        >
+          {p.subLabel}
+        </p>
+      </div>
+
+      <p className="mb-5 break-words text-xs font-semibold tracking-wide text-slate-300/80">
+        {p.category}
+      </p>
 
       {/* swap-zone: description + metrics + tags fade out when carousel is active */}
       <div className={`relative ${screens ? "min-h-[220px]" : ""}`}>
@@ -291,7 +256,7 @@ function ProductCard({
             {p.tags.map((t) => (
               <span
                 key={t}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-surface text-ink-3 border border-border2"
+                className="text-xs font-semibold px-2.5 py-1 rounded-full bg-surface text-ink-3 border border-border2"
               >
                 {t}
               </span>
@@ -382,7 +347,7 @@ function ProductCard({
         )}
         <ArrowRight size={13} />
       </a>
-    </div>
+    </article>
   );
 }
 
