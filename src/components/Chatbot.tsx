@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, X, Send, Mic, Volume2, VolumeX } from "lucide-react";
+import "./Chatbot.css";
 import {
   FAQS,
   FAQ_GREETING,
@@ -2305,26 +2306,6 @@ export default function Chatbot() {
         )}
       </AnimatePresence>
 
-      {/* Pulse keyframes injected once (scoped via unique animation name). */}
-      <style>{`
-        @keyframes mossaic-chat-pulse {
-          0%   { box-shadow: 0 0 0 0   rgba(34,211,238,0.40); }
-          70%  { box-shadow: 0 0 0 14px rgba(34,211,238,0); }
-          100% { box-shadow: 0 0 0 0   rgba(34,211,238,0); }
-        }
-        /* Three-dot "typing" indicator inside the bot bubble. Each dot uses
-           the same keyframe with a staggered animation-delay so the wave
-           reads naturally. Drops to ~30% opacity + 70% scale at the trough. */
-        @keyframes mossaic-typing-dot {
-          0%, 80%, 100% { opacity: 0.30; transform: scale(0.70); }
-          40%           { opacity: 1.00; transform: scale(1.00); }
-        }
-        /* Soft blinking caret while the per-character reveal is running. */
-        @keyframes mossaic-typing-caret {
-          0%, 49%   { opacity: 1; }
-          50%, 100% { opacity: 0; }
-        }
-      `}</style>
     </>
   );
 }

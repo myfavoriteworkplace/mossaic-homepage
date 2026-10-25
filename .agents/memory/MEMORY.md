@@ -2,3 +2,4 @@
 - [Mossaic portfolio claims](mossaic-portfolio-claims.md) — keep approved product metrics and live/roadmap statuses consistent and sourced from JSON where practical.
 - [Transparent icon exports](transparent-svg-rasterization.md) — ImageMagick needs an explicit transparent background when rasterizing SVGs with alpha padding.
 - [SPA section screenshots](spa-section-screenshots.md) — React hash anchors can miss late-mounted sections; full-page captures can miss scroll-triggered content.
+- [React fetch priority attribute](react-fetchpriority.md) — preserve lowercase `fetchpriority` through JSX spread when this app’s runtime warns on the typed camel-case prop.

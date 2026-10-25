@@ -249,6 +249,7 @@ export default function Hero() {
                       height={50}
                       decoding="async"
                       loading="eager"
+                      {...{ fetchpriority: "high" }}
                       draggable={false}
                       style={{ display: "block", height: 36, width: "auto" }}
                     />
@@ -397,7 +398,6 @@ export default function Hero() {
                   alt="Clinicians reviewing AI-assisted imaging"
                   width={72}
                   height={72}
-                  loading="lazy"
                   decoding="async"
                   draggable={false}
                   style={{

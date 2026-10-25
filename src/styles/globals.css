@@ -322,3 +322,13 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+.mos-wordmark .mos-ai {
+  background-image: linear-gradient(180deg, #a5f3fc 0%, #22d3ee 45%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.55))
+    drop-shadow(0 0 14px rgba(59, 130, 246, 0.25));
+  padding: 0 0.02em;
+}

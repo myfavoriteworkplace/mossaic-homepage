@@ -39,17 +39,6 @@ export default function Wordmark({
         AI
       </span>
       <span>c</span>
-      <style>{`
-        .mos-wordmark .mos-ai {
-          background-image: linear-gradient(180deg, #A5F3FC 0%, #22D3EE 45%, #3B82F6 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.55))
-                  drop-shadow(0 0 14px rgba(59, 130, 246, 0.25));
-          padding: 0 0.02em;
-        }
-      `}</style>
     </span>
   );
 }

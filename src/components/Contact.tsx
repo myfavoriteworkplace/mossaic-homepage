@@ -6,6 +6,7 @@ import Reveal from "./ui/Reveal";
 import MagneticButton from "./ui/MagneticButton";
 import { SITE, CONTACT_INTERESTS } from "../data/site";
 import CONTACT_CONFIG from "../data/contact-config.json";
+import "./Contact.css";
 
 type ContactView = "form" | "flight" | "success";
 
@@ -508,58 +509,6 @@ export default function Contact() {
             </AnimatePresence>
           </motion.div>
 
-          <style>{`
-            .form-input {
-              width: 100%;
-              border: 1.5px solid var(--border);
-              border-radius: 9px;
-              padding: 10px 14px;
-              /* 16px prevents iOS Safari from auto-zooming the page when an
-                 input is focused. Padding tightened so the field doesn't
-                 grow visually compared to the previous 14px design. */
-              font-size: 16px;
-              font-family: var(--sans);
-              color: var(--text);
-              background: var(--bg);
-              outline: none;
-              transition: border-color .2s, box-shadow .2s;
-              appearance: none;
-            }
-            @media (min-width: 768px) {
-              .form-input { font-size: 14px; padding: 11px 14px; }
-            }
-            .form-input:focus {
-              border-color: var(--accent);
-              box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.12);
-            }
-            .form-input::placeholder { color: rgb(var(--text-4-rgb)); }
-            @keyframes contact-email-icon-glow {
-              0%, 100% {
-                box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0);
-              }
-              42%, 68% {
-                box-shadow:
-                  0 0 0 5px rgb(var(--accent-rgb) / 0.13),
-                  0 0 18px rgb(var(--accent-rgb) / 0.5);
-              }
-            }
-            @keyframes contact-email-address-glow {
-              0%, 100% {
-                color: rgb(var(--text-2-rgb));
-                text-shadow: 0 0 0 rgb(var(--accent-rgb) / 0);
-              }
-              38%, 70% {
-                color: var(--accent);
-                text-shadow: 0 0 14px rgb(var(--accent-rgb) / 0.62);
-              }
-            }
-            .contact-email-icon-impact {
-              animation: contact-email-icon-glow 720ms ease-out both;
-            }
-            .contact-email-address-impact {
-              animation: contact-email-address-glow 720ms ease-out both;
-            }
-          `}</style>
         </Reveal>
       </div>
       {envelopeFlight &&
