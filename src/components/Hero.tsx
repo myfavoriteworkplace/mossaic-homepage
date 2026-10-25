@@ -420,7 +420,7 @@ export default function Hero() {
               <div>
                 <div className="text-[11px] text-white/85 font-medium">AI Imaging</div>
                 <div className="text-[9px] mt-px" style={{ color: "var(--hero-sub)" }}>
-                  In clinical use
+                  Planned
                 </div>
               </div>
               <span

@@ -198,6 +198,16 @@ export default function Contact() {
                 {SITE.email}
               </motion.span>
             </a>
+            {SITE.alternateEmail && (
+              <a
+                href={`mailto:${SITE.alternateEmail}`}
+                aria-label={`Alternative email: ${SITE.alternateEmail}`}
+                className="flex items-center gap-2.5 text-sm text-ink-2 hover:text-moss transition-colors no-underline"
+              >
+                <Mail size={16} className="text-moss" strokeWidth={1.7} />
+                {SITE.alternateEmail}
+              </a>
+            )}
             <div className="flex items-center gap-2.5 text-sm text-ink-2">
               <MapPin size={16} className="text-moss" strokeWidth={1.7} />
               {SITE.location}

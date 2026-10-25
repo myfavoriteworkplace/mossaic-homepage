@@ -438,6 +438,14 @@ function ProductPipeline({ content }: { content: DeckContent }) {
           <p>{content.narrative.closingDescription}</p>
           <div className="deck-contact-details">
             <a href={emailHref} data-testid="deck-contact-email"><Mail aria-hidden="true" />{SITE_CONFIG.site.email}</a>
+            {SITE_CONFIG.site.alternateEmail && (
+              <a
+                href={`mailto:${SITE_CONFIG.site.alternateEmail}`}
+                data-testid="deck-contact-alternate-email"
+              >
+                <Mail aria-hidden="true" />Alternative · {SITE_CONFIG.site.alternateEmail}
+              </a>
+            )}
             <a href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-whatsapp"><MessageCircle aria-hidden="true" />Phone / WhatsApp · +91 97467 67146</a>
             <a href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-site"><Globe2 aria-hidden="true" />{siteUrl.replace(/^https?:\/\//, "")}</a>
             <span className="deck-contact-location"><MapPin aria-hidden="true" />{SITE_CONFIG.site.location}</span>

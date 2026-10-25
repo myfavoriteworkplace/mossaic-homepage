@@ -235,6 +235,7 @@ export const SiteConfigSchema = z.object({
     tagline: NonEmptyText,
     techPill: NonEmptyText,
     email: z.string().email(),
+    alternateEmail: z.string().email().optional(),
     location: NonEmptyText,
     domains: NonEmptyText,
     founder: z.object({

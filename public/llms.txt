@@ -1,0 +1,29 @@
+# Mossaic
+
+> Mossaic builds modular software for Indian businesses, including vertical SaaS products and custom enterprise web platforms.
+
+Mossaic is based in Kerala, India. The company focuses on software for Indian businesses, alongside custom web and software services.
+
+## Products
+
+- [bookMySlot](https://bookmyslot.dental.mossaic.in): Live dental practice management software for slot booking, clinical records, doctor assignments, patient reminders, inventory, and Smile Deals.
+- [Retail CRM](https://mossaic.in/#products): Upcoming customer, inventory, and loyalty management software for Indian retailers.
+- [AI Imaging](https://mossaic.in/#products): Planned for 2027 — explainable AI-assisted dental imaging with Grad-CAM overlays to help practitioners flag anomalies. This product is planned and is not currently available.
+
+## Services
+
+- [mossaic Studio](https://mossaic.in/#products): Enterprise websites, digital experiences, and technical SEO.
+- [mossAIc Labs](https://mossaic.in/#products): Custom software, SaaS engineering, full-stack applications, APIs, and cloud architecture.
+
+## Contact
+
+- [Contact Mossaic](https://mossaic.in/#contact)
+- Primary email: [connect@mossaic.in](mailto:connect@mossaic.in)
+- Alternative email: [mossaic@zohomail.in](mailto:mossaic@zohomail.in)
+
+## Resources
+
+- [Mossaic website](https://mossaic.in/)
+- [Interactive company presentation](https://mossaic.in/deck/)
+- [Sitemap](https://mossaic.in/sitemap.xml)
+- [Robots file](https://mossaic.in/robots.txt)
