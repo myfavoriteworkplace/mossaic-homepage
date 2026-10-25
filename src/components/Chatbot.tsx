@@ -629,10 +629,8 @@ async function fetchGroqReply(
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
-  const [muted, setMuted] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(MUTE_KEY) === "1";
-  });
+  const [muted, setMuted] = useState(false);
+  const [mutePreferenceLoaded, setMutePreferenceLoaded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -653,8 +651,8 @@ export default function Chatbot() {
   // Walk-in state — Mossie enters from the far-left, strolls to her home spot
   // in the bottom-right, pauses mid-screen to greet the user, and "settles"
   // when the user comes near, taps, opens the chat, or the walk timer ends.
-  const [walkDistance] = useState<number>(() => computeWalkDistance());
-  const [settled, setSettled] = useState<boolean>(() => computeWalkDistance() === 0);
+  const [walkDistance, setWalkDistance] = useState(0);
+  const [settled, setSettled] = useState(true);
   // Mid-walk greeting state. While `waving` is true, body x is held still and
   // the face switches to a happy expression.
   const [waving, setWaving] = useState(false);
@@ -681,7 +679,8 @@ export default function Chatbot() {
   // shown). Final visibility also requires settled && !open.
   const [tooltipShown, setTooltipShown] = useState(false);
 
-  const recognitionCtor = useMemo(() => getRecognitionCtor(), []);
+  const [recognitionCtor, setRecognitionCtor] =
+    useState<SpeechRecognitionCtor | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -737,14 +736,33 @@ export default function Chatbot() {
      no matter how many times the user opens and closes the chat panel. */
   const greetSpokenRef = useRef(false);
 
+  /* Keep the server and first browser render identical, then enable
+     viewport- and browser-specific chatbot behavior after hydration. */
+  useEffect(() => {
+    const distance = computeWalkDistance();
+    setWalkDistance(distance);
+    setSettled(distance === 0);
+    const recognition = getRecognitionCtor();
+    setRecognitionCtor(() => recognition);
+  }, []);
+
+  useEffect(() => {
+    try {
+      setMuted(window.localStorage.getItem(MUTE_KEY) === "1");
+    } catch {
+      setMuted(false);
+    }
+    setMutePreferenceLoaded(true);
+  }, []);
+
   /* Persist mute preference. */
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!mutePreferenceLoaded) return;
     window.localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
     if (muted && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
-  }, [muted]);
+  }, [mutePreferenceLoaded, muted]);
 
   /* Warm up the voice list (browsers populate it asynchronously). */
   useEffect(() => {

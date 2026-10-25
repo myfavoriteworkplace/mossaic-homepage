@@ -20,6 +20,8 @@ npm run build        # outputs to ./dist
 npm run preview      # serves ./dist on :5000
 ```
 
+The production build pre-renders the homepage into `dist/index.html` so crawlers can read its content before JavaScript runs. The browser hydrates that markup to keep the page interactive.
+
 ## Project structure
 
 ```
