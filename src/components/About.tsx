@@ -160,7 +160,7 @@ export default function About() {
                 {portraitAvailable && (
                   <img
                     className="about-founder-avatar__face about-founder-avatar__portrait"
-                    src={`${import.meta.env.BASE_URL}images/brand/founder-portrait.png`}
+                    src={`${import.meta.env.BASE_URL}images/brand/founder-portrait.webp`}
                     alt={`Portrait of ${SITE.founder.name}`}
                     onError={() => {
                       setPortraitAvailable(false);

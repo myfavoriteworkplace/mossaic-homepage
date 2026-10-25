@@ -243,7 +243,7 @@ export default function Hero() {
                     style={{ boxShadow: "0 1px 0 rgba(255,255,255,0.04) inset" }}
                   >
                     <img
-                      src={`${import.meta.env.BASE_URL}images/products/bookmyslot-lockup.png`}
+                      src={`${import.meta.env.BASE_URL}images/products/bookmyslot-lockup.webp`}
                       alt="bookMySlot Dental"
                       width={170}
                       height={50}
@@ -393,7 +393,7 @@ export default function Hero() {
                 }}
               >
                 <img
-                  src={`${import.meta.env.BASE_URL}images/brand/ai-imaging-clinical.png`}
+                  src={`${import.meta.env.BASE_URL}images/brand/ai-imaging-clinical.webp`}
                   alt="Clinicians reviewing AI-assisted imaging"
                   width={72}
                   height={72}

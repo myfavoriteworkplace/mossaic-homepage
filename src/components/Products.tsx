@@ -23,22 +23,22 @@ type Screen = {
 
 const BOOKMYSLOT_SCREENS: Screen[] = [
   {
-    src: `${import.meta.env.BASE_URL}images/products/screens/01-home.png`,
+    src: `${import.meta.env.BASE_URL}images/products/screens/01-home.webp`,
     alt: "bookMySlot landing page",
     objectPosition: "center 22%",
   },
   {
-    src: `${import.meta.env.BASE_URL}images/products/screens/02-book.png`,
+    src: `${import.meta.env.BASE_URL}images/products/screens/02-book.webp`,
     alt: "Patient picking an appointment slot",
     objectPosition: "center top",
   },
   {
-    src: `${import.meta.env.BASE_URL}images/products/screens/03-portal-light.png`,
+    src: `${import.meta.env.BASE_URL}images/products/screens/03-portal-light.webp`,
     alt: "Doctor portal — daily schedule",
     objectPosition: "center top",
   },
   {
-    src: `${import.meta.env.BASE_URL}images/products/screens/04-portal-dark.png`,
+    src: `${import.meta.env.BASE_URL}images/products/screens/04-portal-dark.webp`,
     alt: "Doctor portal — appointments management",
     objectPosition: "center top",
   },
@@ -47,7 +47,7 @@ const BOOKMYSLOT_SCREENS: Screen[] = [
 const ICONS: Record<string, React.ReactNode> = {
   bookmyslot: (
     <img
-      src={`${import.meta.env.BASE_URL}icons/products/bookmyslot-icon.png`}
+      src={`${import.meta.env.BASE_URL}icons/products/bookmyslot-icon.webp`}
       alt=""
       width={48}
       height={48}

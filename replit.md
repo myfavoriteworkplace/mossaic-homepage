@@ -81,6 +81,8 @@ vite.config.ts                  binds 0.0.0.0:5000, allows all hosts (proxy/ifra
 ## Asset and upload hygiene
 
 - Keep runtime image assets under `public/images/` and icon assets under `public/icons/`, with descriptive subfolders for brand and products. Reference them from the app rather than copying them into `attached_assets/`. Keep root-level site files such as `CNAME`, `robots.txt`, and `sitemap.xml` at the public root.
+- Prefer WebP for product photography, UI screenshots, and lockups when visual review confirms quality. Use lossless WebP for small icons with transparency. Keep generated favicon exports and the animated-backdrop source image unchanged unless their generating workflow or animation is updated and checked.
+- `npm run validate:assets` checks public image and icon references in the app, deck, and asset-generation scripts; the build runs it automatically.
 - Add files to `attached_assets/` only when they are needed as input for the current task or are intentionally retained source material. Do not add unnecessary screenshots, logs, exports, generated intermediates, duplicate uploads, or unrelated reference files.
 - Before finishing a task that adds files to `attached_assets/`, verify that each file is still needed and remove temporary or redundant additions. Preserve unique source files unless the user approves their removal.
 
