@@ -6,6 +6,7 @@ import { createServer } from "vite";
 
 const root = process.cwd();
 const outputPath = path.join(root, "dist", "index.html");
+const deckOutputPath = path.join(root, "dist", "deck", "index.html");
 const rootPlaceholder = /<div id="root"><\/div>/;
 const server = await createServer({
   appType: "custom",
@@ -40,7 +41,27 @@ try {
     outputPath,
     html.replace(rootPlaceholder, `<div id="root">${renderedApp}</div>`),
   );
-  console.log("Prerendered homepage with exactly one H1.");
+
+  const { default: DeckPage } = await server.ssrLoadModule(
+    "/src/deck/DeckPage.tsx",
+  );
+  const renderedDeck = renderToString(
+    createElement(StrictMode, null, createElement(DeckPage)),
+  );
+  const deckHtml = await readFile(deckOutputPath, "utf8");
+  if (!rootPlaceholder.test(deckHtml)) {
+    throw new Error(
+      `Could not find the empty #root mount point in ${deckOutputPath}.`,
+    );
+  }
+  await writeFile(
+    deckOutputPath,
+    deckHtml.replace(
+      rootPlaceholder,
+      `<div id="root">${renderedDeck}</div>`,
+    ),
+  );
+  console.log("Prerendered homepage and initial deck slide.");
 } finally {
   await server.close();
 }

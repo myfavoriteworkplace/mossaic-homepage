@@ -1,29 +1,16 @@
-import { StrictMode, useEffect } from "react";
-import { createRoot } from "react-dom/client";
+import { StrictMode } from "react";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import "../styles/globals.css";
-import DeckApp from "./ui/DeckApp";
-import DECK_CONTENT from "./deck-content";
+import DeckPage from "./DeckPage";
 
-function updateMeta(selector: string, content: string) {
-  const tag = document.querySelector<HTMLMetaElement>(selector);
-  if (tag) tag.content = content;
-}
+const root = document.getElementById("root");
+if (!root) throw new Error("Could not find the deck root element.");
 
-function DeckPage() {
-  useEffect(() => {
-    document.title = DECK_CONTENT.meta.title;
-    updateMeta('meta[name="description"]', DECK_CONTENT.meta.description);
-    updateMeta('meta[property="og:title"]', DECK_CONTENT.meta.ogTitle);
-    updateMeta('meta[property="og:description"]', DECK_CONTENT.meta.ogDescription);
-    updateMeta('meta[name="twitter:title"]', DECK_CONTENT.meta.title);
-    updateMeta('meta[name="twitter:description"]', DECK_CONTENT.meta.description);
-  }, []);
-
-  return <DeckApp config={DECK_CONTENT} />;
-}
-
-createRoot(document.getElementById("root")!).render(
+const app = (
   <StrictMode>
     <DeckPage />
-  </StrictMode>,
+  </StrictMode>
 );
+
+if (root.hasChildNodes()) hydrateRoot(root, app);
+else createRoot(root).render(app);

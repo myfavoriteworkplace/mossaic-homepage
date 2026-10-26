@@ -600,9 +600,8 @@ export function DeckApp({ config }: DeckAppProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isCardHovered, setIsCardHovered] = useState(false);
   const [documentMode, setDocumentMode] = useState(false);
-  const [isDocumentVisible, setIsDocumentVisible] = useState(
-    () => document.visibilityState === "visible",
-  );
+  // Keep the first render deterministic for static prerender + hydration.
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
   const [notice, setNotice] = useState("");
   const [isContactOpen, setIsContactOpen] = useState(false);
   const noticeTimer = useRef<number | undefined>(undefined);
@@ -650,6 +649,7 @@ export function DeckApp({ config }: DeckAppProps) {
     const handleVisibilityChange = () => {
       setIsDocumentVisible(document.visibilityState === "visible");
     };
+    handleVisibilityChange();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
