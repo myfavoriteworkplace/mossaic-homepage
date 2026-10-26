@@ -32,6 +32,8 @@ export const DeckPresentationSchema = z.object({
     printLabel: z.string().min(1),
     chooseSectionLabel: z.string().min(1),
     goToSectionLabel: z.string().min(1),
+    previousSectionLabel: z.string().min(1),
+    nextSectionLabel: z.string().min(1),
     documentAriaLabel: z.string().min(1),
     carouselAriaLabel: z.string().min(1),
     sectionCountLabel: z.string().min(1),

@@ -30,6 +30,8 @@
     "printLabel": "Save PDF",
     "chooseSectionLabel": "Choose a portfolio section",
     "goToSectionLabel": "Go to section",
+    "previousSectionLabel": "Previous section",
+    "nextSectionLabel": "Next section",
     "documentAriaLabel": "Full Mossaic portfolio document",
     "carouselAriaLabel": "Mossaic interactive portfolio",
     "sectionCountLabel": "showcases",
@@ -45,7 +47,7 @@
     "whatsappLabel": "WhatsApp",
     "tabTitle": "Our Products & Services",
     "tabBadge": "Featured",
-    "tabHint": "Choose a section; slides rotate automatically every 3 seconds.",
+    "tabHint": "Slides rotate every 5 seconds; hover over the card to pause.",
     "featureDevelopmentLabel": "Feature Development",
     "emptyMessage": "No portfolio sections are available."
   },

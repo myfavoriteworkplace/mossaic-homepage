@@ -6,6 +6,7 @@ import type {
   ReactNode,
 } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
@@ -33,7 +34,7 @@ import "./deck.css";
 
 type DeckAppProps = { config: DeckContent };
 type PatientStatus = "pending" | "confirmed";
-const AUTO_ADVANCE_DELAY_MS = 3_000;
+const AUTO_ADVANCE_DELAY_MS = 5_000;
 
 const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
@@ -468,6 +469,7 @@ function SlideContent({ slide, content }: {
 
 export function DeckApp({ config }: DeckAppProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isCardHovered, setIsCardHovered] = useState(false);
   const [documentMode, setDocumentMode] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(
     () => document.visibilityState === "visible",
@@ -483,6 +485,7 @@ export function DeckApp({ config }: DeckAppProps) {
     !documentMode
     && isDocumentVisible
     && prefersReducedMotion !== true
+    && !isCardHovered
     && total > 1
   );
   const themeStyle = {
@@ -572,6 +575,12 @@ export function DeckApp({ config }: DeckAppProps) {
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType === "mouse" || (event.target as HTMLElement).closest("button, a")) return;
     pointerStart.current = event.clientX;
+  };
+  const handleCardPointerEnter = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === "mouse") setIsCardHovered(true);
+  };
+  const handleCardPointerLeave = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === "mouse") setIsCardHovered(false);
   };
   const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -686,13 +695,56 @@ export function DeckApp({ config }: DeckAppProps) {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              onPointerLeave={() => {
+              onPointerEnter={handleCardPointerEnter}
+              onPointerLeave={(event) => {
+                handleCardPointerLeave(event);
                 resetCardTilt();
               }}
               data-testid="deck-carousel"
             >
               <SlideContent key={activeSlide.id} slide={activeSlide} content={config} />
             </section>
+            <nav
+              className="deck-carousel-controls"
+              aria-label={config.ui.chooseSectionLabel}
+              data-testid="deck-carousel-controls"
+            >
+              <button
+                type="button"
+                className="deck-carousel-arrow"
+                onClick={previous}
+                aria-label={config.ui.previousSectionLabel}
+                data-testid="deck-control-previous"
+                disabled={total < 2}
+              >
+                <ArrowLeft aria-hidden="true" size={22} strokeWidth={1.8} />
+              </button>
+              <div className="deck-carousel-pagination" role="group" aria-label={config.ui.chooseSectionLabel}>
+                {slides.map((slide, index) => (
+                  <button
+                    type="button"
+                    key={slide.id}
+                    className={`deck-carousel-dot${activeIndex === index ? " is-current" : ""}`}
+                    aria-label={`${config.ui.goToSectionLabel} ${index + 1}: ${slide.navigationLabel ?? slide.title}`}
+                    aria-current={activeIndex === index ? "step" : undefined}
+                    onClick={() => goTo(index)}
+                    data-testid={`deck-control-slide-${slide.id}`}
+                  >
+                    <span />
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="deck-carousel-arrow"
+                onClick={next}
+                aria-label={config.ui.nextSectionLabel}
+                data-testid="deck-control-next"
+                disabled={total < 2}
+              >
+                <ArrowRight aria-hidden="true" size={22} strokeWidth={1.8} />
+              </button>
+            </nav>
           </>
         ) : (
           <section className="deck-empty" role="status" data-testid="deck-empty">{config.ui.emptyMessage}</section>

@@ -62,6 +62,8 @@ export type DeckContent = {
     printLabel: string;
     chooseSectionLabel: string;
     goToSectionLabel: string;
+    previousSectionLabel: string;
+    nextSectionLabel: string;
     documentAriaLabel: string;
     carouselAriaLabel: string;
     sectionCountLabel: string;

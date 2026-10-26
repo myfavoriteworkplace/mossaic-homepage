@@ -154,6 +154,62 @@
 .deck-tab[aria-current="step"] { color: #06121c; border-color: transparent; background: var(--deck-cyan); box-shadow: 0 7px 22px rgba(56, 189, 248, .12); }
 .deck-tab span { opacity: .68; margin-right: 4px; }
 
+.deck-carousel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3vw, 34px);
+  margin: 20px auto 22px;
+}
+.deck-carousel-arrow {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(56, 189, 248, .2);
+  border-radius: 50%;
+  color: #dbe5ef;
+  background: rgba(15, 23, 42, .66);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+.deck-carousel-arrow:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(56, 189, 248, .55);
+  color: #fff;
+  background: rgba(30, 41, 59, .92);
+}
+.deck-carousel-arrow:disabled { cursor: not-allowed; opacity: .45; }
+.deck-carousel-pagination { display: flex; align-items: center; gap: 16px; }
+.deck-carousel-dot {
+  display: grid;
+  width: 28px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.deck-carousel-dot span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, .42);
+  transition: width 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+.deck-carousel-dot.is-current span {
+  width: 42px;
+  background: var(--deck-cyan);
+  box-shadow: 0 0 18px rgba(56, 189, 248, .24);
+}
+.deck-carousel-arrow:focus-visible,
+.deck-carousel-dot:focus-visible {
+  outline: 2px solid var(--deck-cyan);
+  outline-offset: 3px;
+}
+
 .deck-showcase { min-width: 0; }
 .deck-mode-carousel .deck-slide { min-height: 560px; }
 .deck-slide {
@@ -382,6 +438,11 @@
   .deck-intro-stats span { font-size: 8px; }
   .deck-tab-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; }
   .deck-tab { min-width: 0; min-height: 40px; padding: 5px 4px; white-space: normal; text-align: center; line-height: 1.3; }
+  .deck-carousel-controls { gap: clamp(14px, 5vw, 24px); margin: 16px auto 20px; }
+  .deck-carousel-arrow { width: 50px; height: 50px; }
+  .deck-carousel-pagination { gap: 10px; }
+  .deck-carousel-dot { width: 24px; }
+  .deck-carousel-dot.is-current span { width: 36px; }
   .deck-slide { gap: 20px; padding: 20px 15px; border-radius: 22px; }
   .deck-mode-carousel .deck-slide { min-height: 0; }
   .deck-slide-title-link { flex-wrap: wrap; gap: 5px; }
