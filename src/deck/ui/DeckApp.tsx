@@ -15,6 +15,7 @@ import {
   Copy,
   FileText,
   Globe2,
+  House,
   Info,
   Layers3,
   Mail,
@@ -45,7 +46,6 @@ const AUTO_ADVANCE_DELAY_MS = 8_000;
 
 const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
-const emailHref = `mailto:${SITE_CONFIG.site.email}`;
 const whatsappHref = "https://wa.me/919746767146";
 const deckWhatsappHref = `${whatsappHref}?text=${encodeURIComponent("Hi mossAIc Team, I saw your interactive deck and would like to discuss a project.")}`;
 const bookingProduct = PRODUCTS.find((product) => product.id === "bookmyslot");
@@ -58,6 +58,10 @@ function isExternalLink(href: string) {
 
 function resolveLink(href: string) {
   return href.startsWith("#") ? `${siteUrl}/${href}` : href;
+}
+
+function isContactLink(href: string) {
+  return href === "#contact" || href.endsWith("/#contact");
 }
 
 function MetricCard({
@@ -106,6 +110,7 @@ function SlideHeader({
   eyebrowOverride,
   titleHref,
   brandLockup,
+  onContact,
 }: {
   slide: DeckSlide;
   href?: string;
@@ -117,8 +122,10 @@ function SlideHeader({
   eyebrowOverride?: string;
   titleHref?: string;
   brandLockup?: ReactNode;
+  onContact: () => void;
 }) {
   const external = href ? isExternalLink(href) : false;
+  const contactAction = href ? isContactLink(href) : false;
   const externalTitle = titleHref ? isExternalLink(titleHref) : false;
   const subtitle = descriptionOverride ?? slide.description;
   const highlight = highlightOverride ?? slide.highlight;
@@ -150,16 +157,29 @@ function SlideHeader({
         {subtitle ? <p className="deck-slide-subtitle">{subtitle}</p> : null}
       </div>
       {href && linkLabel ? (
-        <a
-          className={`deck-live-link ${slide.kind === "bookmyslot" ? "is-green" : ""}`}
-          href={href}
-          target={external ? "_blank" : undefined}
-          rel={external ? "noopener noreferrer" : undefined}
-        >
-          {slide.kind === "bookmyslot" ? <span className="deck-live-dot" aria-hidden="true" /> : null}
-          {linkLabel}
-          <ArrowUpRight className="deck-icon" aria-hidden="true" />
-        </a>
+        contactAction ? (
+          <button
+            type="button"
+            className={`deck-live-link deck-live-link-button ${slide.kind === "bookmyslot" ? "is-green" : ""}`}
+            onClick={onContact}
+            aria-haspopup="dialog"
+          >
+            {slide.kind === "bookmyslot" ? <span className="deck-live-dot" aria-hidden="true" /> : null}
+            {linkLabel}
+            <ArrowUpRight className="deck-icon" aria-hidden="true" />
+          </button>
+        ) : (
+          <a
+            className={`deck-live-link ${slide.kind === "bookmyslot" ? "is-green" : ""}`}
+            href={href}
+            target={external ? "_blank" : undefined}
+            rel={external ? "noopener noreferrer" : undefined}
+          >
+            {slide.kind === "bookmyslot" ? <span className="deck-live-dot" aria-hidden="true" /> : null}
+            {linkLabel}
+            <ArrowUpRight className="deck-icon" aria-hidden="true" />
+          </a>
+        )
       ) : null}
     </div>
   );
@@ -235,9 +255,11 @@ function PatientCard({
 function BookingShowcase({
   slide,
   content,
+  onContact,
 }: {
   slide: DeckSlide;
   content: DeckContent;
+  onContact: () => void;
 }) {
   const [patientStatuses, setPatientStatuses] = useState<PatientStatus[]>(
     content.demoPatients.map((patient) => patient.status),
@@ -264,6 +286,7 @@ function BookingShowcase({
         titleHref={productHref}
         href={productHref}
         linkLabel={bookingProduct?.proofLabel}
+        onContact={onContact}
       />
       <div
         className="deck-metrics-grid deck-product-metrics"
@@ -321,10 +344,11 @@ function BookingShowcase({
   );
 }
 
-function BrandServiceShowcase({ slide, product, content }: {
+function BrandServiceShowcase({ slide, product, content, onContact }: {
   slide: DeckSlide;
   product: Product;
   content: DeckContent;
+  onContact: () => void;
 }) {
   const contactLink = resolveLink(product.cta.href);
   const isStudio = product.id === "mossaic-studio";
@@ -343,6 +367,7 @@ function BrandServiceShowcase({ slide, product, content }: {
         statusLabel={serviceStatusLabel}
         href={contactLink}
         linkLabel={slide.linkLabel ?? product.cta.label}
+        onContact={onContact}
       />
       <section className="deck-brand-service">
         <div className="deck-brand-service-copy">
@@ -383,14 +408,8 @@ function BrandServiceShowcase({ slide, product, content }: {
                 ))
               : LABS_FEATURES.map((feature) => {
                   const href = resolveLink(feature.href);
-                  return (
-                    <a
-                      className="deck-brand-feature-row"
-                      href={href}
-                      target={isExternalLink(href) ? "_blank" : undefined}
-                      rel={isExternalLink(href) ? "noopener noreferrer" : undefined}
-                      key={feature.id}
-                    >
+                  const rowContent = (
+                    <>
                       <span className="deck-brand-feature-copy">
                         <strong>
                           {feature.id === "bookmyslot" ? <BookMySlotText /> : feature.name}
@@ -400,6 +419,27 @@ function BrandServiceShowcase({ slide, product, content }: {
                       <span className="deck-brand-feature-status" data-status={feature.status}>
                         {feature.statusLabel}
                       </span>
+                    </>
+                  );
+                  return isContactLink(href) ? (
+                    <button
+                      type="button"
+                      className="deck-brand-feature-row"
+                      key={feature.id}
+                      onClick={onContact}
+                      aria-haspopup="dialog"
+                    >
+                      {rowContent}
+                    </button>
+                  ) : (
+                    <a
+                      className="deck-brand-feature-row"
+                      href={href}
+                      target={isExternalLink(href) ? "_blank" : undefined}
+                      rel={isExternalLink(href) ? "noopener noreferrer" : undefined}
+                      key={feature.id}
+                    >
+                      {rowContent}
                     </a>
                   );
                 })}
@@ -410,7 +450,7 @@ function BrandServiceShowcase({ slide, product, content }: {
   );
 }
 
-function ProductPipeline({ content }: { content: DeckContent }) {
+function ProductPipeline({ content, onContact }: { content: DeckContent; onContact: () => void }) {
   return (
     <section className="deck-pipeline-contact" id="deck-contact-panel" aria-labelledby="deck-pipeline-title">
       <h2 className="deck-pipeline-title" id="deck-pipeline-title">{content.narrative.pipelineTitle}</h2>
@@ -426,6 +466,7 @@ function ProductPipeline({ content }: { content: DeckContent }) {
               title={pipelineCopy.title}
               description={pipelineCopy.description}
               year={year}
+              onContact={onContact}
             />
           );
         })}
@@ -435,14 +476,23 @@ function ProductPipeline({ content }: { content: DeckContent }) {
           <h2>{content.narrative.closingTitle}</h2>
           <p>{content.narrative.closingDescription}</p>
           <div className="deck-contact-details">
-            <a href={emailHref} data-testid="deck-contact-email"><Mail aria-hidden="true" />{SITE_CONFIG.site.email}</a>
+            <button
+              type="button"
+              onClick={onContact}
+              aria-haspopup="dialog"
+              data-testid="deck-contact-email"
+            >
+              <Mail aria-hidden="true" />{SITE_CONFIG.site.email}
+            </button>
             {SITE_CONFIG.site.alternateEmail && (
-              <a
-                href={`mailto:${SITE_CONFIG.site.alternateEmail}`}
+              <button
+                type="button"
+                onClick={onContact}
+                aria-haspopup="dialog"
                 data-testid="deck-contact-alternate-email"
               >
                 <Mail aria-hidden="true" />Alternative · {SITE_CONFIG.site.alternateEmail}
-              </a>
+              </button>
             )}
             <a href={whatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-whatsapp"><MessageCircle aria-hidden="true" />Phone / WhatsApp · +91 97467 67146</a>
             <a href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-contact-site"><Globe2 aria-hidden="true" />{siteUrl.replace(/^https?:\/\//, "")}</a>
@@ -465,14 +515,37 @@ function ProductPipeline({ content }: { content: DeckContent }) {
   );
 }
 
-function PipelineProduct({ product, title, description, year }: {
+function PipelineProduct({ product, title, description, year, onContact }: {
   product: Product;
   title: string;
   description: string;
   year: string;
+  onContact: () => void;
 }) {
   const href = resolveLink(product.cta.href);
   const yearTone = product.status === "soon" ? "amber" : "purple";
+  const cardContent = (
+    <>
+      <div>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <span className={`deck-pipeline-status deck-pipeline-status-${yearTone}`}>{year}</span>
+    </>
+  );
+  if (isContactLink(href)) {
+    return (
+      <button
+        type="button"
+        className="deck-pipeline-item"
+        onClick={onContact}
+        aria-haspopup="dialog"
+        data-testid={`deck-pipeline-${product.id}`}
+      >
+        {cardContent}
+      </button>
+    );
+  }
   return (
     <a
       className="deck-pipeline-item"
@@ -481,19 +554,15 @@ function PipelineProduct({ product, title, description, year }: {
       rel={isExternalLink(href) ? "noopener noreferrer" : undefined}
       data-testid={`deck-pipeline-${product.id}`}
     >
-      <div>
-          <h3>{title}</h3>
-          <p>{description}</p>
-      </div>
-      <span className={`deck-pipeline-status deck-pipeline-status-${yearTone}`}>{year}</span>
+      {cardContent}
     </a>
   );
 }
 
-function ClosingShowcase({ slide }: { slide: DeckSlide }) {
+function ClosingShowcase({ slide, onContact }: { slide: DeckSlide; onContact: () => void }) {
   return (
     <article className="deck-slide deck-closing" data-slide="closing" aria-label={`${slide.eyebrow}: ${slide.title}`}>
-      <SlideHeader slide={slide} href={contactHref} linkLabel="Start a conversation" />
+      <SlideHeader slide={slide} href={contactHref} linkLabel="Start a conversation" onContact={onContact} />
       <div className="deck-closing-facts">
         {SITE_CONFIG.complianceBadges.map((badge) => <span className="deck-tag" key={badge}><ShieldCheck aria-hidden="true" />{badge}</span>)}
         <p className="deck-fact-note"><ClipboardList aria-hidden="true" />{SITE_CONFIG.company.focus}</p>
@@ -512,18 +581,19 @@ function SlideFoot({ slide }: { slide: DeckSlide }) {
   );
 }
 
-function SlideContent({ slide, content }: {
+function SlideContent({ slide, content, onContact }: {
   slide: DeckSlide;
   content: DeckContent;
+  onContact: () => void;
 }) {
-  if (slide.kind === "bookmyslot") return <BookingShowcase slide={slide} content={content} />;
+  if (slide.kind === "bookmyslot") return <BookingShowcase slide={slide} content={content} onContact={onContact} />;
   if (slide.kind === "mossaic-labs" && labsProduct) {
-    return <BrandServiceShowcase slide={slide} product={labsProduct} content={content} />;
+    return <BrandServiceShowcase slide={slide} product={labsProduct} content={content} onContact={onContact} />;
   }
   if (slide.kind === "mossaic-studio" && studioProduct) {
-    return <BrandServiceShowcase slide={slide} product={studioProduct} content={content} />;
+    return <BrandServiceShowcase slide={slide} product={studioProduct} content={content} onContact={onContact} />;
   }
-  return <ClosingShowcase slide={slide} />;
+  return <ClosingShowcase slide={slide} onContact={onContact} />;
 }
 
 export function DeckApp({ config }: DeckAppProps) {
@@ -566,6 +636,7 @@ export function DeckApp({ config }: DeckAppProps) {
     noticeTimer.current = window.setTimeout(() => setNotice(""), 2400);
   }, []);
   const closeContactModal = useCallback(() => setIsContactOpen(false), []);
+  const openContactModal = useCallback(() => setIsContactOpen(true), []);
   const goTo = useCallback((index: number) => {
     if (!total) return;
     setActiveIndex((index + total) % total);
@@ -690,11 +761,11 @@ export function DeckApp({ config }: DeckAppProps) {
       <a
         className="deck-button deck-button-home deck-home-float"
         href={siteUrl}
-        aria-label="Back to Mossaic home"
-        title="Back to Mossaic home"
+        aria-label="Mossaic home"
+        title="Mossaic home"
         data-testid="deck-home"
       >
-        <ArrowLeft className="deck-icon" aria-hidden="true" />
+        <House className="deck-icon" aria-hidden="true" />
       </a>
       <div className="deck-shell">
         <header className="deck-topbar">
@@ -752,7 +823,7 @@ export function DeckApp({ config }: DeckAppProps) {
             <button
               type="button"
               className="deck-button deck-button-email"
-              onClick={() => setIsContactOpen(true)}
+              onClick={openContactModal}
               aria-label="Send an email to Mossaic"
               aria-haspopup="dialog"
               aria-expanded={isContactOpen}
@@ -784,7 +855,7 @@ export function DeckApp({ config }: DeckAppProps) {
             </div>
             {slides.map((slide) => (
               <div className="deck-showcase" key={slide.id}>
-                <SlideContent slide={slide} content={config} />
+                <SlideContent slide={slide} content={config} onContact={openContactModal} />
               </div>
             ))}
           </section>
@@ -814,7 +885,7 @@ export function DeckApp({ config }: DeckAppProps) {
               }}
               data-testid="deck-carousel"
             >
-              <SlideContent key={activeSlide.id} slide={activeSlide} content={config} />
+              <SlideContent key={activeSlide.id} slide={activeSlide} content={config} onContact={openContactModal} />
             </section>
             <nav
               className="deck-carousel-controls"
@@ -862,7 +933,7 @@ export function DeckApp({ config }: DeckAppProps) {
           <section className="deck-empty" role="status" data-testid="deck-empty">{config.ui.emptyMessage}</section>
         )}
 
-        <ProductPipeline content={config} />
+        <ProductPipeline content={config} onContact={openContactModal} />
       </div>
       {notice ? <div className="deck-toast" role="status" data-testid="deck-notice"><Check className="deck-icon" aria-hidden="true" />{notice}</div> : null}
       {isContactOpen ? <DeckContactModal onClose={closeContactModal} /> : null}
