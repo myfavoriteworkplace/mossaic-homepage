@@ -26,7 +26,13 @@ import {
 } from "lucide-react";
 import BookMySlotText from "../../components/ui/BookMySlotText";
 import Wordmark from "../../components/ui/Wordmark";
-import { PRODUCTS, ROADMAP, SITE_CONFIG } from "../../data/content";
+import {
+  LABS_FEATURES,
+  PRODUCTS,
+  ROADMAP,
+  SITE_CONFIG,
+  STUDIO_PROJECTS,
+} from "../../data/content";
 import type { Product } from "../../data/schemas";
 import type { DeckContent, DeckSlide } from "./types";
 import { LocalQr } from "./qr";
@@ -320,6 +326,10 @@ function BrandServiceShowcase({ slide, product, content }: {
   content: DeckContent;
 }) {
   const contactLink = resolveLink(product.cta.href);
+  const isStudio = product.id === "mossaic-studio";
+  const availableCount = isStudio
+    ? STUDIO_PROJECTS.filter((project) => project.status === "live").length
+    : LABS_FEATURES.filter((feature) => feature.status === "available").length;
   const serviceStatusLabel = product.status === "live"
     ? content.ui.availableServicesLabel
     : product.statusLabel;
@@ -339,11 +349,59 @@ function BrandServiceShowcase({ slide, product, content }: {
           <p>{product.description}</p>
         </div>
         <div className="deck-brand-service-capabilities">
-          <span className="deck-brand-service-label">{content.ui.featureDevelopmentLabel}</span>
+          <div className="deck-brand-service-heading">
+            <span className="deck-brand-service-label">{content.ui.featureDevelopmentLabel}</span>
+            <span className="deck-brand-service-count">
+              <span className="deck-live-dot" aria-hidden="true" />
+              {availableCount} {isStudio ? "Live" : "Available"}
+            </span>
+          </div>
           <div className="deck-brand-capability-list">
             {product.tags.map((tag) => (
               <span className="deck-brand-capability" key={tag}>{tag}</span>
             ))}
+          </div>
+          <div className="deck-brand-feature-list">
+            {isStudio
+              ? STUDIO_PROJECTS.map((project) => (
+                  <a
+                    className="deck-brand-feature-row"
+                    href={project.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    key={project.id}
+                  >
+                    <span className="deck-brand-feature-copy">
+                      <strong>{project.name}</strong>
+                      <span>{project.category}</span>
+                    </span>
+                    <span className="deck-brand-feature-status" data-status={project.status}>
+                      {project.status === "live" ? "Live" : "In progress"}
+                    </span>
+                  </a>
+                ))
+              : LABS_FEATURES.map((feature) => {
+                  const href = resolveLink(feature.href);
+                  return (
+                    <a
+                      className="deck-brand-feature-row"
+                      href={href}
+                      target={isExternalLink(href) ? "_blank" : undefined}
+                      rel={isExternalLink(href) ? "noopener noreferrer" : undefined}
+                      key={feature.id}
+                    >
+                      <span className="deck-brand-feature-copy">
+                        <strong>
+                          {feature.id === "bookmyslot" ? <BookMySlotText /> : feature.name}
+                        </strong>
+                        <span>{feature.category}</span>
+                      </span>
+                      <span className="deck-brand-feature-status" data-status={feature.status}>
+                        {feature.statusLabel}
+                      </span>
+                    </a>
+                  );
+                })}
           </div>
         </div>
       </section>
@@ -647,18 +705,48 @@ export function DeckApp({ config }: DeckAppProps) {
             </span>
           </a>
           <div className="deck-header-actions">
-            <button type="button" className="deck-button" onClick={() => setDocumentMode((current) => !current)} aria-pressed={documentMode} data-testid="deck-toggle-view">
+            <button
+              type="button"
+              className="deck-button"
+              onClick={() => setDocumentMode((current) => !current)}
+              aria-pressed={documentMode}
+              aria-label={documentMode ? config.ui.carouselLabel : config.ui.documentLabel}
+              title={documentMode ? config.ui.carouselLabel : config.ui.documentLabel}
+              data-testid="deck-toggle-view"
+            >
               {documentMode ? <Layers3 className="deck-icon" aria-hidden="true" /> : <FileText className="deck-icon" aria-hidden="true" />}
-              <span>{documentMode ? config.ui.carouselLabel : config.ui.documentLabel}</span>
+              <span className="deck-visually-hidden">{documentMode ? config.ui.carouselLabel : config.ui.documentLabel}</span>
             </button>
-            <button type="button" className="deck-button" onClick={shareDeck} data-testid="deck-share" aria-label={config.ui.shareLabel}>
-              <Share2 className="deck-icon" aria-hidden="true" /><span>{config.ui.shareLabel}</span>
+            <button
+              type="button"
+              className="deck-button"
+              onClick={shareDeck}
+              data-testid="deck-share"
+              aria-label={config.ui.shareLabel}
+              title={config.ui.shareLabel}
+            >
+              <Share2 className="deck-icon" aria-hidden="true" />
             </button>
-            <button type="button" className="deck-button deck-button-primary" onClick={printDeck} data-testid="deck-print">
-              <Printer className="deck-icon" aria-hidden="true" /><span>{config.ui.printLabel}</span>
+            <button
+              type="button"
+              className="deck-button deck-button-primary"
+              onClick={printDeck}
+              data-testid="deck-print"
+              aria-label={config.ui.printLabel}
+              title={config.ui.printLabel}
+            >
+              <Printer className="deck-icon" aria-hidden="true" />
             </button>
-            <a className="deck-button deck-button-whatsapp" href={deckWhatsappHref} target="_blank" rel="noopener noreferrer" data-testid="deck-whatsapp">
-              <MessageCircle className="deck-icon" aria-hidden="true" /><span>{config.ui.whatsappLabel}</span>
+            <a
+              className="deck-button deck-button-whatsapp"
+              href={deckWhatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="deck-whatsapp"
+              aria-label={config.ui.whatsappLabel}
+              title={config.ui.whatsappLabel}
+            >
+              <MessageCircle className="deck-icon" aria-hidden="true" />
             </a>
           </div>
         </header>
