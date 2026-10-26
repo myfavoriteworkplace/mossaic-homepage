@@ -35,6 +35,7 @@ import {
 } from "../../data/content";
 import type { Product } from "../../data/schemas";
 import type { DeckContent, DeckSlide } from "./types";
+import DeckContactModal from "./DeckContactModal";
 import { LocalQr } from "./qr";
 import "./deck.css";
 
@@ -533,6 +534,7 @@ export function DeckApp({ config }: DeckAppProps) {
     () => document.visibilityState === "visible",
   );
   const [notice, setNotice] = useState("");
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const noticeTimer = useRef<number | undefined>(undefined);
   const pointerStart = useRef<number | null>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -563,6 +565,7 @@ export function DeckApp({ config }: DeckAppProps) {
     window.clearTimeout(noticeTimer.current);
     noticeTimer.current = window.setTimeout(() => setNotice(""), 2400);
   }, []);
+  const closeContactModal = useCallback(() => setIsContactOpen(false), []);
   const goTo = useCallback((index: number) => {
     if (!total) return;
     setActiveIndex((index + total) % total);
@@ -684,6 +687,15 @@ export function DeckApp({ config }: DeckAppProps) {
       style={themeStyle}
       data-testid="mossaic-deck"
     >
+      <a
+        className="deck-button deck-button-home deck-home-float"
+        href={siteUrl}
+        aria-label="Back to Mossaic home"
+        title="Back to Mossaic home"
+        data-testid="deck-home"
+      >
+        <ArrowLeft className="deck-icon" aria-hidden="true" />
+      </a>
       <div className="deck-shell">
         <header className="deck-topbar">
           <a className="deck-brand" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-brand-link">
@@ -705,15 +717,6 @@ export function DeckApp({ config }: DeckAppProps) {
             </span>
           </a>
           <div className="deck-header-actions">
-            <a
-              className="deck-button deck-button-home"
-              href={siteUrl}
-              aria-label="Back to Mossaic home"
-              title="Back to Mossaic home"
-              data-testid="deck-home"
-            >
-              <ArrowLeft className="deck-icon" aria-hidden="true" />
-            </a>
             <button
               type="button"
               className="deck-button"
@@ -745,6 +748,18 @@ export function DeckApp({ config }: DeckAppProps) {
               title={config.ui.printLabel}
             >
               <Printer className="deck-icon" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="deck-button deck-button-email"
+              onClick={() => setIsContactOpen(true)}
+              aria-label="Send an email to Mossaic"
+              aria-haspopup="dialog"
+              aria-expanded={isContactOpen}
+              title="Send an email to Mossaic"
+              data-testid="deck-email"
+            >
+              <Mail className="deck-icon" aria-hidden="true" />
             </button>
             <a
               className="deck-button deck-button-whatsapp"
@@ -850,6 +865,7 @@ export function DeckApp({ config }: DeckAppProps) {
         <ProductPipeline content={config} />
       </div>
       {notice ? <div className="deck-toast" role="status" data-testid="deck-notice"><Check className="deck-icon" aria-hidden="true" />{notice}</div> : null}
+      {isContactOpen ? <DeckContactModal onClose={closeContactModal} /> : null}
     </main>
   );
 }

@@ -5,18 +5,10 @@ import { CheckCircle2, Globe, Mail, MapPin, Send } from "lucide-react";
 import Reveal from "./ui/Reveal";
 import MagneticButton from "./ui/MagneticButton";
 import { SITE, CONTACT_INTERESTS } from "../data/site";
-import CONTACT_CONFIG from "../data/contact-config.json";
+import { sendContactMessage, type ContactPayload } from "../contactSubmission";
 import "./Contact.css";
 
 type ContactView = "form" | "flight" | "success";
-
-type ContactPayload = {
-  name: string;
-  email: string;
-  interest: string;
-  message: string;
-  gotcha: string;
-};
 
 type EnvelopeFlight = {
   left: number;
@@ -56,29 +48,7 @@ export default function Contact() {
     const timeoutId = window.setTimeout(() => controller.abort(), 12_000);
 
     try {
-      const response = await fetch(CONTACT_CONFIG.workerUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-
-      let result: unknown;
-      try {
-        result = await response.json();
-      } catch {
-        throw new Error("The email service returned an invalid response.");
-      }
-
-      const accepted =
-        typeof result === "object" &&
-        result !== null &&
-        "success" in result &&
-        result.success === true;
-
-      if (!response.ok || !accepted) {
-        throw new Error("The email service did not accept the message.");
-      }
+      await sendContactMessage(payload, controller.signal);
 
       form.reset();
       setErrorMessage(null);
