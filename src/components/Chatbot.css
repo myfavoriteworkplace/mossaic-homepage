@@ -58,6 +58,68 @@
   transition: opacity 180ms ease;
 }
 
+.mossie-intro-trail {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.mossie-intro-trail.is-active {
+  opacity: 1;
+}
+
+.mossie-intro-trail::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 112px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to top,
+    rgba(224, 242, 254, 0.82),
+    rgba(56, 189, 248, 0.44) 34%,
+    rgba(56, 189, 248, 0)
+  );
+  content: "";
+  filter: blur(3px);
+  transform: translate3d(-50%, -100%, 0);
+}
+
+.mossie-intro-trail-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  border-radius: 50%;
+  background: rgba(186, 230, 253, 0.88);
+  box-shadow: 0 0 8px 2px rgba(56, 189, 248, 0.5);
+  transform: translate3d(-50%, calc(-100% - var(--trail-offset)), 0);
+}
+
+.mossie-intro-trail-dot--bright {
+  width: 5px;
+  height: 5px;
+  --trail-offset: 18px;
+  opacity: 0.72;
+}
+
+.mossie-intro-trail-dot--mid {
+  width: 4px;
+  height: 4px;
+  --trail-offset: 39px;
+  opacity: 0.4;
+}
+
+.mossie-intro-trail-dot--dim {
+  width: 3px;
+  height: 3px;
+  --trail-offset: 59px;
+  opacity: 0.2;
+}
+
 .mossie-intro-core.is-active {
   opacity: 1;
   animation: mossie-core-pulse 280ms ease-in-out infinite alternate;
@@ -69,6 +131,75 @@
   }
   to {
     transform: translate3d(-50%, -50%, 0) scale(1.08);
+  }
+}
+
+.mossie-impact-effects {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mossie-impact-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(186, 230, 253, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+  opacity: 0;
+  transform: translate3d(-50%, -50%, 0) scale(0.2);
+}
+
+.mossie-impact-ring.is-active {
+  animation: mossie-impact-ring-bloom 700ms cubic-bezier(0.16, 0.7, 0.24, 1)
+    both;
+}
+
+@keyframes mossie-impact-ring-bloom {
+  0% {
+    opacity: 0.95;
+    transform: translate3d(-50%, -50%, 0) scale(0.2);
+  }
+  70% {
+    opacity: 0.52;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) scale(2.7);
+  }
+}
+
+.mossie-impact-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #cffafe;
+  box-shadow: 0 0 8px 2px rgba(56, 189, 248, 0.62);
+  opacity: 0;
+}
+
+.mossie-impact-spark.is-active {
+  animation: mossie-impact-spark-burst 680ms cubic-bezier(0.18, 0.68, 0.26, 1)
+    both;
+}
+
+@keyframes mossie-impact-spark-burst {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.3);
+  }
+  16% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--spark-x), var(--spark-y), 0) scale(0.15);
   }
 }
 
@@ -129,7 +260,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mossie-intro-core,
-  .mossie-smoke-puff {
+  .mossie-smoke-puff,
+  .mossie-intro-trail,
+  .mossie-impact-ring,
+  .mossie-impact-spark {
     animation: none !important;
     will-change: auto;
   }
