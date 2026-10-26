@@ -188,7 +188,17 @@
   letter-spacing: 0.025em;
 }
 
+.testimonial-photo-frame {
+  position: relative;
+  overflow: hidden;
+}
+
 .testimonial-photo {
+  position: absolute;
+  top: -12%;
+  left: -10%;
+  width: 112%;
+  height: 112%;
   object-fit: cover;
   object-position: center;
 }
