@@ -187,7 +187,11 @@ function ProductCard({
         }}
       />
 
-      <div className="mb-3 grid grid-cols-[3rem_minmax(0,1fr)] grid-rows-[auto_auto] items-start gap-x-3 gap-y-1">
+      <div
+        className={`${
+          p.id === "mossaic-labs" ? "mb-1" : "mb-3"
+        } grid grid-cols-[3rem_minmax(0,1fr)] grid-rows-[auto_auto] items-start gap-x-3 gap-y-1`}
+      >
         <div
           className={`relative row-span-2 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl ${
             iconFullTile ? "" : accentClass
@@ -230,15 +234,24 @@ function ProductCard({
           {statusBadge}
         </div>
 
+        {p.id !== "mossaic-labs" ? (
+          <p
+            data-testid={`text-product-sub-label-${p.id}`}
+            className="col-start-2 row-start-2 min-w-0 break-words text-left text-xs font-semibold leading-snug tracking-wide text-sky-400"
+          >
+            {p.subLabel}
+          </p>
+        ) : null}
+      </div>
+
+      {p.id === "mossaic-labs" ? (
         <p
           data-testid={`text-product-sub-label-${p.id}`}
-          className={`row-start-2 min-w-0 break-words text-left text-xs font-semibold leading-snug tracking-wide text-sky-400 ${
-            p.id === "mossaic-labs" ? "col-span-2" : "col-start-2"
-          }`}
+          className="mb-3 min-w-0 break-words text-left text-xs font-semibold leading-snug tracking-wide text-sky-400"
         >
           {p.subLabel}
         </p>
-      </div>
+      ) : null}
 
       <p className="mb-5 break-words text-xs font-semibold tracking-wide text-slate-300/80">
         {p.category}
