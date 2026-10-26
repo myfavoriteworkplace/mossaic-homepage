@@ -188,6 +188,11 @@
   letter-spacing: 0.025em;
 }
 
+.testimonial-photo {
+  object-fit: cover;
+  object-position: center;
+}
+
 [data-theme="aurora"] .testimonial-initials,
 [data-theme="moss"] .testimonial-initials {
   color: rgb(var(--accent-mid-rgb));

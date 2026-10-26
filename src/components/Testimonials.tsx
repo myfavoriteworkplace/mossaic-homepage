@@ -206,9 +206,22 @@ export default function Testimonials() {
                         </div>
                         <p className="testimonial-quote">"{testimonial.quote}"</p>
                         <div className="testimonial-author">
-                          <div className="testimonial-initials" aria-hidden="true">
-                            {testimonial.initials}
-                          </div>
+                          {testimonial.image ? (
+                            <img
+                              className="testimonial-initials testimonial-photo"
+                              src={`${import.meta.env.BASE_URL}${testimonial.image}`}
+                              alt=""
+                              aria-hidden="true"
+                              width={42}
+                              height={42}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <div className="testimonial-initials" aria-hidden="true">
+                              {testimonial.initials}
+                            </div>
+                          )}
                           <div>
                             <div className="testimonial-name">{testimonial.name}</div>
                             <div className="testimonial-role">{testimonial.role}</div>

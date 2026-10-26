@@ -112,6 +112,7 @@ export const TestimonialSchema = z.object({
   name: NonEmptyText,
   role: NonEmptyText,
   initials: z.string().min(1).max(4).refine((value) => value.trim().length > 0),
+  image: z.string().regex(/^images\/reviews\/[\w.-]+\.webp$/).optional(),
   product: z.enum(["bookMySlot", "Retail CRM", "AI Imaging", "mossaic Studio"]),
   rating: z.number().int().min(1).max(5),
 });
