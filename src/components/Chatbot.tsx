@@ -321,9 +321,10 @@ const EDGE_MARGIN = 24;
 const INTRO_START_DELAY_MS = 320;
 const INTRO_FLIGHT_MS = 1450;
 const INTRO_IMPACT_MS = 720;
-const INTRO_WALK_TO_CENTER_MS = 1700;
+const INTRO_WALK_TO_CENTER_MS = 1900;
 const INTRO_CENTER_PAUSE_MS = 1250;
-const INTRO_WALK_HOME_MS = 1700;
+const INTRO_WALK_HOME_MS = 1900;
+const INTRO_WALK_GAIT_MS = 950;
 /** Soft radial clouds used for the impact burst. */
 const SMOKE_PUFFS = [
   { x: -16, y: -4, size: 42, tone: "cyan", delay: 0 },
@@ -336,14 +337,18 @@ const SMOKE_PUFFS = [
   { x: -2, y: 2, size: 58, tone: "slate", delay: 0 },
 ] as const;
 const IMPACT_SPARKS = [
-  { x: 0, y: -36 },
-  { x: 25, y: -25 },
-  { x: 38, y: 0 },
-  { x: 26, y: 27 },
-  { x: 0, y: 38 },
-  { x: -27, y: 25 },
-  { x: -38, y: 0 },
-  { x: -25, y: -26 },
+  { x: 0, y: -42 },
+  { x: 22, y: -38 },
+  { x: 38, y: -22 },
+  { x: 44, y: 0 },
+  { x: 38, y: 22 },
+  { x: 22, y: 38 },
+  { x: 0, y: 44 },
+  { x: -22, y: 38 },
+  { x: -38, y: 22 },
+  { x: -44, y: 0 },
+  { x: -38, y: -22 },
+  { x: -22, y: -38 },
 ] as const;
 /** Cloudflare Worker that proxies requests to the Groq API. Used only when
  *  no local FAQ entry matches the user's message — keeps known questions
@@ -1610,26 +1615,42 @@ export default function Chatbot() {
             />
           ))}
         </div>
-      <motion.div
-        className="absolute left-0 top-0 z-[900]"
-        style={{ width: BUBBLE_PX, height: BUBBLE_PX }}
-        initial={{ opacity: 0, x: 0 }}
-        animate={{
-          opacity:
-            introPhase === "impact" ||
-            introPhase === "walking" ||
-            introPhase === "pause" ||
-            introPhase === "returning" ||
-            introPhase === "complete"
-              ? 1
-              : 0,
-          x: 0,
-        }}
-        transition={{
-          opacity: { duration: introPhase === "impact" ? 0.3 : 0 },
-          x: { duration: 0 },
-        }}
+      <div
+        className={`mossie-walk-scale ${
+          introPhase === "walking" || introPhase === "pause"
+            ? "is-mid"
+            : introPhase === "returning" || introPhase === "complete"
+              ? "is-home"
+              : "is-away"
+        }`}
+        style={
+          {
+            width: BUBBLE_PX,
+            height: BUBBLE_PX,
+            "--mossie-walk-duration": `${INTRO_WALK_TO_CENTER_MS}ms`,
+          } as CSSProperties
+        }
       >
+        <motion.div
+          className="absolute left-0 top-0 z-[900]"
+          style={{ width: BUBBLE_PX, height: BUBBLE_PX }}
+          initial={{ opacity: 0, x: 0 }}
+          animate={{
+            opacity:
+              introPhase === "impact" ||
+              introPhase === "walking" ||
+              introPhase === "pause" ||
+              introPhase === "returning" ||
+              introPhase === "complete"
+                ? 1
+                : 0,
+            x: 0,
+          }}
+          transition={{
+            opacity: { duration: introPhase === "impact" ? 0.3 : 0 },
+            x: { duration: 0 },
+          }}
+        >
         <motion.div
           style={{
             width: "100%",
@@ -1640,7 +1661,7 @@ export default function Chatbot() {
           animate={{
             scale:
               introPhase === "impact"
-                ? [0, 1.18, 0.92, 1]
+                ? [0, 1.24, 0.86, 1]
                 : introPhase === "walking" ||
                     introPhase === "pause" ||
                     introPhase === "returning" ||
@@ -1654,7 +1675,7 @@ export default function Chatbot() {
                 ? {
                     duration: INTRO_IMPACT_MS / 1000,
                     ease: "easeOut",
-                    times: [0, 0.42, 0.7, 1],
+                    times: [0, 0.38, 0.68, 1],
                   }
                 : { duration: 0.18, ease: "easeOut" },
           }}
@@ -1699,17 +1720,29 @@ export default function Chatbot() {
                 ? { duration: 0.25, ease: "easeOut" }
                 : waving
                   ? { duration: 0.3, ease: "easeOut" }
-                  : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
+                  : {
+                      duration: INTRO_WALK_GAIT_MS / 1000,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
               scaleX: settled
                 ? { duration: 0.25, ease: "easeOut" }
                 : waving
                   ? { duration: 0.3, ease: "easeOut" }
-                  : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
+                  : {
+                      duration: INTRO_WALK_GAIT_MS / 1000,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
               scaleY: settled
                 ? { duration: 0.25, ease: "easeOut" }
                 : waving
                   ? { duration: 0.3, ease: "easeOut" }
-                  : { duration: 0.8, repeat: Infinity, ease: "easeInOut" },
+                  : {
+                      duration: INTRO_WALK_GAIT_MS / 1000,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
             }}
           >
         <AnimatePresence mode="wait" initial={false}>
@@ -1773,12 +1806,20 @@ export default function Chatbot() {
               ? { duration: 0.25, ease: "easeOut" }
               : waving
                 ? { duration: 0.3, ease: "easeOut" }
-                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
+                : {
+                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
             x: settled
               ? { duration: 0.25, ease: "easeOut" }
               : waving
                 ? { duration: 0.3, ease: "easeOut" }
-                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
+                : {
+                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
           }}
           style={{
             width: 5,
@@ -1809,12 +1850,20 @@ export default function Chatbot() {
               ? { duration: 0.25, ease: "easeOut" }
               : waving
                 ? { duration: 0.3, ease: "easeOut" }
-                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
+                : {
+                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
             x: settled
               ? { duration: 0.25, ease: "easeOut" }
               : waving
                 ? { duration: 0.3, ease: "easeOut" }
-                : { duration: 1.6, repeat: Infinity, ease: "easeInOut" },
+                : {
+                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
           }}
           style={{
             width: 5,
@@ -1843,6 +1892,7 @@ export default function Chatbot() {
           </motion.button>
         </motion.div>
         </motion.div>
+      </div>
       </div>
 
       {/* ── Hover/intro tooltip — small dark pill above Mossie ─────────── */}
