@@ -3,7 +3,7 @@ export type DeckLink = {
   href: string;
 };
 
-export type DeckSlideKind = "bookmyslot" | "aeropulse" | "systems";
+export type DeckSlideKind = "bookmyslot" | "mossaic-labs" | "mossaic-studio";
 
 export type DeckSlide = {
   id: string;
@@ -41,13 +41,6 @@ export type DemoPatient = {
   status: "pending" | "confirmed";
 };
 
-export type RouteSnapshot = {
-  eta: string;
-  cargo: string;
-  state: string;
-  progress: number;
-};
-
 export type DeckContent = {
   meta: {
     title: string;
@@ -79,10 +72,8 @@ export type DeckContent = {
     linkCopiedNotice: string;
     copyFallbackNotice: string;
     shareErrorNotice: string;
-    demoUpdateNotice: string;
     portfolioLabel: string;
     liveProductLabel: string;
-    liveProjectLabel: string;
     availableServicesLabel: string;
     illustrativeLabel: string;
     brandTagline: string;
@@ -103,22 +94,6 @@ export type DeckContent = {
     dashboardHint: string;
     demoDisclaimer: string;
     demoMetrics: { value: string; label: string }[];
-    routeLabel: string;
-    routeCities: string;
-    origin: string;
-    destination: string;
-    routeStatLabels: {
-      deliveryWindow: string;
-      cargoPayload: string;
-      telematicsSync: string;
-    };
-    routeSnapshotLabel: string;
-    simulatedLocallyLabel: string;
-    refreshRouteLabel: string;
-    routeSnapshots: RouteSnapshot[];
-    routeDisclaimer: string;
-    routeFeatures: { title: string; description: string }[];
-    systems: { title: string; description: string }[];
     pipelineTitle: string;
     pipelineProducts: { productId: string; title: string; description: string }[];
     customServiceTitle: string;

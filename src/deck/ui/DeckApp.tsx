@@ -24,13 +24,12 @@ import {
   Pause,
   Play,
   Printer,
-  RefreshCw,
   Share2,
   ShieldCheck,
-  Truck,
 } from "lucide-react";
+import BookMySlotText from "../../components/ui/BookMySlotText";
 import Wordmark from "../../components/ui/Wordmark";
-import { PRODUCTS, ROADMAP, SITE_CONFIG, STUDIO_PROJECTS } from "../../data/content";
+import { PRODUCTS, ROADMAP, SITE_CONFIG } from "../../data/content";
 import type { Product } from "../../data/schemas";
 import type { DeckContent, DeckSlide } from "./types";
 import { LocalQr } from "./qr";
@@ -45,10 +44,9 @@ const contactHref = `${siteUrl}/#contact`;
 const emailHref = `mailto:${SITE_CONFIG.site.email}`;
 const whatsappHref = "https://wa.me/919746767146";
 const deckWhatsappHref = `${whatsappHref}?text=${encodeURIComponent("Hi mossAIc Team, I saw your interactive deck and would like to discuss a project.")}`;
-const consultationHref = `${whatsappHref}?text=${encodeURIComponent("Hi Mossaic team, I'd like to discuss a custom web project.")}`;
 const bookingProduct = PRODUCTS.find((product) => product.id === "bookmyslot");
-const studioService = PRODUCTS.find((product) => product.id === "mossaic-studio");
-const aeroPulse = STUDIO_PROJECTS.find((project) => project.id === "aeropulse-logistics");
+const labsProduct = PRODUCTS.find((product) => product.id === "mossaic-labs");
+const studioProduct = PRODUCTS.find((product) => product.id === "mossaic-studio");
 
 function isExternalLink(href: string) {
   return /^https?:\/\//i.test(href);
@@ -103,6 +101,7 @@ function SlideHeader({
   descriptionOverride,
   eyebrowOverride,
   titleHref,
+  brandLockup,
 }: {
   slide: DeckSlide;
   href?: string;
@@ -113,6 +112,7 @@ function SlideHeader({
   descriptionOverride?: string;
   eyebrowOverride?: string;
   titleHref?: string;
+  brandLockup?: ReactNode;
 }) {
   const external = href ? isExternalLink(href) : false;
   const externalTitle = titleHref ? isExternalLink(titleHref) : false;
@@ -120,7 +120,7 @@ function SlideHeader({
   const highlight = highlightOverride ?? slide.highlight;
   const heading = (
     <>
-      {titleOverride ?? slide.title}
+      {brandLockup ?? titleOverride ?? slide.title}
       {highlight ? <> <em>{highlight}</em></> : null}
     </>
   );
@@ -134,7 +134,7 @@ function SlideHeader({
         <h2 className="deck-slide-title">
           {titleHref ? (
             <a
-              className="deck-slide-title-link"
+              className={`deck-slide-title-link ${brandLockup ? "deck-brand-title-link" : ""}`}
               href={titleHref}
               target={externalTitle ? "_blank" : undefined}
               rel={externalTitle ? "noopener noreferrer" : undefined}
@@ -158,6 +158,34 @@ function SlideHeader({
         </a>
       ) : null}
     </div>
+  );
+}
+
+function ProductBrandLockup({ product }: { product: Product }) {
+  const isBookMySlot = product.id === "bookmyslot";
+  const brandSubtitle = product.id === "mossaic-studio" ? product.category : product.subLabel;
+  const productSuffix = product.id === "mossaic-labs" ? "Labs" : "Studio";
+  const markSrc = isBookMySlot
+    ? `${import.meta.env.BASE_URL}icons/products/bookmyslot-icon.svg`
+    : `${import.meta.env.BASE_URL}icons/brand/mossaic-faithful.svg`;
+
+  return (
+    <span className={`deck-brand-lockup ${isBookMySlot ? "is-bookmyslot" : "is-mossaic"}`}>
+      <img className="deck-brand-lockup-mark" src={markSrc} alt="" aria-hidden="true" />
+      <span className="deck-brand-lockup-copy">
+        <span className="deck-brand-lockup-name">
+          {isBookMySlot ? (
+            <BookMySlotText className="deck-bookmyslot-wordmark" />
+          ) : (
+            <span className="deck-mossaic-wordmark">
+              <Wordmark variant="nav" textColor="var(--deck-text)" />
+              <span className="deck-brand-lockup-suffix">{productSuffix}</span>
+            </span>
+          )}
+        </span>
+        <span className="deck-brand-lockup-subtitle">{brandSubtitle}</span>
+      </span>
+    </span>
   );
 }
 
@@ -226,7 +254,7 @@ function BookingShowcase({
     <article className="deck-slide" data-slide="bookmyslot" aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        titleOverride={bookingProduct?.name ?? slide.title}
+        brandLockup={bookingProduct ? <ProductBrandLockup product={bookingProduct} /> : undefined}
         highlightOverride=""
         statusLabel={productStatusLabel}
         titleHref={productHref}
@@ -289,125 +317,39 @@ function BookingShowcase({
   );
 }
 
-function RouteGraphic({ progress, origin, destination }: { progress: number; origin: string; destination: string }) {
-  const markerX = 30 + ((570 - 30) * progress) / 100;
-  const markerY = 40 + Math.sin((progress / 100) * Math.PI) * -14;
-  return (
-    <svg className="deck-route-visual" viewBox="0 0 600 80" role="img" aria-label={`Illustrative route progress ${progress}%`}>
-      <path d="M30 40 Q180 10 300 40 T570 40" fill="none" stroke="#1e293b" strokeWidth="6" strokeLinecap="round" />
-      <path className="deck-route-dash" d="M30 40 Q180 10 300 40 T570 40" fill="none" stroke="#38bdf8" strokeWidth="2" />
-      <circle cx="30" cy="40" r="7" fill="#030712" stroke="#38bdf8" strokeWidth="3" />
-      <circle cx="570" cy="40" r="7" fill="#030712" stroke="#10b981" strokeWidth="3" />
-      <g className="deck-route-marker">
-        <circle cx={markerX} cy={markerY} r="11" fill="#38bdf8" fillOpacity=".2" />
-        <circle cx={markerX} cy={markerY} r="5" fill="#38bdf8" />
-      </g>
-      <text x="30" y="71" textAnchor="middle">{origin}</text>
-      <text x="570" y="71" textAnchor="middle">{destination}</text>
-    </svg>
-  );
-}
-
-function AeroPulseShowcase({ slide, content, onDemoUpdate }: {
+function BrandServiceShowcase({ slide, product, content }: {
   slide: DeckSlide;
+  product: Product;
   content: DeckContent;
-  onDemoUpdate: () => void;
 }) {
-  const [snapshotIndex, setSnapshotIndex] = useState(0);
-  const snapshot = content.narrative.routeSnapshots[snapshotIndex];
-  const projectHref = aeroPulse?.href ?? siteUrl;
-  const projectStatusLabel = aeroPulse?.status === "live"
-    ? content.ui.liveProjectLabel
-    : undefined;
-  const nextSnapshot = () => {
-    setSnapshotIndex((index) => (index + 1) % content.narrative.routeSnapshots.length);
-    onDemoUpdate();
-  };
-
-  return (
-    <article className="deck-slide" data-slide="aeropulse" aria-label={`${slide.eyebrow}: ${slide.title}`}>
-      <SlideHeader
-        slide={slide}
-        highlightOverride=""
-        statusLabel={projectStatusLabel}
-        titleHref={projectHref}
-        href={projectHref}
-        linkLabel={slide.linkLabel}
-      />
-      <section className="deck-route-card" aria-label="AeroPulse illustrative route simulator">
-        <div className="deck-route-head">
-          <div className="deck-route-title"><span className="deck-route-pulse" aria-hidden="true" /><Truck aria-hidden="true" />{content.narrative.routeLabel}</div>
-          <span className="deck-route-name">{content.narrative.routeCities}</span>
-        </div>
-        <RouteGraphic progress={snapshot.progress} origin={content.narrative.origin} destination={content.narrative.destination} />
-        <div className="deck-route-stats">
-          <div className="deck-route-stat">
-            <div className="deck-route-stat-label">{content.narrative.routeStatLabels.deliveryWindow}</div>
-            <div className="deck-route-stat-value">{snapshot.eta}</div>
-          </div>
-          <div className="deck-route-stat">
-            <div className="deck-route-stat-label">{content.narrative.routeStatLabels.cargoPayload}</div>
-            <div className="deck-route-stat-value">{snapshot.cargo}</div>
-          </div>
-          <div className="deck-route-stat">
-            <div className="deck-route-stat-label">{content.narrative.routeStatLabels.telematicsSync}</div>
-            <div className="deck-route-stat-value">{snapshot.state}</div>
-          </div>
-        </div>
-        <p className="deck-demo-note"><Info aria-hidden="true" />{content.narrative.routeDisclaimer}</p>
-        <div className="deck-sim-controls">
-          <p>
-            {content.narrative.routeSnapshotLabel} {snapshotIndex + 1} of {content.narrative.routeSnapshots.length}
-            {" · "}{content.narrative.simulatedLocallyLabel}
-          </p>
-          <button type="button" className="deck-button" onClick={nextSnapshot}>
-            <RefreshCw className="deck-icon" aria-hidden="true" /> {content.narrative.refreshRouteLabel}
-          </button>
-        </div>
-      </section>
-      <div className="deck-route-feature-grid">
-        {content.narrative.routeFeatures.map((feature) => (
-          <article className="deck-feature-card" key={feature.title}>
-            <h4>{feature.title}</h4>
-            <p>{feature.description}</p>
-          </article>
-        ))}
-      </div>
-    </article>
-  );
-}
-
-function SystemsShowcase({ slide, content }: { slide: DeckSlide; content: DeckContent }) {
-  const contactLink = studioService?.cta.href ? resolveLink(studioService.cta.href) : contactHref;
-  const serviceStatusLabel = studioService?.status === "live"
+  const contactLink = resolveLink(product.cta.href);
+  const serviceStatusLabel = product.status === "live"
     ? content.ui.availableServicesLabel
-    : studioService?.statusLabel;
+    : product.statusLabel;
+
   return (
-    <article className="deck-slide" data-slide="systems" aria-label={`${slide.eyebrow}: ${slide.title}`}>
+    <article className="deck-slide" data-slide={product.id} aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
+        brandLockup={<ProductBrandLockup product={product} />}
         statusLabel={serviceStatusLabel}
         href={contactLink}
-        linkLabel={slide.linkLabel}
+        linkLabel={slide.linkLabel ?? product.cta.label}
       />
-      <div className="deck-systems-grid">
-        {content.narrative.systems.map((system, index) => (
-          <article className="deck-system-card" key={system.title}>
-            <div className="deck-system-index">{String(index + 1).padStart(2, "0")}</div>
-            <h3>{system.title}</h3>
-            <p>{system.description}</p>
-          </article>
-        ))}
-      </div>
-      <aside className="deck-system-cta">
-        <div>
-          <h3>{content.narrative.customServiceTitle}</h3>
-          <p>{content.narrative.customServiceDescription}</p>
+      <section className="deck-brand-service">
+        <div className="deck-brand-service-copy">
+          <span className="deck-brand-service-label">{product.category}</span>
+          <p>{product.description}</p>
         </div>
-        <a className="deck-button deck-button-primary" href={consultationHref} target="_blank" rel="noopener noreferrer">
-          {content.narrative.customServiceActionLabel} <ArrowUpRight className="deck-icon" aria-hidden="true" />
-        </a>
-      </aside>
+        <div className="deck-brand-service-capabilities">
+          <span className="deck-brand-service-label">Capabilities</span>
+          <div className="deck-brand-capability-list">
+            {product.tags.map((tag) => (
+              <span className="deck-brand-capability" key={tag}>{tag}</span>
+            ))}
+          </div>
+        </div>
+      </section>
     </article>
   );
 }
@@ -514,14 +456,17 @@ function SlideFoot({ slide }: { slide: DeckSlide }) {
   );
 }
 
-function SlideContent({ slide, content, onDemoUpdate }: {
+function SlideContent({ slide, content }: {
   slide: DeckSlide;
   content: DeckContent;
-  onDemoUpdate: () => void;
 }) {
   if (slide.kind === "bookmyslot") return <BookingShowcase slide={slide} content={content} />;
-  if (slide.kind === "aeropulse") return <AeroPulseShowcase slide={slide} content={content} onDemoUpdate={onDemoUpdate} />;
-  if (slide.kind === "systems") return <SystemsShowcase slide={slide} content={content} />;
+  if (slide.kind === "mossaic-labs" && labsProduct) {
+    return <BrandServiceShowcase slide={slide} product={labsProduct} content={content} />;
+  }
+  if (slide.kind === "mossaic-studio" && studioProduct) {
+    return <BrandServiceShowcase slide={slide} product={studioProduct} content={content} />;
+  }
   return <ClosingShowcase slide={slide} />;
 }
 
@@ -696,8 +641,6 @@ export function DeckApp({ config }: DeckAppProps) {
       ))}
     </nav>
   );
-  const onDemoUpdate = () => announce(config.ui.demoUpdateNotice);
-
   return (
     <main
       className={`mossaic-deck ${documentMode ? "deck-mode-document" : "deck-mode-carousel"}`}
@@ -752,7 +695,7 @@ export function DeckApp({ config }: DeckAppProps) {
             </div>
             {slides.map((slide) => (
               <div className="deck-showcase" key={slide.id}>
-                <SlideContent slide={slide} content={config} onDemoUpdate={onDemoUpdate} />
+                <SlideContent slide={slide} content={config} />
               </div>
             ))}
           </section>
@@ -784,7 +727,7 @@ export function DeckApp({ config }: DeckAppProps) {
               onFocusCapture={() => setIsDeckFocused(true)}
               data-testid="deck-carousel"
             >
-              <SlideContent slide={activeSlide} content={config} onDemoUpdate={onDemoUpdate} />
+              <SlideContent slide={activeSlide} content={config} />
             </section>
             <div className="deck-controlbar">
               <button type="button" className="deck-button deck-nav-arrow" onClick={previous} aria-label={config.ui.previousSectionLabel} data-testid="deck-previous">

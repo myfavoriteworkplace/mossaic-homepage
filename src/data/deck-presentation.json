@@ -1,9 +1,9 @@
 {
   "meta": {
     "title": "Mossaic — Products & Services",
-    "description": "Explore Mossaic's live software products, logistics platform, and custom web services.",
+    "description": "Explore Mossaic's live dental software product and dedicated engineering services.",
     "ogTitle": "Mossaic — Products & Services",
-    "ogDescription": "Live SaaS and logistics products, plus custom enterprise web engineering."
+    "ogDescription": "A live dental SaaS product, custom software engineering, and enterprise web services."
   },
   "intro": {
     "eyebrow": "Modular SaaS · Enterprise platforms · Built in India",
@@ -40,10 +40,8 @@
     "linkCopiedNotice": "Portfolio link copied",
     "copyFallbackNotice": "Copy this page URL to share the portfolio",
     "shareErrorNotice": "Unable to share right now",
-    "demoUpdateNotice": "Illustrative demo updated",
     "portfolioLabel": "Interactive Portfolio",
     "liveProductLabel": "Live Product",
-    "liveProjectLabel": "Live Operational App",
     "availableServicesLabel": "Available for Projects",
     "illustrativeLabel": "Illustrative",
     "brandTagline": "Software & Custom Web Development Company",
@@ -62,33 +60,31 @@
     {
       "id": "bookmyslot",
       "kind": "bookmyslot",
-      "navigationLabel": "bookMySlot (SaaS)",
+      "navigationLabel": "bookMySlot · Dental SaaS",
       "eyebrow": "Product · dental practice management",
-      "title": "Flagship product",
-      "highlight": "— a calmer clinic day",
+      "title": "bookMySlot",
       "description": "Dental practice management for clinics, from booking through follow-up.",
       "footer": "DENTAL PRACTICE MANAGEMENT · PRODUCT FACTS FROM MOSSAIC"
     },
     {
-      "id": "aeropulse",
-      "kind": "aeropulse",
-      "navigationLabel": "AeroPulse (Logistics)",
-      "eyebrow": "Logistics platform",
-      "title": "AeroPulse Logistics Platform",
-      "highlight": "— operations, in motion",
-      "description": "An operational logistics platform from Mossaic Studio. The route panel below is simulated and does not show live shipment tracking.",
-      "footer": "LIVE LOGISTICS PLATFORM · SIMULATED ROUTE PREVIEW",
-      "linkLabel": "Open Live App"
+      "id": "mossaic-labs",
+      "kind": "mossaic-labs",
+      "navigationLabel": "mossAIc Labs · Software Engineering",
+      "eyebrow": "Engineering · custom software & SaaS",
+      "title": "mossAIc Labs",
+      "description": "Custom software and SaaS engineering for businesses that need reliable, scalable applications.",
+      "footer": "CUSTOM SOFTWARE · SAAS ENGINEERING",
+      "linkLabel": "Talk to our team"
     },
     {
-      "id": "systems",
-      "kind": "systems",
-      "navigationLabel": "Custom Web Systems",
-      "eyebrow": "Custom web development",
-      "title": "Custom Websites & Enterprise Applications",
-      "description": "Custom websites, enterprise platforms, and internal tools built around your operation.",
-      "linkLabel": "Discuss a Project",
-      "footer": "CUSTOM ENGINEERING · ENTERPRISE WEB SYSTEMS"
+      "id": "mossaic-studio",
+      "kind": "mossaic-studio",
+      "navigationLabel": "mossaic Studio · Web & SEO",
+      "eyebrow": "Studio · enterprise web & digital experience",
+      "title": "mossaic Studio",
+      "description": "High-performance websites and digital experiences, supported by technical SEO for search and AI discovery.",
+      "footer": "ENTERPRISE WEB · DIGITAL EXPERIENCE & SEO",
+      "linkLabel": "Talk to our team"
     }
   ],
   "narrative": {
@@ -97,34 +93,6 @@
     "demoDisclaimer": "Patient details are synthetic. The ₹38k weekly revenue example is illustrative; the 2-minute average confirmation time is the product metric shown above.",
     "demoMetrics": [
       { "value": "₹38k", "label": "Weekly Revenue" }
-    ],
-    "routeLabel": "Sample route preview · AP-8842",
-    "routeCities": "Kochi → Mumbai (Transit)",
-    "origin": "Kochi Port",
-    "destination": "Mumbai Hub",
-    "routeStatLabels": {
-      "deliveryWindow": "Est. Delivery Window",
-      "cargoPayload": "Cargo Payload",
-      "telematicsSync": "Telematics Status"
-    },
-    "routeSnapshotLabel": "Snapshot",
-    "simulatedLocallyLabel": "simulated locally",
-    "refreshRouteLabel": "Refresh preview",
-    "routeSnapshots": [
-      { "eta": "18 Hours 24 Mins", "cargo": "14.2 Tons (Temperature Controlled)", "state": "100% Operational", "progress": 49 },
-      { "eta": "16h 50m", "cargo": "12.8 t · dry goods", "state": "At transit hub", "progress": 68 },
-      { "eta": "21h 10m", "cargo": "9.4 t · priority", "state": "Route recalculated", "progress": 35 }
-    ],
-    "routeDisclaimer": "Route, ETA, cargo, and status are simulated preview data, not a live vehicle or shipment feed.",
-    "routeFeatures": [
-      { "title": "Real-Time Rate Engine", "description": "Instant dynamic pricing based on distance, cargo density, and fuel surcharges." },
-      { "title": "Multi-Modal Dispatch", "description": "Seamless tracking for road freight, air cargo, and maritime container shipments." },
-      { "title": "Custom API Integrations", "description": "Direct ERP and warehouse management integration with automated WhatsApp updates." }
-    ],
-    "systems": [
-      { "title": "Lightning-Fast Speed", "description": "Fast, focused web experiences designed for responsive use across desktop and mobile." },
-      { "title": "Safe & Easy Maintenance", "description": "Clean static-first, modular architecture makes updates easier to manage and supports secure-by-design practices." },
-      { "title": "Interactive Custom Workflows", "description": "Tailored dashboards, live tracking overlays, and automated booking workflows shaped around each operation." }
     ],
     "pipelineTitle": "Upcoming Product Pipeline",
     "pipelineProducts": [

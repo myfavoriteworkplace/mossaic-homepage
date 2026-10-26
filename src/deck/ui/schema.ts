@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-const copyBlock = z.object({
-  title: z.string().min(1),
-  description: z.string().min(1),
-});
-
 export const DeckPresentationSchema = z.object({
   meta: z.object({
     title: z.string().min(1),
@@ -47,10 +42,8 @@ export const DeckPresentationSchema = z.object({
     linkCopiedNotice: z.string().min(1),
     copyFallbackNotice: z.string().min(1),
     shareErrorNotice: z.string().min(1),
-    demoUpdateNotice: z.string().min(1),
     portfolioLabel: z.string().min(1),
     liveProductLabel: z.string().min(1),
-    liveProjectLabel: z.string().min(1),
     availableServicesLabel: z.string().min(1),
     illustrativeLabel: z.string().min(1),
     brandTagline: z.string().min(1),
@@ -67,7 +60,7 @@ export const DeckPresentationSchema = z.object({
   }),
   slides: z.array(z.object({
     id: z.string().min(1),
-    kind: z.enum(["bookmyslot", "aeropulse", "systems"]),
+    kind: z.enum(["bookmyslot", "mossaic-labs", "mossaic-studio"]),
     navigationLabel: z.string().min(1).optional(),
     eyebrow: z.string().min(1),
     title: z.string().min(1),
@@ -81,27 +74,6 @@ export const DeckPresentationSchema = z.object({
     dashboardHint: z.string().min(1),
     demoDisclaimer: z.string().min(1),
     demoMetrics: z.array(z.object({ value: z.string().min(1), label: z.string().min(1) })).min(1),
-    routeLabel: z.string().min(1),
-    routeCities: z.string().min(1),
-    origin: z.string().min(1),
-    destination: z.string().min(1),
-    routeStatLabels: z.object({
-      deliveryWindow: z.string().min(1),
-      cargoPayload: z.string().min(1),
-      telematicsSync: z.string().min(1),
-    }),
-    routeSnapshotLabel: z.string().min(1),
-    simulatedLocallyLabel: z.string().min(1),
-    refreshRouteLabel: z.string().min(1),
-    routeSnapshots: z.array(z.object({
-      eta: z.string().min(1),
-      cargo: z.string().min(1),
-      state: z.string().min(1),
-      progress: z.number().min(0).max(100),
-    })).min(1),
-    routeDisclaimer: z.string().min(1),
-    routeFeatures: z.array(copyBlock).min(1),
-    systems: z.array(copyBlock).min(1),
     pipelineTitle: z.string().min(1),
     pipelineProducts: z.array(z.object({
       productId: z.string().min(1),
