@@ -75,7 +75,7 @@ export type DeckContent = {
     availableServicesLabel: string;
     illustrativeLabel: string;
     brandTagline: string;
-    brandAcronym: string;
+    brandDescription: string;
     whatsappLabel: string;
     tabTitle: string;
     tabBadge: string;

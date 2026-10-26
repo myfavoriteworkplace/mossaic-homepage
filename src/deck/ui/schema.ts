@@ -45,7 +45,7 @@ export const DeckPresentationSchema = z.object({
     availableServicesLabel: z.string().min(1),
     illustrativeLabel: z.string().min(1),
     brandTagline: z.string().min(1),
-    brandAcronym: z.string().min(1),
+    brandDescription: z.string().min(1),
     whatsappLabel: z.string().min(1),
     tabTitle: z.string().min(1),
     tabBadge: z.string().min(1),

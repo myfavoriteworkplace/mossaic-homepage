@@ -40,7 +40,7 @@ import "./deck.css";
 
 type DeckAppProps = { config: DeckContent };
 type PatientStatus = "pending" | "confirmed";
-const AUTO_ADVANCE_DELAY_MS = 5_000;
+const AUTO_ADVANCE_DELAY_MS = 8_000;
 
 const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
@@ -701,10 +701,19 @@ export function DeckApp({ config }: DeckAppProps) {
                 <span className="deck-live-badge">{config.ui.portfolioLabel}</span>
               </span>
               <span className="deck-brand-tagline">{config.ui.brandTagline}</span>
-              <span className="deck-brand-acronym">{config.ui.brandAcronym}</span>
+              <span className="deck-brand-description">{config.ui.brandDescription}</span>
             </span>
           </a>
           <div className="deck-header-actions">
+            <a
+              className="deck-button deck-button-home"
+              href={siteUrl}
+              aria-label="Back to Mossaic home"
+              title="Back to Mossaic home"
+              data-testid="deck-home"
+            >
+              <ArrowLeft className="deck-icon" aria-hidden="true" />
+            </a>
             <button
               type="button"
               className="deck-button"
