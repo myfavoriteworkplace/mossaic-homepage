@@ -351,12 +351,24 @@ const PORTAL_DIAMETER_PX = Math.round(BUBBLE_PX * WALK_SMALL_SCALE * 1.4);
 /** Horizontal viewport position of the portal centre — matches the centre
  *  of Mossie's bubble when she's at the leftmost point of her walk. */
 const PORTAL_LEFT_PX = EDGE_MARGIN + BUBBLE_PX / 2;
-/** How many cyan particles burst radially out of the portal as Mossie
- *  steps through. Distributed evenly around 360°; visual budget kept low
- *  to stay performant on mid-tier laptops. */
-const PORTAL_PARTICLE_COUNT = 8;
-/** How far (in px) each particle travels from the portal centre at peak. */
-const PORTAL_PARTICLE_RADIUS_PX = 56;
+/** Timing for Mossie's first-load impact, reveal, CTA-row stroll and return. */
+const INTRO_START_DELAY_MS = 420;
+const INTRO_FLIGHT_MS = 900;
+const INTRO_IMPACT_MS = 620;
+const INTRO_WALK_MS = 1050;
+const INTRO_RETURN_MS = 850;
+const INTRO_CTA_GAP_PX = 8;
+/** Soft radial clouds used for both the first landing and replay portal. */
+const SMOKE_PUFFS = [
+  { x: -16, y: -4, size: 42, tone: "cyan", delay: 0 },
+  { x: 12, y: -9, size: 48, tone: "slate", delay: 35 },
+  { x: -5, y: 13, size: 54, tone: "cyan", delay: 20 },
+  { x: 18, y: 12, size: 38, tone: "slate", delay: 60 },
+  { x: -22, y: 14, size: 34, tone: "slate", delay: 85 },
+  { x: 0, y: -20, size: 40, tone: "cyan", delay: 75 },
+  { x: 23, y: -2, size: 32, tone: "cyan", delay: 110 },
+  { x: -2, y: 2, size: 58, tone: "slate", delay: 0 },
+] as const;
 /** Cloudflare Worker that proxies requests to the Groq API. Used only when
  *  no local FAQ entry matches the user's message — keeps known questions
  *  instant and free, calls the API only for genuine unknowns. */
@@ -410,6 +422,24 @@ function computeWalkDistance(): number {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
   if (window.innerWidth < MIN_WALK_VIEWPORT) return 0;
   return Math.max(0, window.innerWidth - BUBBLE_PX - EDGE_MARGIN * 2);
+}
+
+type IntroPhase =
+  | "pending"
+  | "flight"
+  | "impact"
+  | "walking"
+  | "returning"
+  | "complete";
+
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function easeInOutCubic(value: number) {
+  return value < 0.5
+    ? 4 * value * value * value
+    : 1 - Math.pow(-2 * value + 2, 3) / 2;
 }
 
 /* ── MossieFace — eyes + mouth SVG ──────────────────────────────────────── */
@@ -642,6 +672,7 @@ export default function Chatbot() {
   // when the user comes near, taps, opens the chat, or the walk timer ends.
   const [walkDistance, setWalkDistance] = useState(0);
   const [settled, setSettled] = useState(true);
+  const [introPhase, setIntroPhase] = useState<IntroPhase>("pending");
   // Mid-walk greeting state. While `waving` is true, body x is held still and
   // the face switches to a happy expression.
   const [waving, setWaving] = useState(false);
@@ -675,6 +706,7 @@ export default function Chatbot() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
+  const introRootRef = useRef<HTMLDivElement | null>(null);
   const nextId = useRef(2);
   /** Conversation history sent to the Worker with every Groq call so the
    *  model can answer follow-up questions with context. Stored as a ref
@@ -730,9 +762,171 @@ export default function Chatbot() {
   useEffect(() => {
     const distance = computeWalkDistance();
     setWalkDistance(distance);
-    setSettled(distance === 0);
+    // The first-load entrance replaces the old full-width walk-in. Keep the
+    // chatbot settled until the CTA-row stroll begins.
+    setSettled(true);
     const recognition = getRecognitionCtor();
     setRecognitionCtor(() => recognition);
+  }, []);
+
+  /* First-load entrance — one requestAnimationFrame loop updates only
+   * transform/opacity on an absolutely positioned root, so the page layout
+   * never changes and React does not render on every animation frame. */
+  useEffect(() => {
+    const root = introRootRef.current;
+    if (!root) {
+      setIntroPhase("complete");
+      return;
+    }
+
+    const homePosition = () => ({
+      x: Math.max(0, window.innerWidth - BUBBLE_PX - EDGE_MARGIN),
+      y: Math.max(0, window.innerHeight - BUBBLE_PX - EDGE_MARGIN),
+    });
+    const placeAtHome = () => {
+      const home = homePosition();
+      root.style.transform = `translate3d(${home.x}px, ${home.y}px, 0)`;
+      root.style.opacity = "1";
+      setSettled(true);
+      setIntroPhase("complete");
+    };
+    let frameId = 0;
+    let startTimer = 0;
+    let stopped = false;
+    let phase: "flight" | "impact" | "walking" | "returning" = "flight";
+    let phaseStartedAt = 0;
+    const finish = () => {
+      if (stopped) return;
+      stopped = true;
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(startTimer);
+      placeAtHome();
+    };
+    const handleResize = () => {
+      if (!stopped) {
+        finish();
+        setWalkDistance(computeWalkDistance());
+        return;
+      }
+      const home = homePosition();
+      root.style.transform = `translate3d(${home.x}px, ${home.y}px, 0)`;
+      setWalkDistance(computeWalkDistance());
+    };
+    window.addEventListener("resize", handleResize, { passive: true });
+
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const ctaRow = document.querySelector<HTMLElement>("[data-mossie-cta-row]");
+    if (reducedMotion || !ctaRow) {
+      finish();
+      return () => window.removeEventListener("resize", handleResize);
+    }
+
+    const initialCtaRect = ctaRow.getBoundingClientRect();
+    if (initialCtaRect.bottom <= 0 || initialCtaRect.top >= window.innerHeight) {
+      finish();
+      return () => window.removeEventListener("resize", handleResize);
+    }
+
+    startTimer = window.setTimeout(() => {
+      const ctaRect = ctaRow.getBoundingClientRect();
+      if (ctaRect.bottom <= 0 || ctaRect.top >= window.innerHeight) {
+        finish();
+        return;
+      }
+
+      const start = { x: 18, y: -BUBBLE_PX };
+      const target = {
+        x: Math.max(
+          EDGE_MARGIN,
+          Math.min(ctaRect.left, window.innerWidth - BUBBLE_PX - EDGE_MARGIN),
+        ),
+        y: Math.max(4, ctaRect.top - BUBBLE_PX - INTRO_CTA_GAP_PX),
+      };
+      const measureTarget = () => {
+        const rect = ctaRow.getBoundingClientRect();
+        return {
+          x: Math.max(
+            EDGE_MARGIN,
+            Math.min(rect.left, window.innerWidth - BUBBLE_PX - EDGE_MARGIN),
+          ),
+          y: Math.max(4, rect.top - BUBBLE_PX - INTRO_CTA_GAP_PX),
+        };
+      };
+      const walkEndX = Math.max(
+        target.x,
+        Math.min(
+          window.innerWidth - BUBBLE_PX - EDGE_MARGIN,
+          ctaRect.right - BUBBLE_PX,
+        ),
+      );
+      root.style.transform = `translate3d(${start.x}px, ${start.y}px, 0)`;
+      root.style.opacity = "1";
+      setIntroPhase("flight");
+
+      const tick = (now: number) => {
+        if (stopped) return;
+        if (phaseStartedAt === 0) phaseStartedAt = now;
+        const elapsed = now - phaseStartedAt;
+
+        if (phase === "flight") {
+          const progress = clamp01(elapsed / INTRO_FLIGHT_MS);
+          const horizontalEase = 1 - Math.pow(1 - progress, 3);
+          const liveTarget = measureTarget();
+          target.x = liveTarget.x;
+          target.y = liveTarget.y;
+          const x = start.x + (target.x - start.x) * horizontalEase;
+          // A gravity-like downward curve keeps the fall smooth and readable.
+          const y = start.y + (target.y - start.y) * progress * progress;
+          root.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          if (progress >= 1) {
+            phase = "impact";
+            phaseStartedAt = now;
+            setIntroPhase("impact");
+          }
+        } else if (phase === "impact") {
+          if (elapsed >= INTRO_IMPACT_MS) {
+            phase = "walking";
+            phaseStartedAt = now;
+            setSettled(false);
+            setIntroPhase("walking");
+          }
+        } else if (phase === "walking") {
+          const progress = clamp01(elapsed / INTRO_WALK_MS);
+          const eased = easeInOutCubic(progress);
+          const x = target.x + (walkEndX - target.x) * eased;
+          root.style.transform = `translate3d(${x}px, ${target.y}px, 0)`;
+          if (progress >= 1) {
+            phase = "returning";
+            phaseStartedAt = now;
+            setIntroPhase("returning");
+          }
+        } else {
+          const progress = clamp01(elapsed / INTRO_RETURN_MS);
+          const eased = easeInOutCubic(progress);
+          const home = homePosition();
+          const x = walkEndX + (home.x - walkEndX) * eased;
+          const y = target.y + (home.y - target.y) * eased;
+          root.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          if (progress >= 1) {
+            finish();
+            return;
+          }
+        }
+
+        frameId = window.requestAnimationFrame(tick);
+      };
+
+      frameId = window.requestAnimationFrame(tick);
+    }, INTRO_START_DELAY_MS);
+
+    return () => {
+      stopped = true;
+      window.clearTimeout(startTimer);
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   useEffect(() => {
@@ -847,7 +1041,7 @@ export default function Chatbot() {
    * timer. Re-runs each time `walkInToken` changes (initial mount + every
    * walk-again replay). Early-returns when she's settled or walking out. */
   useEffect(() => {
-    if (settled || walkingOut) return;
+    if (introPhase !== "complete" || settled || walkingOut) return;
     // Re-arm the spook guard for this walk-in cycle.
     spookFiredRef.current = false;
     // Schedule the single midpoint wave unless the user has already
@@ -874,14 +1068,14 @@ export default function Chatbot() {
       for (const t of waveTimers) window.clearTimeout(t);
       window.clearTimeout(settleTimer);
     };
-  }, [settled, walkingOut, walkInToken]);
+  }, [introPhase, settled, walkingOut, walkInToken]);
 
   /* Walk-in: settle when the cursor approaches Mossie. The first time the
    * cursor enters the spook radius, briefly show a surprise face, *then*
    * spring her into her home spot. The surprise reaction adds a beat of
    * personality to the otherwise instant settle. */
   useEffect(() => {
-    if (settled || walkingOut) return;
+    if (introPhase !== "complete" || settled || walkingOut) return;
     const handler = (e: MouseEvent) => {
       if (spookFiredRef.current) return;
       const btn = btnRef.current;
@@ -902,7 +1096,7 @@ export default function Chatbot() {
     };
     window.addEventListener("mousemove", handler, { passive: true });
     return () => window.removeEventListener("mousemove", handler);
-  }, [settled, walkingOut, walkInToken]);
+  }, [introPhase, settled, walkingOut, walkInToken]);
 
   /* Walk-out: when the user triggers walk-again, schedule the transition
    * back into a fresh walk-in cycle once the out-walk completes. */
@@ -1521,14 +1715,12 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* ── Aurora portal — the cyan "door" Mossie steps through ────────
-          Circular lens-flare bloom: a glowing radial core with a thin outer
-          ring, plus a brief burst of cyan particles flung radially outward
-          as she emerges. Replays on every walk-in cycle (initial mount and
-          every double-click → walk-out → walk-in-again) because the wrapper
-          is keyed to `walkInToken`. */}
+      {/* ── Aurora portal — retained for a user-triggered replay ──────── */}
       <AnimatePresence>
-        {walkDistance > 0 && !settled && !walkingOut && (
+        {introPhase === "complete" &&
+          walkDistance > 0 &&
+          !settled &&
+          !walkingOut && (
           <motion.div
             key={`mossie-portal-${walkInToken}`}
             aria-hidden
@@ -1590,103 +1782,108 @@ export default function Chatbot() {
                   "0 0 8px 1px rgba(165,243,252,0.75), inset 0 0 6px 1px rgba(165,243,252,0.45)",
               }}
             />
-            {/* Radial particle burst — small cyan flecks fly outward in
-                evenly-spaced directions at the moment Mossie emerges, then
-                fade. Echoes the brand's particle-network vocabulary. */}
-            {Array.from({ length: PORTAL_PARTICLE_COUNT }).map((_, i) => {
-              const angle = (i / PORTAL_PARTICLE_COUNT) * Math.PI * 2;
-              const dx = Math.cos(angle) * PORTAL_PARTICLE_RADIUS_PX;
-              const dy = Math.sin(angle) * PORTAL_PARTICLE_RADIUS_PX;
-              return (
-                <motion.span
-                  key={`portal-particle-${i}`}
-                  className="absolute rounded-full"
+            <div className="mossie-portal-smoke" aria-hidden>
+              {SMOKE_PUFFS.map((puff, index) => (
+                <span
+                  key={`portal-smoke-${index}`}
+                  className={`mossie-smoke-puff mossie-smoke-puff--${puff.tone}`}
                   style={{
-                    /* Spawn anchored at the portal centre. Animated x/y
-                       carry each particle outward to its unique angle. */
-                    left: "50%",
-                    top: "50%",
-                    width: 4,
-                    height: 4,
-                    marginLeft: -2,
-                    marginTop: -2,
-                    background: "rgba(236,254,255,0.95)",
-                    boxShadow:
-                      "0 0 6px 1px rgba(34,211,238,0.85), 0 0 12px 3px rgba(34,211,238,0.45)",
-                  }}
-                  initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
-                  animate={{
-                    /* Stay invisible while the portal is opening, pop into
-                       being and travel outward as she emerges (~0.5–1.0s),
-                       fade back to nothing as the portal closes. */
-                    x: [0, 0, dx * 0.4, dx, dx],
-                    y: [0, 0, dy * 0.4, dy, dy],
-                    scale: [0, 0, 1, 0.6, 0],
-                    opacity: [0, 0, 1, 0.6, 0],
-                  }}
-                  transition={{
-                    duration: WALK_DURATION_S,
-                    ease: "easeOut",
-                    times: [
-                      0,
-                      0.5 / WALK_DURATION_S,
-                      0.75 / WALK_DURATION_S,
-                      1.1 / WALK_DURATION_S,
-                      1.6 / WALK_DURATION_S,
-                    ],
+                    left: `calc(50% + ${puff.x}px)`,
+                    top: `calc(50% + ${puff.y}px)`,
+                    width: puff.size,
+                    height: puff.size,
+                    animationDelay: `${puff.delay}ms`,
                   }}
                 />
-              );
-            })}
+              ))}
+            </div>
           </motion.div>
-        )}
+          )}
       </AnimatePresence>
 
       {/* ── Floating action button (Mossie) ──────────────────────────────
-       *  Three nested motion layers, intentionally split so each transform
-       *  stays independent:
-       *    1. Outer  — fixed position + walking translate (viewport units,
-       *               must not be inside any scaled ancestor or the walk
-       *               distance would be visually shortened).
-       *    2. Middle — body size scale (small "from afar" 0.75 → full 1.0),
-       *               anchored to bottom-centre so her feet stay planted on
-       *               the same baseline whether small or full size.
-       *    3. Inner  — the actual interactive button: squash/stretch breath,
-        *               hover/tap pop, and the face/feet elements.
-       */}
+       *  The fixed root is moved by the first-load rAF sequence. Its child
+       *  keeps the existing replay walk and the nested button interactions. */}
+      <div
+        ref={introRootRef}
+        className="fixed left-0 top-0 z-[900]"
+        aria-hidden={introPhase !== "complete"}
+        style={{
+          width: BUBBLE_PX,
+          height: BUBBLE_PX,
+          opacity: introPhase === "pending" ? 0 : 1,
+          pointerEvents: introPhase === "complete" ? "auto" : "none",
+          willChange: introPhase === "complete" ? "auto" : "transform",
+          transform: "translate3d(0, 0, 0)",
+        }}
+      >
+        <span
+          aria-hidden
+          className={`mossie-intro-core${introPhase === "flight" ? " is-active" : ""}`}
+        />
+        <div
+          aria-hidden
+          className={`mossie-intro-smoke${introPhase === "impact" ? " is-active" : ""}`}
+        >
+          {SMOKE_PUFFS.map((puff, index) => (
+            <span
+              key={`intro-smoke-${index}`}
+              className={`mossie-smoke-puff mossie-smoke-puff--${puff.tone}`}
+              style={{
+                left: `calc(50% + ${puff.x}px)`,
+                top: `calc(50% + ${puff.y}px)`,
+                width: puff.size,
+                height: puff.size,
+                animationDelay: `${puff.delay}ms`,
+              }}
+            />
+          ))}
+        </div>
       <motion.div
-        className="fixed bottom-6 right-6 z-[900]"
+        className="absolute left-0 top-0 z-[900]"
         style={{ width: BUBBLE_PX, height: BUBBLE_PX }}
         initial={{ opacity: 0, x: -walkDistance }}
         animate={{
-          opacity: 1,
+          opacity:
+            introPhase === "impact" ||
+            introPhase === "walking" ||
+            introPhase === "returning" ||
+            introPhase === "complete"
+              ? 1
+              : 0,
           // X-translation has three phases:
           //  · walking-in: travel to the screen midpoint, pause for one wave,
           //    then continue to home;
           //  · walking-out: linear slide from home to off-screen-left;
           //  · settled: spring to home (x = 0).
-          x: walkingOut
-            ? -walkDistance
-            : settled
+          x:
+            introPhase !== "complete"
               ? 0
-              : [
-                  -walkDistance,
-                  -walkDistance * (1 - WAVE_AT_PCT),
-                  -walkDistance * (1 - WAVE_AT_PCT),
-                  0,
-                ],
+              : walkingOut
+                ? -walkDistance
+                : settled
+                  ? 0
+                  : [
+                      -walkDistance,
+                      -walkDistance * (1 - WAVE_AT_PCT),
+                      -walkDistance * (1 - WAVE_AT_PCT),
+                      0,
+                    ],
         }}
         transition={{
-          opacity: { duration: 0.35 },
-          x: walkingOut
-            ? { duration: OUT_DURATION_S, ease: "linear" }
-            : settled
-              ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
-              : {
-                  duration: WALK_DURATION_S,
-                  ease: "linear",
-                  times: WALK_KEYFRAME_TIMES,
-                },
+          opacity: { duration: introPhase === "impact" ? 0.35 : 0 },
+          x:
+            introPhase !== "complete"
+              ? { duration: 0 }
+              : walkingOut
+                ? { duration: OUT_DURATION_S, ease: "linear" }
+                : settled
+                  ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
+                  : {
+                      duration: WALK_DURATION_S,
+                      ease: "linear",
+                      times: WALK_KEYFRAME_TIMES,
+                    },
         }}
       >
         <motion.div
@@ -1695,7 +1892,7 @@ export default function Chatbot() {
             height: "100%",
             transformOrigin: "50% 100%",
           }}
-          initial={{ scale: walkDistance > 0 ? WALK_SMALL_SCALE : 1 }}
+          initial={{ scale: 0 }}
           animate={{
             // Size schedule uses the same keyframes as the x-translate:
             //  · walking-in: stay small through the midpoint wave, then grow
@@ -1703,35 +1900,45 @@ export default function Chatbot() {
             //  · walking-out: shrink from full to small over the first
             //    OUT_SHRINK_S, then hold small until off-screen;
             //  · settled: full size.
-            scale: walkingOut
-              ? walkDistance > 0
-                ? [1, WALK_SMALL_SCALE, WALK_SMALL_SCALE]
-                : 1
-              : settled
-                ? 1
-                : walkDistance > 0
-                  ? [
-                      WALK_SMALL_SCALE,
-                      WALK_SMALL_SCALE,
-                      WALK_SMALL_SCALE,
-                      1,
-                    ]
-                  : 1,
+            scale:
+              introPhase !== "complete"
+                ? introPhase === "impact" ||
+                  introPhase === "walking" ||
+                  introPhase === "returning"
+                  ? 1
+                  : 0
+                : walkingOut
+                  ? walkDistance > 0
+                    ? [1, WALK_SMALL_SCALE, WALK_SMALL_SCALE]
+                    : 1
+                  : settled
+                    ? 1
+                    : walkDistance > 0
+                      ? [
+                          WALK_SMALL_SCALE,
+                          WALK_SMALL_SCALE,
+                          WALK_SMALL_SCALE,
+                          1,
+                        ]
+                      : 1,
           }}
           transition={{
-            scale: walkingOut
-              ? {
-                  duration: OUT_DURATION_S,
-                  ease: "easeInOut",
-                  times: [0, OUT_SHRINK_PCT, 1],
-                }
-              : settled
-                ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
-                : {
-                    duration: WALK_DURATION_S,
-                    ease: "easeInOut",
-                    times: WALK_KEYFRAME_TIMES,
-                  },
+            scale:
+              introPhase !== "complete"
+                ? { duration: introPhase === "impact" ? 0.38 : 0.18, ease: "easeOut" }
+                : walkingOut
+                  ? {
+                      duration: OUT_DURATION_S,
+                      ease: "easeInOut",
+                      times: [0, OUT_SHRINK_PCT, 1],
+                    }
+                  : settled
+                    ? { type: "spring", stiffness: 220, damping: 24, mass: 0.7 }
+                    : {
+                        duration: WALK_DURATION_S,
+                        ease: "easeInOut",
+                        times: WALK_KEYFRAME_TIMES,
+                      },
           }}
         >
           <motion.button
@@ -1746,6 +1953,7 @@ export default function Chatbot() {
             onTouchCancel={handleBubbleTouchEnd}
             aria-label={open ? "Close Mossie" : "Open Mossie"}
             aria-expanded={open}
+            tabIndex={introPhase === "complete" ? 0 : -1}
             className="relative flex items-center justify-center rounded-full text-white"
             style={{
               width: "100%",
@@ -1924,11 +2132,12 @@ export default function Chatbot() {
         )}
           </motion.button>
         </motion.div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       {/* ── Hover/intro tooltip — small dark pill above Mossie ─────────── */}
       <AnimatePresence>
-        {tooltipShown && settled && !open && (
+        {introPhase === "complete" && tooltipShown && settled && !open && (
           <motion.div
             key="mossie-tooltip"
             aria-hidden

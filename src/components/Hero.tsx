@@ -143,6 +143,7 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.55 }}
             className="flex flex-wrap items-center gap-3 mb-12"
+            data-mossie-cta-row
           >
             <MagneticButton
               as="a"
