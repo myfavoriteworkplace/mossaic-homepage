@@ -232,7 +232,9 @@ function ProductCard({
 
         <p
           data-testid={`text-product-sub-label-${p.id}`}
-          className="col-start-2 row-start-2 min-w-0 break-words text-xs font-semibold leading-snug tracking-wide text-sky-400"
+          className={`row-start-2 min-w-0 break-words text-left text-xs font-semibold leading-snug tracking-wide text-sky-400 ${
+            p.id === "mossaic-labs" ? "col-span-2" : "col-start-2"
+          }`}
         >
           {p.subLabel}
         </p>
@@ -243,7 +245,7 @@ function ProductCard({
       </p>
 
       {/* swap-zone: description + metrics + tags fade out when carousel is active */}
-      <div className={`relative ${screens ? "min-h-[220px]" : ""}`}>
+      <div className={`relative ${screens ? "min-h-[248px]" : ""}`}>
         <div
           className="transition-opacity duration-300"
           style={{
@@ -609,6 +611,9 @@ function ScreenCarousel({ screens, active }: { screens: Screen[]; active: boolea
         border: "1px solid rgba(34, 211, 238, 0.18)",
         boxShadow:
           "0 12px 32px -16px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(34, 211, 238, 0.04), 0 0 28px -10px rgba(34, 211, 238, 0.25)",
+        transform: active ? "scale(1.08)" : "scale(1)",
+        transformOrigin: "center",
+        transition: "transform 360ms cubic-bezier(.2,.75,.25,1)",
       }}
     >
       {/* viewport */}
