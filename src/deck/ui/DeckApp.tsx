@@ -2,12 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import type {
   CSSProperties,
-  FocusEvent as ReactFocusEvent,
   PointerEvent as ReactPointerEvent,
   ReactNode,
 } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
@@ -21,8 +19,6 @@ import {
   Mail,
   MapPin,
   MessageCircle,
-  Pause,
-  Play,
   Printer,
   Share2,
   ShieldCheck,
@@ -37,7 +33,7 @@ import "./deck.css";
 
 type DeckAppProps = { config: DeckContent };
 type PatientStatus = "pending" | "confirmed";
-const AUTO_ADVANCE_DELAY_MS = 12_000;
+const AUTO_ADVANCE_DELAY_MS = 3_000;
 
 const siteUrl = `https://${SITE_CONFIG.site.domains.split("·")[0].trim()}`;
 const contactHref = `${siteUrl}/#contact`;
@@ -342,7 +338,7 @@ function BrandServiceShowcase({ slide, product, content }: {
           <p>{product.description}</p>
         </div>
         <div className="deck-brand-service-capabilities">
-          <span className="deck-brand-service-label">Capabilities</span>
+          <span className="deck-brand-service-label">{content.ui.featureDevelopmentLabel}</span>
           <div className="deck-brand-capability-list">
             {product.tags.map((tag) => (
               <span className="deck-brand-capability" key={tag}>{tag}</span>
@@ -473,9 +469,6 @@ function SlideContent({ slide, content }: {
 export function DeckApp({ config }: DeckAppProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [documentMode, setDocumentMode] = useState(false);
-  const [autoplayPaused, setAutoplayPaused] = useState(false);
-  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
-  const [isDeckFocused, setIsDeckFocused] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(
     () => document.visibilityState === "visible",
   );
@@ -488,9 +481,6 @@ export function DeckApp({ config }: DeckAppProps) {
   const activeSlide = slides[activeIndex];
   const autoAdvanceActive = (
     !documentMode
-    && !autoplayPaused
-    && !isCarouselHovered
-    && !isDeckFocused
     && isDocumentVisible
     && prefersReducedMotion !== true
     && total > 1
@@ -516,12 +506,8 @@ export function DeckApp({ config }: DeckAppProps) {
     if (!total) return;
     setActiveIndex((index + total) % total);
   }, [total]);
-  const manualGoTo = useCallback((index: number) => {
-    setAutoplayPaused(true);
-    goTo(index);
-  }, [goTo]);
-  const previous = useCallback(() => manualGoTo(activeIndex - 1), [activeIndex, manualGoTo]);
-  const next = useCallback(() => manualGoTo(activeIndex + 1), [activeIndex, manualGoTo]);
+  const previous = useCallback(() => goTo(activeIndex - 1), [activeIndex, goTo]);
+  const next = useCallback(() => goTo(activeIndex + 1), [activeIndex, goTo]);
 
   useEffect(() => () => window.clearTimeout(noticeTimer.current), []);
 
@@ -542,22 +528,6 @@ export function DeckApp({ config }: DeckAppProps) {
   }, [activeIndex, autoAdvanceActive, total]);
 
   useEffect(() => {
-    const pauseForUserActivity = () => setAutoplayPaused(true);
-    window.addEventListener("wheel", pauseForUserActivity, { passive: true });
-    window.addEventListener("touchstart", pauseForUserActivity, { passive: true });
-    return () => {
-      window.removeEventListener("wheel", pauseForUserActivity);
-      window.removeEventListener("touchstart", pauseForUserActivity);
-    };
-  }, []);
-
-  const handleDeckBlur = (event: ReactFocusEvent<HTMLElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-      setIsDeckFocused(false);
-    }
-  };
-
-  useEffect(() => {
     if (documentMode || total < 2) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -570,15 +540,15 @@ export function DeckApp({ config }: DeckAppProps) {
         next();
       } else if (event.key === "Home") {
         event.preventDefault();
-        manualGoTo(0);
+        goTo(0);
       } else if (event.key === "End") {
         event.preventDefault();
-        manualGoTo(total - 1);
+        goTo(total - 1);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [documentMode, manualGoTo, next, previous, total]);
+  }, [documentMode, goTo, next, previous, total]);
 
   const shareDeck = async () => {
     const shareData = { title: config.meta.title, text: SITE_CONFIG.site.tagline, url: window.location.href };
@@ -633,7 +603,7 @@ export function DeckApp({ config }: DeckAppProps) {
           key={slide.id}
           aria-current={activeIndex === index ? "step" : undefined}
           aria-label={`${config.ui.goToSectionLabel} ${index + 1}: ${slide.navigationLabel ?? slide.title}`}
-          onClick={() => manualGoTo(index)}
+          onClick={() => goTo(index)}
           data-testid={`deck-tab-${slide.id}`}
         >
           <span>{String(index + 1).padStart(2, "0")}.</span>{slide.navigationLabel ?? slide.title}
@@ -646,8 +616,6 @@ export function DeckApp({ config }: DeckAppProps) {
       className={`mossaic-deck ${documentMode ? "deck-mode-document" : "deck-mode-carousel"}`}
       style={themeStyle}
       data-testid="mossaic-deck"
-      onFocusCapture={() => setIsDeckFocused(true)}
-      onBlurCapture={handleDeckBlur}
     >
       <div className="deck-shell">
         <header className="deck-topbar">
@@ -718,56 +686,13 @@ export function DeckApp({ config }: DeckAppProps) {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              onPointerEnter={() => setIsCarouselHovered(true)}
               onPointerLeave={() => {
-                setIsCarouselHovered(false);
                 resetCardTilt();
               }}
-              onWheel={() => setAutoplayPaused(true)}
-              onFocusCapture={() => setIsDeckFocused(true)}
               data-testid="deck-carousel"
             >
-              <SlideContent slide={activeSlide} content={config} />
+              <SlideContent key={activeSlide.id} slide={activeSlide} content={config} />
             </section>
-            <div className="deck-controlbar">
-              <button type="button" className="deck-button deck-nav-arrow" onClick={previous} aria-label={config.ui.previousSectionLabel} data-testid="deck-previous">
-                <ArrowLeft className="deck-icon" aria-hidden="true" /><span>{config.ui.previousLabel}</span>
-              </button>
-              <div
-                className="deck-progress"
-                aria-live={autoAdvanceActive ? "off" : "polite"}
-                data-testid="deck-progress"
-              >
-                <span><strong>{String(activeIndex + 1).padStart(2, "0")}</strong> / {String(total).padStart(2, "0")}</span>
-                <span className="deck-progress-track" aria-hidden="true"><span style={{ transform: `scaleX(${total ? (activeIndex + 1) / total : 0})` }} /></span>
-              </div>
-              <button
-                type="button"
-                className="deck-button deck-autoplay-control"
-                onClick={() => setAutoplayPaused((paused) => !paused)}
-                aria-label={prefersReducedMotion
-                  ? config.ui.reducedMotionNotice
-                  : autoplayPaused ? config.ui.resumeLabel : config.ui.pauseLabel}
-                aria-pressed={autoplayPaused || prefersReducedMotion === true}
-                title={prefersReducedMotion ? config.ui.reducedMotionNotice : undefined}
-                disabled={prefersReducedMotion === true}
-                data-testid="deck-autoplay"
-              >
-                {prefersReducedMotion || !autoplayPaused
-                  ? <Pause className="deck-icon" aria-hidden="true" />
-                  : autoplayPaused
-                  ? <Play className="deck-icon" aria-hidden="true" />
-                  : null}
-                <span>
-                  {prefersReducedMotion
-                    ? config.ui.pauseLabel
-                    : autoplayPaused ? config.ui.resumeLabel : config.ui.pauseLabel}
-                </span>
-              </button>
-              <button type="button" className="deck-button deck-nav-arrow" onClick={next} aria-label={config.ui.nextSectionLabel} data-testid="deck-next">
-                <span>{config.ui.nextLabel}</span><ArrowRight className="deck-icon" aria-hidden="true" />
-              </button>
-            </div>
           </>
         ) : (
           <section className="deck-empty" role="status" data-testid="deck-empty">{config.ui.emptyMessage}</section>

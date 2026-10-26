@@ -62,10 +62,6 @@ export type DeckContent = {
     printLabel: string;
     chooseSectionLabel: string;
     goToSectionLabel: string;
-    previousLabel: string;
-    nextLabel: string;
-    previousSectionLabel: string;
-    nextSectionLabel: string;
     documentAriaLabel: string;
     carouselAriaLabel: string;
     sectionCountLabel: string;
@@ -82,10 +78,7 @@ export type DeckContent = {
     tabTitle: string;
     tabBadge: string;
     tabHint: string;
-    pauseLabel: string;
-    resumeLabel: string;
-    reducedMotionLabel: string;
-    reducedMotionNotice: string;
+    featureDevelopmentLabel: string;
     emptyMessage: string;
   };
   slides: DeckSlide[];
