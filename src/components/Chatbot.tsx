@@ -321,10 +321,17 @@ const EDGE_MARGIN = 24;
 const INTRO_START_DELAY_MS = 320;
 const INTRO_FLIGHT_MS = 1450;
 const INTRO_IMPACT_MS = 720;
-const INTRO_WALK_TO_CENTER_MS = 1900;
-const INTRO_CENTER_PAUSE_MS = 1250;
-const INTRO_WALK_HOME_MS = 1900;
-const INTRO_WALK_GAIT_MS = 950;
+const INTRO_FAST_LANDING_MS = 260;
+const INTRO_FAST_IMPACT_MS = 420;
+const INTRO_FAST_HOME_MS = 780;
+const INTRO_ARRIVAL_SETTLE_MS = 280;
+const INTRO_WALK_SPEED_PX_PER_SECOND = 280;
+const INTRO_WALK_MIN_MS = 1800;
+const INTRO_WALK_MAX_MS = 4600;
+const INTRO_WALK_GAIT_MS = 820;
+const INTRO_GREET_START = 0.46;
+const INTRO_GREET_END = 0.56;
+const MOSSIE_START_SCALE = 0.6;
 /** Soft radial clouds used for the impact burst. */
 const SMOKE_PUFFS = [
   { x: -16, y: -4, size: 42, tone: "cyan", delay: 0 },
@@ -402,18 +409,15 @@ type IntroPhase =
   | "flight"
   | "impact"
   | "walking"
-  | "pause"
-  | "returning"
+  | "settling"
   | "complete";
 
 function clamp01(value: number) {
   return Math.min(1, Math.max(0, value));
 }
 
-function easeInOutCubic(value: number) {
-  return value < 0.5
-    ? 4 * value * value * value
-    : 1 - Math.pow(-2 * value + 2, 3) / 2;
+function easeOutCubic(value: number) {
+  return 1 - Math.pow(1 - value, 3);
 }
 
 /* ── MossieFace — eyes + mouth SVG ──────────────────────────────────────── */
@@ -641,11 +645,11 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
 
-  // Entrance state — Mossie falls at the left edge, pauses at screen centre,
-  // then continues to her bottom-right home position.
+  // Entrance state — Mossie falls at the left edge, then walks continuously
+  // to her bottom-right home position.
   const [settled, setSettled] = useState(true);
   const [introPhase, setIntroPhase] = useState<IntroPhase>("pending");
-  // Mossie pauses and waves at the midpoint of each entrance.
+  // Mossie gives a brief midpoint greeting without stopping her walk.
   const [waving, setWaving] = useState(false);
   // Pupils look forward while walking and track the cursor once settled.
   const [pupilOffset, setPupilOffset] = useState<{ x: number; y: number }>({
@@ -669,6 +673,10 @@ export default function Chatbot() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const introRootRef = useRef<HTMLDivElement | null>(null);
+  const introScaleRef = useRef<HTMLDivElement | null>(null);
+  const introFastForwardRef = useRef<((openAfterArrival: boolean) => void) | null>(
+    null,
+  );
   const nextId = useRef(2);
   /** Conversation history sent to the Worker with every Groq call so the
    *  model can answer follow-up questions with context. Stored as a ref
@@ -727,8 +735,7 @@ export default function Chatbot() {
   }, []);
 
   /* First-load and replay entrance — one requestAnimationFrame loop updates
-   * only transform on a fixed root, so the page layout stays untouched and
-   * React does not render on every animation frame. */
+   * position and scale without re-rendering React on every frame. */
   useEffect(() => {
     const root = introRootRef.current;
     if (!root) {
@@ -736,31 +743,87 @@ export default function Chatbot() {
       return;
     }
 
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const homePosition = () => ({
       x: Math.max(0, window.innerWidth - BUBBLE_PX - EDGE_MARGIN),
       y: Math.max(0, window.innerHeight - BUBBLE_PX - EDGE_MARGIN),
     });
-    const placeAtHome = () => {
-      const home = homePosition();
-      root.style.transform = `translate3d(${home.x}px, ${home.y}px, 0)`;
-      root.style.opacity = "1";
-      setWaving(false);
-      setSettled(true);
-      setIntroPhase("complete");
-    };
     let frameId = 0;
     let startTimer = 0;
+    let settleTimer = 0;
     let stopped = false;
-    let phase: "flight" | "impact" | "walking" | "pause" | "returning" =
+    let completed = false;
+    let fastForwardRequested = false;
+    let fastImpact = false;
+    let openAfterArrival = false;
+    let phase: "flight" | "impact" | "walking" | "fastLanding" | "fastHome" =
       "flight";
     let phaseStartedAt = 0;
+    const start = { x: 18, y: -BUBBLE_PX };
+    let landing = {
+      x: EDGE_MARGIN,
+      y: Math.max(4, window.innerHeight - BUBBLE_PX - EDGE_MARGIN),
+    };
+    let current = { ...start, scale: MOSSIE_START_SCALE };
+    let fastStart = { ...current };
+    let impactScaleStart = MOSSIE_START_SCALE;
+    let walkDuration = INTRO_WALK_MIN_MS;
+    let greetingActive = false;
+
+    const updatePosition = (x: number, y: number, scale: number) => {
+      current = { x, y, scale };
+      root.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      root.style.opacity = "1";
+      if (introScaleRef.current) {
+        introScaleRef.current.style.setProperty("scale", String(scale));
+      }
+    };
+
     const finish = () => {
       if (stopped) return;
       stopped = true;
       window.cancelAnimationFrame(frameId);
       window.clearTimeout(startTimer);
-      placeAtHome();
+      const home = homePosition();
+      updatePosition(home.x, home.y, 1);
+      setWaving(false);
+      setSettled(true);
+
+      if (reducedMotion) {
+        completed = true;
+        setIntroPhase("complete");
+        if (openAfterArrival) setOpen(true);
+        return;
+      }
+
+      setIntroPhase("settling");
+      settleTimer = window.setTimeout(() => {
+        completed = true;
+        setIntroPhase("complete");
+        if (openAfterArrival) setOpen(true);
+      }, INTRO_ARRIVAL_SETTLE_MS);
     };
+
+    const requestFastForward = (shouldOpenAfterArrival: boolean) => {
+      if (shouldOpenAfterArrival) openAfterArrival = true;
+      if (completed || stopped) return;
+      fastForwardRequested = true;
+    };
+    introFastForwardRef.current = requestFastForward;
+
+    const beginFastHome = (now: number) => {
+      phase = "fastHome";
+      phaseStartedAt = now;
+      fastStart = { ...current };
+      fastImpact = false;
+      greetingActive = false;
+      setWaving(false);
+      setSettled(false);
+      setIntroPhase("walking");
+    };
+
     const handleResize = () => {
       if (!stopped) {
         finish();
@@ -768,81 +831,143 @@ export default function Chatbot() {
       }
       const home = homePosition();
       root.style.transform = `translate3d(${home.x}px, ${home.y}px, 0)`;
+      if (introScaleRef.current) {
+        introScaleRef.current.style.setProperty("scale", "1");
+      }
     };
     window.addEventListener("resize", handleResize, { passive: true });
 
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    if (introScaleRef.current) {
+      introScaleRef.current.style.setProperty(
+        "scale",
+        String(MOSSIE_START_SCALE),
+      );
+    }
+
     if (reducedMotion) {
       finish();
-      return () => window.removeEventListener("resize", handleResize);
+      return () => {
+        stopped = true;
+        window.clearTimeout(settleTimer);
+        window.removeEventListener("resize", handleResize);
+        if (introFastForwardRef.current === requestFastForward) {
+          introFastForwardRef.current = null;
+        }
+      };
     }
 
     startTimer = window.setTimeout(() => {
-      const start = { x: 18, y: -BUBBLE_PX };
-      const landing = {
+      landing = {
         x: EDGE_MARGIN,
         y: Math.max(4, window.innerHeight - BUBBLE_PX - EDGE_MARGIN),
       };
-      const center = {
-        x: Math.max(EDGE_MARGIN, (window.innerWidth - BUBBLE_PX) / 2),
-        y: landing.y,
-      };
-      root.style.transform = `translate3d(${start.x}px, ${start.y}px, 0)`;
-      root.style.opacity = "1";
+      current = { ...start, scale: MOSSIE_START_SCALE };
+      const home = homePosition();
+      const distance = Math.max(0, home.x - landing.x);
+      walkDuration = Math.max(
+        INTRO_WALK_MIN_MS,
+        Math.min(
+          INTRO_WALK_MAX_MS,
+          (distance / INTRO_WALK_SPEED_PX_PER_SECOND) * 1000,
+        ),
+      );
+      updatePosition(start.x, start.y, MOSSIE_START_SCALE);
       setIntroPhase("flight");
 
       const tick = (now: number) => {
         if (stopped) return;
         if (phaseStartedAt === 0) phaseStartedAt = now;
-        const elapsed = now - phaseStartedAt;
+        let elapsed = now - phaseStartedAt;
+
+        if (fastForwardRequested) {
+          fastForwardRequested = false;
+          if (phase === "flight") {
+            phase = "fastLanding";
+            phaseStartedAt = now;
+            fastStart = { ...current };
+            fastImpact = true;
+          } else if (phase === "impact") {
+            fastImpact = true;
+          } else if (phase === "walking") {
+            beginFastHome(now);
+          }
+          elapsed = now - phaseStartedAt;
+        }
 
         if (phase === "flight") {
           const progress = clamp01(elapsed / INTRO_FLIGHT_MS);
-          const horizontalEase = 1 - Math.pow(1 - progress, 3);
+          const horizontalEase = easeOutCubic(progress);
           const x = start.x + (landing.x - start.x) * horizontalEase;
           // Accelerating downward gives the fall a gravity-like finish.
           const y = start.y + (landing.y - start.y) * progress * progress;
-          root.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          const scale = MOSSIE_START_SCALE + 0.06 * progress;
+          updatePosition(x, y, scale);
           if (progress >= 1) {
             phase = "impact";
             phaseStartedAt = now;
+            impactScaleStart = current.scale;
             setIntroPhase("impact");
           }
         } else if (phase === "impact") {
-          if (elapsed >= INTRO_IMPACT_MS) {
-            phase = "walking";
-            phaseStartedAt = now;
-            setWaving(false);
-            setSettled(false);
-            setIntroPhase("walking");
+          const impactDuration = fastImpact
+            ? INTRO_FAST_IMPACT_MS
+            : INTRO_IMPACT_MS;
+          const progress = clamp01(elapsed / impactDuration);
+          const scale =
+            impactScaleStart + (0.72 - impactScaleStart) * easeOutCubic(progress);
+          updatePosition(current.x, current.y, scale);
+          if (progress >= 1) {
+            if (fastImpact) {
+              beginFastHome(now);
+            } else {
+              phase = "walking";
+              phaseStartedAt = now;
+              setWaving(false);
+              setSettled(false);
+              setIntroPhase("walking");
+            }
           }
         } else if (phase === "walking") {
-          const progress = clamp01(elapsed / INTRO_WALK_TO_CENTER_MS);
-          const eased = easeInOutCubic(progress);
-          const x = landing.x + (center.x - landing.x) * eased;
-          root.style.transform = `translate3d(${x}px, ${center.y}px, 0)`;
-          if (progress >= 1) {
-            phase = "pause";
-            phaseStartedAt = now;
-            setWaving(true);
-            setIntroPhase("pause");
+          const progress = clamp01(elapsed / walkDuration);
+          const home = homePosition();
+          const x = landing.x + (home.x - landing.x) * progress;
+          const y = landing.y + (home.y - landing.y) * progress;
+          const scale = 0.72 + (1 - 0.72) * progress;
+          updatePosition(x, y, scale);
+
+          const shouldGreet =
+            progress >= INTRO_GREET_START && progress <= INTRO_GREET_END;
+          if (shouldGreet !== greetingActive) {
+            greetingActive = shouldGreet;
+            setWaving(shouldGreet);
           }
-        } else if (phase === "pause") {
-          if (elapsed >= INTRO_CENTER_PAUSE_MS) {
-            phase = "returning";
+
+          if (progress >= 1) {
+            finish();
+            return;
+          }
+        } else if (phase === "fastLanding") {
+          const progress = clamp01(elapsed / INTRO_FAST_LANDING_MS);
+          const eased = easeOutCubic(progress);
+          const x = fastStart.x + (landing.x - fastStart.x) * eased;
+          const y =
+            fastStart.y + (landing.y - fastStart.y) * progress * progress;
+          const scale = fastStart.scale + (0.68 - fastStart.scale) * eased;
+          updatePosition(x, y, scale);
+          if (progress >= 1) {
+            phase = "impact";
             phaseStartedAt = now;
-            setWaving(false);
-            setIntroPhase("returning");
+            impactScaleStart = current.scale;
+            setIntroPhase("impact");
           }
         } else {
-          const progress = clamp01(elapsed / INTRO_WALK_HOME_MS);
-          const eased = easeInOutCubic(progress);
           const home = homePosition();
-          const x = center.x + (home.x - center.x) * eased;
-          const y = center.y + (home.y - center.y) * eased;
-          root.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          const progress = clamp01(elapsed / INTRO_FAST_HOME_MS);
+          const eased = easeOutCubic(progress);
+          const x = fastStart.x + (home.x - fastStart.x) * eased;
+          const y = fastStart.y + (home.y - fastStart.y) * eased;
+          const scale = fastStart.scale + (1 - fastStart.scale) * eased;
+          updatePosition(x, y, scale);
           if (progress >= 1) {
             finish();
             return;
@@ -858,8 +983,12 @@ export default function Chatbot() {
     return () => {
       stopped = true;
       window.clearTimeout(startTimer);
+      window.clearTimeout(settleTimer);
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", handleResize);
+      if (introFastForwardRef.current === requestFastForward) {
+        introFastForwardRef.current = null;
+      }
     };
   }, [introRunId]);
 
@@ -1500,6 +1629,14 @@ export default function Chatbot() {
       longPressFiredRef.current = false;
       return;
     }
+    if (introPhase !== "complete") {
+      if (clickTimerRef.current) {
+        window.clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+      introFastForwardRef.current?.(true);
+      return;
+    }
     if (clickTimerRef.current) {
       window.clearTimeout(clickTimerRef.current);
       clickTimerRef.current = null;
@@ -1511,18 +1648,25 @@ export default function Chatbot() {
       setSettled(true);
       setOpen((o) => !o);
     }, CLICK_DELAY_MS);
-  }, [triggerWalkAgain]);
+  }, [introPhase, triggerWalkAgain]);
 
   /* Hover handlers — show the tooltip after a small delay so quick mouse
-   * fly-bys don't flash it. */
+   * fly-bys don't flash it. Hovering during the entrance fast-forwards Mossie. */
   const handleBubbleMouseEnter = useCallback(() => {
+    if (introPhase !== "complete" && introPhase !== "settling") {
+      const canHover =
+        typeof window.matchMedia !== "function" ||
+        window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      if (canHover) introFastForwardRef.current?.(false);
+      return;
+    }
     setHovered(true);
     if (hoverTimerRef.current) return;
     hoverTimerRef.current = window.setTimeout(() => {
       hoverTimerRef.current = null;
       setTooltipShown(true);
     }, TOOLTIP_HOVER_DELAY_MS);
-  }, []);
+  }, [introPhase]);
 
   const handleBubbleMouseLeave = useCallback(() => {
     setHovered(false);
@@ -1535,13 +1679,13 @@ export default function Chatbot() {
 
   /* Long-press remains an alternate replay gesture for touch users. */
   const handleBubbleTouchStart = useCallback(() => {
-    if (!settled) return;
+    if (!settled || introPhase !== "complete") return;
     longPressTimerRef.current = window.setTimeout(() => {
       longPressTimerRef.current = null;
       longPressFiredRef.current = true;
       triggerWalkAgain();
     }, LONG_PRESS_MS);
-  }, [settled, triggerWalkAgain]);
+  }, [introPhase, settled, triggerWalkAgain]);
 
   const handleBubbleTouchEnd = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -1556,13 +1700,15 @@ export default function Chatbot() {
        *  The fixed root is moved by the shared first-load / replay sequence. */}
       <div
         ref={introRootRef}
-        className="fixed left-0 top-0 z-[900]"
-        aria-hidden={introPhase !== "complete"}
+        className="fixed left-0 top-0 z-[900] rounded-full focus-within:ring-2 focus-within:ring-cyan-200 focus-within:ring-offset-2 focus-within:ring-offset-slate-950"
+        aria-hidden={introPhase === "pending"}
+        onMouseEnter={handleBubbleMouseEnter}
+        onMouseLeave={handleBubbleMouseLeave}
         style={{
           width: BUBBLE_PX,
           height: BUBBLE_PX,
           opacity: introPhase === "pending" ? 0 : 1,
-          pointerEvents: introPhase === "complete" ? "auto" : "none",
+          pointerEvents: introPhase === "pending" ? "none" : "auto",
           willChange: introPhase === "complete" ? "auto" : "transform",
           transform: "translate3d(0, 0, 0)",
         }}
@@ -1599,6 +1745,9 @@ export default function Chatbot() {
         </div>
         <div className="mossie-impact-effects" aria-hidden>
           <span
+            className={`mossie-impact-shadow${introPhase === "impact" ? " is-active" : ""}`}
+          />
+          <span
             className={`mossie-impact-ring${introPhase === "impact" ? " is-active" : ""}`}
           />
           {IMPACT_SPARKS.map((spark, index) => (
@@ -1616,20 +1765,9 @@ export default function Chatbot() {
           ))}
         </div>
       <div
-        className={`mossie-walk-scale ${
-          introPhase === "walking" || introPhase === "pause"
-            ? "is-mid"
-            : introPhase === "returning" || introPhase === "complete"
-              ? "is-home"
-              : "is-away"
-        }`}
-        style={
-          {
-            width: BUBBLE_PX,
-            height: BUBBLE_PX,
-            "--mossie-walk-duration": `${INTRO_WALK_TO_CENTER_MS}ms`,
-          } as CSSProperties
-        }
+        ref={introScaleRef}
+        className={`mossie-walk-scale${introPhase === "settling" ? " is-settling" : ""}`}
+        style={{ width: BUBBLE_PX, height: BUBBLE_PX }}
       >
         <motion.div
           className="absolute left-0 top-0 z-[900]"
@@ -1639,8 +1777,7 @@ export default function Chatbot() {
             opacity:
               introPhase === "impact" ||
               introPhase === "walking" ||
-              introPhase === "pause" ||
-              introPhase === "returning" ||
+              introPhase === "settling" ||
               introPhase === "complete"
                 ? 1
                 : 0,
@@ -1661,10 +1798,9 @@ export default function Chatbot() {
           animate={{
             scale:
               introPhase === "impact"
-                ? [0, 1.24, 0.86, 1]
+                ? [0, 1.14, 0.9, 1]
                 : introPhase === "walking" ||
-                    introPhase === "pause" ||
-                    introPhase === "returning" ||
+                    introPhase === "settling" ||
                     introPhase === "complete"
                   ? 1
                   : 0,
@@ -1684,14 +1820,19 @@ export default function Chatbot() {
             ref={btnRef}
             type="button"
             onClick={handleBubbleClick}
-            onMouseEnter={handleBubbleMouseEnter}
-            onMouseLeave={handleBubbleMouseLeave}
             onTouchStart={handleBubbleTouchStart}
             onTouchEnd={handleBubbleTouchEnd}
             onTouchCancel={handleBubbleTouchEnd}
-            aria-label={open ? "Close Mossie" : "Open Mossie"}
+            aria-label={
+              introPhase === "complete"
+                ? open
+                  ? "Close Mossie"
+                  : "Open Mossie"
+                : "Finish Mossie's arrival and open chat"
+            }
             aria-expanded={open}
-            tabIndex={introPhase === "complete" ? 0 : -1}
+            tabIndex={introPhase === "pending" ? -1 : 0}
+            data-testid="button-mossie-chat"
             className="relative flex items-center justify-center rounded-full text-white"
             style={{
               width: "100%",
@@ -1703,46 +1844,83 @@ export default function Chatbot() {
               boxShadow:
                 "0 12px 32px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(34,211,238,0.06), 0 0 28px -6px rgba(34,211,238,0.45)",
             }}
-            // Hover/tap pop only fires when she's settled — otherwise an
-            // accidental hover during the walk would jump her to full size
-            // and break the "from afar" illusion.
-            whileHover={settled ? { scale: 1.05 } : undefined}
-            whileTap={settled ? { scale: 0.94 } : undefined}
+            // The visual grows with the path; only settled Mossie gets the
+            // ordinary hover/tap pop so it cannot disrupt her entrance.
+            whileHover={
+              introPhase === "complete" && settled
+                ? { scale: 1.05 }
+                : undefined
+            }
+            whileTap={
+              introPhase === "complete" && settled
+                ? { scale: 0.94 }
+                : undefined
+            }
             initial={{ scaleX: 0.92, scaleY: 0.92 }}
             animate={{
-              // Small gait while moving; hold the body still for the wave.
-              y: settled ? 0 : waving ? 0 : [0, -8, 0],
-              scaleX: settled ? 1 : waving ? 1.04 : [1.06, 0.94, 1.06],
-              scaleY: settled ? 1 : waving ? 1.04 : [0.94, 1.06, 0.94],
+              // A compact landing squash, followed by a soft two-step gait.
+              y:
+                introPhase === "impact"
+                  ? [0, 3, -2, 0]
+                  : settled
+                    ? 0
+                    : [0, -5, 0],
+              scaleX:
+                introPhase === "impact"
+                  ? [1, 1.12, 0.96, 1]
+                  : settled
+                    ? 1
+                    : [1.06, 0.94, 1.06],
+              scaleY:
+                introPhase === "impact"
+                  ? [1, 0.82, 1.08, 1]
+                  : settled
+                    ? 1
+                    : [0.94, 1.06, 0.94],
             }}
             transition={{
-              y: settled
-                ? { duration: 0.25, ease: "easeOut" }
-                : waving
-                  ? { duration: 0.3, ease: "easeOut" }
-                  : {
-                      duration: INTRO_WALK_GAIT_MS / 1000,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
-              scaleX: settled
-                ? { duration: 0.25, ease: "easeOut" }
-                : waving
-                  ? { duration: 0.3, ease: "easeOut" }
-                  : {
-                      duration: INTRO_WALK_GAIT_MS / 1000,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
-              scaleY: settled
-                ? { duration: 0.25, ease: "easeOut" }
-                : waving
-                  ? { duration: 0.3, ease: "easeOut" }
-                  : {
-                      duration: INTRO_WALK_GAIT_MS / 1000,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
+              y:
+                introPhase === "impact"
+                  ? {
+                      duration: INTRO_IMPACT_MS / 1000,
+                      ease: "easeOut",
+                      times: [0, 0.38, 0.68, 1],
+                    }
+                  : settled
+                    ? { duration: 0.25, ease: "easeOut" }
+                    : {
+                        duration: INTRO_WALK_GAIT_MS / 1000,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
+              scaleX:
+                introPhase === "impact"
+                  ? {
+                      duration: INTRO_IMPACT_MS / 1000,
+                      ease: "easeOut",
+                      times: [0, 0.38, 0.68, 1],
+                    }
+                  : settled
+                    ? { duration: 0.25, ease: "easeOut" }
+                    : {
+                        duration: INTRO_WALK_GAIT_MS / 1000,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
+              scaleY:
+                introPhase === "impact"
+                  ? {
+                      duration: INTRO_IMPACT_MS / 1000,
+                      ease: "easeOut",
+                      times: [0, 0.38, 0.68, 1],
+                    }
+                  : settled
+                    ? { duration: 0.25, ease: "easeOut" }
+                    : {
+                        duration: INTRO_WALK_GAIT_MS / 1000,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
             }}
           >
         <AnimatePresence mode="wait" initial={false}>
@@ -1795,8 +1973,8 @@ export default function Chatbot() {
             opacity: settled ? 0 : 1,
             scaleX: settled ? 0.3 : 1,
             scaleY: settled ? 0.3 : 1,
-            y: settled ? 0 : waving ? 0 : [0, -3, 0],
-            x: settled ? 0 : waving ? 0 : [0, 2, 0],
+            y: settled ? 0 : [0, -3, 0],
+            x: settled ? 0 : [0, 2, 0],
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
@@ -1804,22 +1982,18 @@ export default function Chatbot() {
             scaleY: { duration: 0.3, ease: "easeOut" },
             y: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : waving
-                ? { duration: 0.3, ease: "easeOut" }
-                : {
-                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
+              : {
+                  duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
             x: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : waving
-                ? { duration: 0.3, ease: "easeOut" }
-                : {
-                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
+              : {
+                  duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
           }}
           style={{
             width: 5,
@@ -1839,8 +2013,8 @@ export default function Chatbot() {
             opacity: settled ? 0 : 1,
             scaleX: settled ? 0.3 : 1,
             scaleY: settled ? 0.3 : 1,
-            y: settled ? 0 : waving ? 0 : [-3, 0, -3],
-            x: settled ? 0 : waving ? 0 : [2, 0, 2],
+            y: settled ? 0 : [-3, 0, -3],
+            x: settled ? 0 : [2, 0, 2],
           }}
           transition={{
             opacity: { duration: 0.3, ease: "easeOut" },
@@ -1848,22 +2022,18 @@ export default function Chatbot() {
             scaleY: { duration: 0.3, ease: "easeOut" },
             y: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : waving
-                ? { duration: 0.3, ease: "easeOut" }
-                : {
-                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
+              : {
+                  duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
             x: settled
               ? { duration: 0.25, ease: "easeOut" }
-              : waving
-                ? { duration: 0.3, ease: "easeOut" }
-                : {
-                    duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
+              : {
+                  duration: (INTRO_WALK_GAIT_MS * 2) / 1000,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
           }}
           style={{
             width: 5,
