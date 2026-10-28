@@ -51,6 +51,7 @@
     "tabHintTouch": "Tap a section to explore; rotation pauses on selection.",
     "tabPausedHint": "Rotation paused. Select Resume to continue.",
     "featureDevelopmentLabel": "Feature Development",
+    "serviceListHeading": "How we can help",
     "emptyMessage": "No portfolio sections are available."
   },
   "slides": [
@@ -66,21 +67,41 @@
     {
       "id": "mossaic-labs",
       "kind": "mossaic-labs",
-      "navigationLabel": "mossAIc Labs · Software Engineering",
-      "eyebrow": "Engineering · custom software & SaaS",
+      "navigationLabel": "mossAIc Labs · Business Software",
+      "eyebrow": "Software · custom apps & automation",
       "title": "mossAIc Labs",
-      "description": "Custom software and SaaS engineering for businesses that need reliable, scalable applications.",
-      "footer": "CUSTOM SOFTWARE · SAAS ENGINEERING",
+      "brandSubtitle": "Business Software",
+      "description": "Custom software and cloud platforms built to automate workflows, power your business, and scale effortlessly.",
+      "serviceLabel": "Software built around your business",
+      "serviceDescription": "We design and engineer tailor-made business software, web platforms, and automated cloud systems. Whether you need a custom SaaS application, database management, automated customer portals, or API integrations, we build fast, secure software tailored to your exact business needs.",
+      "services": [
+        "Custom SaaS applications and business software designed around your day-to-day work.",
+        "Workflow automation that cuts repetitive manual tasks.",
+        "Customer portals that make it easier to serve customers online.",
+        "Database management and API integrations to keep your information and tools connected."
+      ],
+      "capabilities": ["Custom business apps", "Workflow automation", "Customer portals", "Connected systems"],
+      "footer": "CUSTOM BUSINESS SOFTWARE · WORKFLOW AUTOMATION",
       "linkLabel": "Talk to our team"
     },
     {
       "id": "mossaic-studio",
       "kind": "mossaic-studio",
-      "navigationLabel": "mossaic Studio · Web & SEO",
-      "eyebrow": "Studio · enterprise web & digital experience",
+      "navigationLabel": "mossaic Studio · Websites & Search",
+      "eyebrow": "Websites · online platforms · search visibility",
       "title": "mossaic Studio",
-      "description": "High-performance websites and digital experiences, supported by technical SEO for search and AI discovery.",
-      "footer": "ENTERPRISE WEB · DIGITAL EXPERIENCE & SEO",
+      "brandSubtitle": "Websites & SEO",
+      "description": "Websites, online platforms, and search visibility that help local customers find and choose your business.",
+      "serviceLabel": "Websites and online visibility",
+      "serviceDescription": "We build fast, mobile-friendly websites and digital experiences that help local customers understand what you offer and get in touch. We also improve technical SEO so customers can find you through Google and newer AI search tools.",
+      "services": [
+        "Business websites tailored to your services and customers.",
+        "Web platforms and digital experiences built around the way you work.",
+        "Technical SEO that improves visibility on Google and AI search.",
+        "Experience across healthcare, retail, logistics, oil and gas, and other industries."
+      ],
+      "capabilities": ["Business websites", "Online platforms", "Local search visibility"],
+      "footer": "BUSINESS WEBSITES · ONLINE PLATFORMS · SEARCH",
       "linkLabel": "Talk to our team"
     }
   ],

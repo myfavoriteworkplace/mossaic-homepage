@@ -11,8 +11,13 @@ export type DeckSlide = {
   navigationLabel?: string;
   eyebrow: string;
   title: string;
+  brandSubtitle?: string;
   highlight?: string;
   description: string;
+  serviceLabel?: string;
+  serviceDescription?: string;
+  services?: string[];
+  capabilities?: string[];
   linkLabel?: string;
   footer: string;
 };
@@ -83,6 +88,7 @@ export type DeckContent = {
     tabHintTouch: string;
     tabPausedHint: string;
     featureDevelopmentLabel: string;
+    serviceListHeading: string;
     emptyMessage: string;
   };
   slides: DeckSlide[];

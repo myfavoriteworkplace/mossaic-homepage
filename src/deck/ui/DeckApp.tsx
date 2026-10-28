@@ -188,9 +188,9 @@ function SlideHeader({
   );
 }
 
-function ProductBrandLockup({ product }: { product: Product }) {
+function ProductBrandLockup({ product, subtitle }: { product: Product; subtitle?: string }) {
   const isBookMySlot = product.id === "bookmyslot";
-  const brandSubtitle = product.id === "mossaic-studio" ? product.category : product.subLabel;
+  const brandSubtitle = subtitle ?? (product.id === "mossaic-studio" ? product.category : product.subLabel);
   const productSuffix = product.id === "mossaic-labs" ? "Labs" : "Studio";
   const markSrc = isBookMySlot
     ? `${import.meta.env.BASE_URL}icons/products/bookmyslot-icon.svg`
@@ -361,12 +361,13 @@ function BrandServiceShowcase({ slide, product, content, onContact }: {
   const serviceStatusLabel = product.status === "live"
     ? content.ui.availableServicesLabel
     : product.statusLabel;
+  const capabilities = slide.capabilities ?? product.tags;
 
   return (
     <article className="deck-slide" data-slide={product.id} aria-label={`${slide.eyebrow}: ${slide.title}`}>
       <SlideHeader
         slide={slide}
-        brandLockup={<ProductBrandLockup product={product} />}
+        brandLockup={<ProductBrandLockup product={product} subtitle={slide.brandSubtitle} />}
         statusLabel={serviceStatusLabel}
         href={contactLink}
         linkLabel={slide.linkLabel ?? product.cta.label}
@@ -374,16 +375,16 @@ function BrandServiceShowcase({ slide, product, content, onContact }: {
       />
       <section className="deck-brand-service">
         <div className="deck-brand-service-copy">
-          <span className="deck-brand-service-label">{product.category}</span>
-          {isStudio ? (
+          <span className="deck-brand-service-label">{slide.serviceLabel ?? product.category}</span>
+          <p>{slide.serviceDescription ?? product.description}</p>
+          {slide.services?.length ? (
             <>
-              <p className="deck-studio-lead">{slide.description}</p>
-              <ul className="deck-studio-points">
-                <li><strong>Industry experience:</strong> logistics, healthcare, retail, oil and gas, and other industries.</li>
-                <li><strong>Technical SEO:</strong> help customers find you on Google and AI search tools like ChatGPT and Gemini.</li>
+              <h3 className="deck-brand-service-list-title">{content.ui.serviceListHeading}</h3>
+              <ul className="deck-brand-service-points">
+                {slide.services.map((service) => <li key={service}>{service}</li>)}
               </ul>
             </>
-          ) : <p>{product.description}</p>}
+          ) : null}
         </div>
         <div className="deck-brand-service-capabilities">
           <div className="deck-brand-service-heading">
@@ -394,7 +395,7 @@ function BrandServiceShowcase({ slide, product, content, onContact }: {
             </span>
           </div>
           <div className="deck-brand-capability-list">
-            {product.tags.map((tag) => (
+            {capabilities.map((tag) => (
               <span className="deck-brand-capability" key={tag}>{tag}</span>
             ))}
           </div>
