@@ -789,15 +789,17 @@ export function DeckApp({ config }: DeckAppProps) {
       style={themeStyle}
       data-testid="mossaic-deck"
     >
-      <a
-        className="deck-button deck-button-home deck-home-float"
-        href={siteUrl}
-        aria-label="Mossaic home"
-        title="Mossaic home"
-        data-testid="deck-home"
-      >
-        <House className="deck-icon" aria-hidden="true" />
-      </a>
+      <nav className="deck-home-nav" aria-label="Deck navigation">
+        <a
+          className="deck-button deck-button-home deck-home-float"
+          href={siteUrl}
+          aria-label="Mossaic home"
+          title="Mossaic home"
+          data-testid="deck-home"
+        >
+          <House className="deck-icon" aria-hidden="true" />
+        </a>
+      </nav>
       <div className="deck-shell">
         <header className="deck-topbar">
           <a className="deck-brand" href={siteUrl} target="_blank" rel="noopener noreferrer" data-testid="deck-brand-link">
