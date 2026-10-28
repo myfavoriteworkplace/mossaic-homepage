@@ -80,6 +80,8 @@ export type DeckContent = {
     tabTitle: string;
     tabBadge: string;
     tabHint: string;
+    tabHintTouch: string;
+    tabPausedHint: string;
     featureDevelopmentLabel: string;
     emptyMessage: string;
   };

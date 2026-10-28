@@ -21,6 +21,9 @@ import {
   Mail,
   MapPin,
   MessageCircle,
+  MoreHorizontal,
+  Pause,
+  Play,
   Printer,
   Share2,
   ShieldCheck,
@@ -372,7 +375,15 @@ function BrandServiceShowcase({ slide, product, content, onContact }: {
       <section className="deck-brand-service">
         <div className="deck-brand-service-copy">
           <span className="deck-brand-service-label">{product.category}</span>
-          <p>{product.description}</p>
+          {isStudio ? (
+            <>
+              <p className="deck-studio-lead">{slide.description}</p>
+              <ul className="deck-studio-points">
+                <li><strong>Industry experience:</strong> logistics, healthcare, retail, oil and gas, and other industries.</li>
+                <li><strong>Technical SEO:</strong> help customers find you on Google and AI search tools like ChatGPT and Gemini.</li>
+              </ul>
+            </>
+          ) : <p>{product.description}</p>}
         </div>
         <div className="deck-brand-service-capabilities">
           <div className="deck-brand-service-heading">
@@ -599,6 +610,8 @@ function SlideContent({ slide, content, onContact }: {
 export function DeckApp({ config }: DeckAppProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isCardHovered, setIsCardHovered] = useState(false);
+  const [isRotationPaused, setIsRotationPaused] = useState(false);
+  const [isTouchViewport, setIsTouchViewport] = useState(false);
   const [documentMode, setDocumentMode] = useState(false);
   // Keep the first render deterministic for static prerender + hydration.
   const [isDocumentVisible, setIsDocumentVisible] = useState(true);
@@ -615,8 +628,14 @@ export function DeckApp({ config }: DeckAppProps) {
     && isDocumentVisible
     && prefersReducedMotion !== true
     && !isCardHovered
+    && !isRotationPaused
     && total > 1
   );
+  const tabHint = isRotationPaused
+    ? config.ui.tabPausedHint
+    : isTouchViewport
+      ? config.ui.tabHintTouch
+      : config.ui.tabHint;
   const themeStyle = {
     "--deck-bg": config.theme.background,
     "--deck-surface": config.theme.surface,
@@ -638,6 +657,7 @@ export function DeckApp({ config }: DeckAppProps) {
   const openContactModal = useCallback(() => setIsContactOpen(true), []);
   const goTo = useCallback((index: number) => {
     if (!total) return;
+    setIsRotationPaused(true);
     setActiveIndex((index + total) % total);
   }, [total]);
   const previous = useCallback(() => goTo(activeIndex - 1), [activeIndex, goTo]);
@@ -652,6 +672,14 @@ export function DeckApp({ config }: DeckAppProps) {
     handleVisibilityChange();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  useEffect(() => {
+    const touchViewport = window.matchMedia("(max-width: 767px), (hover: none), (pointer: coarse)");
+    const updateTouchViewport = () => setIsTouchViewport(touchViewport.matches);
+    updateTouchViewport();
+    touchViewport.addEventListener("change", updateTouchViewport);
+    return () => touchViewport.removeEventListener("change", updateTouchViewport);
   }, []);
 
   useEffect(() => {
@@ -703,6 +731,9 @@ export function DeckApp({ config }: DeckAppProps) {
       setDocumentMode(true);
       window.setTimeout(() => window.print(), 80);
     } else window.print();
+  };
+  const closeActionMenu = (target: HTMLElement) => {
+    target.closest("details")?.removeAttribute("open");
   };
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (event.pointerType === "mouse" || (event.target as HTMLElement).closest("button, a")) return;
@@ -790,59 +821,70 @@ export function DeckApp({ config }: DeckAppProps) {
           <div className="deck-header-actions">
             <button
               type="button"
-              className="deck-button"
-              onClick={() => setDocumentMode((current) => !current)}
-              aria-pressed={documentMode}
-              aria-label={documentMode ? config.ui.carouselLabel : config.ui.documentLabel}
-              title={documentMode ? config.ui.carouselLabel : config.ui.documentLabel}
-              data-testid="deck-toggle-view"
-            >
-              {documentMode ? <Layers3 className="deck-icon" aria-hidden="true" /> : <FileText className="deck-icon" aria-hidden="true" />}
-              <span className="deck-visually-hidden">{documentMode ? config.ui.carouselLabel : config.ui.documentLabel}</span>
-            </button>
-            <button
-              type="button"
-              className="deck-button"
-              onClick={shareDeck}
-              data-testid="deck-share"
-              aria-label={config.ui.shareLabel}
-              title={config.ui.shareLabel}
-            >
-              <Share2 className="deck-icon" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="deck-button deck-button-primary"
-              onClick={printDeck}
-              data-testid="deck-print"
-              aria-label={config.ui.printLabel}
-              title={config.ui.printLabel}
-            >
-              <Printer className="deck-icon" aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="deck-button deck-button-email"
+              className="deck-button deck-button-primary deck-button-contact"
               onClick={openContactModal}
-              aria-label="Send an email to Mossaic"
               aria-haspopup="dialog"
               aria-expanded={isContactOpen}
-              title="Send an email to Mossaic"
               data-testid="deck-email"
             >
               <Mail className="deck-icon" aria-hidden="true" />
+              <span>Talk to our team</span>
             </button>
-            <a
-              className="deck-button deck-button-whatsapp"
-              href={deckWhatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="deck-whatsapp"
-              aria-label={config.ui.whatsappLabel}
-              title={config.ui.whatsappLabel}
-            >
-              <MessageCircle className="deck-icon" aria-hidden="true" />
-            </a>
+            <details className="deck-more-actions" aria-label="More portfolio actions" data-testid="deck-more-actions">
+              <summary className="deck-more-trigger">
+                <MoreHorizontal className="deck-icon" aria-hidden="true" />
+                <span>More</span>
+              </summary>
+              <div className="deck-more-menu">
+                <button
+                  type="button"
+                  className="deck-more-item"
+                  onClick={(event) => {
+                    closeActionMenu(event.currentTarget);
+                    setDocumentMode((current) => !current);
+                  }}
+                  aria-pressed={documentMode}
+                  data-testid="deck-toggle-view"
+                >
+                  {documentMode ? <Layers3 className="deck-icon" aria-hidden="true" /> : <FileText className="deck-icon" aria-hidden="true" />}
+                  <span>{documentMode ? config.ui.carouselLabel : config.ui.documentLabel}</span>
+                </button>
+                <button
+                  type="button"
+                  className="deck-more-item"
+                  onClick={(event) => {
+                    closeActionMenu(event.currentTarget);
+                    void shareDeck();
+                  }}
+                  data-testid="deck-share"
+                >
+                  <Share2 className="deck-icon" aria-hidden="true" />
+                  <span>{config.ui.shareLabel}</span>
+                </button>
+                <button
+                  type="button"
+                  className="deck-more-item"
+                  onClick={(event) => {
+                    closeActionMenu(event.currentTarget);
+                    printDeck();
+                  }}
+                  data-testid="deck-print"
+                >
+                  <Printer className="deck-icon" aria-hidden="true" />
+                  <span>{config.ui.printLabel}</span>
+                </button>
+                <a
+                  className="deck-more-item deck-more-whatsapp"
+                  href={deckWhatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="deck-whatsapp"
+                >
+                  <MessageCircle className="deck-icon" aria-hidden="true" />
+                  <span>{config.ui.whatsappLabel}</span>
+                </a>
+              </div>
+            </details>
           </div>
         </header>
 
@@ -867,7 +909,7 @@ export function DeckApp({ config }: DeckAppProps) {
                   <span>{config.ui.tabTitle}</span>
                   <span className="deck-tabs-badge">{config.ui.tabBadge}</span>
                 </h2>
-                <p className="deck-tabs-hint">{config.ui.tabHint}</p>
+                <p className="deck-tabs-hint">{tabHint}</p>
               </div>
               {slideNav()}
             </div>
@@ -917,6 +959,20 @@ export function DeckApp({ config }: DeckAppProps) {
                   </button>
                 ))}
               </div>
+              <button
+                type="button"
+                className="deck-rotation-toggle"
+                onClick={() => setIsRotationPaused((current) => !current)}
+                aria-label={isRotationPaused ? "Resume automatic rotation" : "Pause automatic rotation"}
+                title={isRotationPaused ? "Resume automatic rotation" : "Pause automatic rotation"}
+                data-testid="deck-rotation-toggle"
+                disabled={total < 2 || prefersReducedMotion === true}
+              >
+                {isRotationPaused
+                  ? <Play aria-hidden="true" size={16} />
+                  : <Pause aria-hidden="true" size={16} />}
+                <span>{isRotationPaused ? "Resume" : "Pause"}</span>
+              </button>
               <button
                 type="button"
                 className="deck-carousel-arrow"

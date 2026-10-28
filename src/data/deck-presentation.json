@@ -47,7 +47,9 @@
     "whatsappLabel": "WhatsApp",
     "tabTitle": "Our Products & Services",
     "tabBadge": "Featured",
-    "tabHint": "Slides rotate every 8 seconds; hover over the card to pause.",
+    "tabHint": "Slides rotate every 8 seconds; hover to pause or select a section to pause.",
+    "tabHintTouch": "Tap a section to explore; rotation pauses on selection.",
+    "tabPausedHint": "Rotation paused. Select Resume to continue.",
     "featureDevelopmentLabel": "Feature Development",
     "emptyMessage": "No portfolio sections are available."
   },

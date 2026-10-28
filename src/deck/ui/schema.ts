@@ -50,6 +50,8 @@ export const DeckPresentationSchema = z.object({
     tabTitle: z.string().min(1),
     tabBadge: z.string().min(1),
     tabHint: z.string().min(1),
+    tabHintTouch: z.string().min(1),
+    tabPausedHint: z.string().min(1),
     featureDevelopmentLabel: z.string().min(1),
     emptyMessage: z.string().min(1),
   }),
